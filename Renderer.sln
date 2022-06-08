@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32328.378
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Renderer", "Renderer\Renderer.csproj", "{B7A4304F-7BC0-4C3C-BA7F-8C954E1D1419}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParangEngine", "ParangEngine\ParangEngine.csproj", "{F570F22F-2A78-4972-801D-7AB9A236B6F9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B7A4304F-7BC0-4C3C-BA7F-8C954E1D1419}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7A4304F-7BC0-4C3C-BA7F-8C954E1D1419}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7A4304F-7BC0-4C3C-BA7F-8C954E1D1419}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7A4304F-7BC0-4C3C-BA7F-8C954E1D1419}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F570F22F-2A78-4972-801D-7AB9A236B6F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F570F22F-2A78-4972-801D-7AB9A236B6F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F570F22F-2A78-4972-801D-7AB9A236B6F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F570F22F-2A78-4972-801D-7AB9A236B6F9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {217B73DA-66BE-4514-8774-E5FC4A6FCE32}
+	EndGlobalSection
+EndGlobal
