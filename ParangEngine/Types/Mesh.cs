@@ -34,7 +34,7 @@ namespace ParangEngine.Types
             return Math.Max(a, Math.Max(b, c));
         }
 
-        private void DrawPolygon(BitmapData b, ScreenSize size, Texture texture, Vertex v1, Vertex v2, Vertex v3)
+        private void DrawPolygon(BitmapData b, in ScreenSize size, in Texture texture, in Vertex v1, in Vertex v2, in Vertex v3)
         {
             var p1 = new Point(size, v1);
             var p2 = new Point(size, v2);
@@ -87,7 +87,7 @@ namespace ParangEngine.Types
             }
         }
 
-        private void DrawLine(BitmapData b, ScreenSize size, Vertex v1, Vertex v2)
+        private void DrawLine(BitmapData b, in ScreenSize size, in Vertex v1, in Vertex v2)
         {
             var p1 = new Point(size, v1);
             var p2 = new Point(size, v2);
@@ -149,9 +149,9 @@ namespace ParangEngine.Types
                 DrawLine(b, size, v3, v1);
             }
             var pivot = camera * (transform * new Vertex(new Vector4(Vector3.Zero, 1f), Vector2.Zero, "white"));
-            var px = camera * (transform * new Vertex(new Vector4(transform.Right * 20 , 1f), Vector2.Zero, "red"));
-            var py = camera * (transform * new Vertex(new Vector4(transform.Up * 20, 1f), Vector2.Zero, "green"));
-            var pz = camera * (transform * new Vertex(new Vector4(transform.Forward * 20, 1f), Vector2.Zero, "blue"));
+            var px = camera * (transform * new Vertex(new Vector4(Vector3.UnitX * 20, 1f), Vector2.Zero, "red"));
+            var py = camera * (transform * new Vertex(new Vector4(Vector3.UnitY * 20, 1f), Vector2.Zero, "green"));
+            var pz = camera * (transform * new Vertex(new Vector4(Vector3.UnitZ * 20, 1f), Vector2.Zero, "blue"));
             DrawLine(b, size, pivot, px);
             DrawLine(b, size, pivot, py);
             DrawLine(b, size, pivot, pz);

@@ -46,18 +46,19 @@ namespace ParangEngine
                     new Vertex(new Vector4(25f, -25f, 25f, 1), new Vector2(0.25f, 0.25f), "blue"),
                     new Vertex(new Vector4(-25f, -25f, 25f, 1), new Vector2(0.125f, 0.25f), "white"),
                     
-                    new Vertex(new Vector4(-25f, 25f, -25f, 1), new Vector2(0.125f, 0.125f), "red"),
-                    new Vertex(new Vector4(25f, 25f, -25f, 1), new Vector2(0.25f, 0.125f), "green"),
-                    new Vertex(new Vector4(25f, -25f, -25f, 1), new Vector2(0.25f, 0.25f), "blue"),
-                    new Vertex(new Vector4(-25f, -25f, -25f, 1), new Vector2(0.125f, 0.25f), "white"),
+                    new Vertex(new Vector4(-25f, 25f, -25f, 1), new Vector2(0f, 0.125f), "cyan"),
+                    new Vertex(new Vector4(25f, 25f, -25f, 1), new Vector2(0.375f, 0.125f), "magenta"),
+                    new Vertex(new Vector4(25f, -25f, -25f, 1), new Vector2(0.375f, 0.25f), "yellow"),
+                    new Vertex(new Vector4(-25f, -25f, -25f, 1), new Vector2(0f, 0.25f), "black"),
                 },
                 new List<int>
                 {
-                    0, 1, 2, //face front
-	                0, 2, 3,
-
-                    4, 5, 6,
-                    4, 6, 7,
+                    0, 1, 3, 1, 3, 2,
+                    1, 5, 2, 5, 2, 6,
+                    // 5, 4, 6, 4, 6, 7,
+                    4, 0, 7, 0, 7, 3,
+                    // 4, 5, 0, 5, 0, 1,
+                    // 3, 2, 7, 2, 7, 6,
                 });
 
             texture = new Texture("CKMan.png");
@@ -74,7 +75,7 @@ namespace ParangEngine
             transform2.Position = pos2;
 
             camera = new Camera();
-            camera.Transform.Rotation = new Vector3(0f, 180f, 0f);
+            camera.Transform.Rotation = new Vector3(45f, 180f, 0f);
             // camera.Transform.Position = new Vector3(-160f, -120f, 0f);
         }
 
@@ -85,7 +86,7 @@ namespace ParangEngine
             pos.X %= 100;
             transform.Position = pos; */
             var rot = transform.Rotation;
-            rot.Y += 2f;
+            rot.Y += 1f;
             transform.Rotation = rot;
             
             
