@@ -11,12 +11,14 @@ namespace ParangEngine.Types
 {
     public class Texture
     {
-        public Bitmap image;
+        public int Id { get; private set; }
 
+        private Bitmap image;
         private BitmapData locked;
 
-        public Texture(string path)
+        public Texture(int id, string path)
         {
+            Id = id;
             image = new Bitmap(path, false);
             locked = null;
         }

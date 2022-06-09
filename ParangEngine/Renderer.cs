@@ -14,17 +14,15 @@ namespace ParangEngine
     internal class Renderer
     {
         private Size resolution;
-        private ScreenSize screenSize;
         private Graphics graphics;
         private BufferedGraphicsContext context;
         private BufferedGraphics buffer;
-        private Bitmap image;
-
+        
+        private Camera camera;
         private Mesh mesh;
         private Texture texture;
         private Transform transform;
         private Transform transform2;
-        private Camera camera;
 
         public Renderer(Graphics g, Size res, int downScale)
         {
@@ -34,8 +32,9 @@ namespace ParangEngine
             context.MaximumBuffer = new Size(res.Width + 1, res.Height + 1);
             buffer = context.Allocate(g, new Rectangle(0, 0, res.Width, res.Height));
 
-            image = new Bitmap(res.Width / downScale, res.Height / downScale, PixelFormat.Format24bppRgb);
-            screenSize = new ScreenSize(image);
+            camera = new Camera(res.Width / downScale, res.Height / downScale, 60f);
+            // camera.Transform.Rotation = new Vector3(0f, 180f, 0f);
+            camera.Transform.Position = new Vector3(0f, 0f, -200f);
 
             // TestCode
             mesh = new Mesh(0,
@@ -53,55 +52,45 @@ namespace ParangEngine
                 },
                 new List<int>
                 {
-                    0, 1, 3, 1, 3, 2,
-                    1, 5, 2, 5, 2, 6,
-                    // 5, 4, 6, 4, 6, 7,
-                    4, 0, 7, 0, 7, 3,
-                    // 4, 5, 0, 5, 0, 1,
-                    // 3, 2, 7, 2, 7, 6,
+                    0, 3, 1, 3, 2, 1,
+                    1, 2, 5, 2, 6, 5,
+                    /* 5, 4, 6, 4, 7, 6,
+                    4, 0, 7, 0, 3, 7,
+                    4, 5, 0, 5, 1, 0,
+                    3, 2, 7, 2, 6, 7, */
                 });
-
-            texture = new Texture("CKMan.png");
+            texture = new Texture(0, "CKMan.png");
             transform = new Transform();
-            var pos = transform.Position;
-            // pos.X += 100;
-            // pos.Y += 10;
-            transform.Position = pos;
-
             transform2 = new Transform();
-            var pos2 = transform2.Position;
-            pos2.X += 100;
-            // pos2.Y += 100;
-            transform2.Position = pos2;
-
-            camera = new Camera();
-            camera.Transform.Rotation = new Vector3(45f, 180f, 0f);
-            // camera.Transform.Position = new Vector3(-160f, -120f, 0f);
         }
 
         public void Update()
         {
-            /* var pos = transform.Position;
-            pos.X += 10;
-            pos.X %= 100;
-            transform.Position = pos; */
             var rot = transform.Rotation;
-            rot.Y += 1f;
+            rot.Y += 1;
             transform.Rotation = rot;
-            
-            
+
+            camera.Transform.Update();
+            transform.Update();
+            transform2.Update();
         }
 
         public void Render()
         {
-            var l = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadWrite, image.PixelFormat);
-            l.Clear(Types.Color.Black);
-            texture.Lock();
-            mesh.Draw(l, screenSize, camera, transform, texture);
-            // mesh.Draw(l, screenSize, camera, transform2, texture);
-            texture.Unlock();
-            image.UnlockBits(l);
-            buffer.Graphics.DrawImage(image, 0, 0, resolution.Width, resolution.Height);
+            // 카메라 그리 준비
+            camera.Lock();
+            // 게임 오브젝트 그룹 단위
+            {
+                // 텍스쳐 읽기 준비
+                texture.Lock();
+                {
+                    mesh.Render(camera, transform, texture);
+                    // mesh.Render(camera, transform2, texture);
+                }
+                texture.Unlock();
+            }
+            camera.Unlock();
+            buffer.Graphics.DrawImage(camera.RenderTarget, 0, 0, resolution.Width, resolution.Height);
             buffer.Render(graphics);
         }
     }
