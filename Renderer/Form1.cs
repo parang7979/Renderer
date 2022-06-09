@@ -25,7 +25,7 @@ namespace Renderer
 
             Load += Form1_Load;
             HandleDestroyed += Form1_HandleDestroyed;
-            engine = new Engine(CreateGraphics(), Size, 2);
+            engine = new Engine(CreateGraphics(), new Size(640, 480), 2);
         }
 
         private void Form1_Load(object sender, EventArgs e)

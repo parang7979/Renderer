@@ -38,5 +38,10 @@ namespace ParangEngine.Types
         public float Y => Pos.Y;
         public float Z => Pos.Z;
         public float W => Pos.W;
+
+        public void Transform(Matrix4x4 mat)
+        {
+            Pos = Vector4.Transform(Pos, mat);
+        }
     }
 }

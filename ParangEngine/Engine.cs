@@ -31,6 +31,7 @@ namespace ParangEngine
         {
             while (running)
             {
+                renderer.Update();
                 await Task.Delay(1000 / 60);
             }
         }

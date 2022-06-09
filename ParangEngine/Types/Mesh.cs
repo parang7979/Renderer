@@ -24,20 +24,25 @@ namespace ParangEngine.Types
             this.indicies = indicies;
         }
 
-        private float Min3(float a, float b, float c)
+        private int Min3(int a, int b, int c)
         {
             return Math.Min(a, Math.Min(b, c));
         }
 
-        private float Max3(float a, float b, float c)
+        private int Max3(int a, int b, int c)
         {
             return Math.Max(a, Math.Max(b, c));
         }
 
-        private void DrawPolygon(BitmapData b, Texture texture, Vertex v1, Vertex v2, Vertex v3)
+        private void DrawPolygon(BitmapData b, ScreenSize size, Texture texture, Vertex v1, Vertex v2, Vertex v3)
         {
-            var min = new Vector2(Min3(v1.X, v2.X, v3.X), Min3(v1.Y, v2.Y, v3.Y)); // 좌상
-            var max = new Vector2(Max3(v1.X, v2.X, v3.X), Max3(v1.Y, v2.Y, v3.Y)); // 우하
+            var p1 = new Point(size, v1);
+            var p2 = new Point(size, v2);
+            var p3 = new Point(size, v3);
+
+            var min = new Point(Min3(p1.X, p2.X, p3.X), Min3(p1.Y, p2.Y, p3.Y)); // 좌상
+            var max = new Point(Max3(p1.X, p2.X, p3.X), Max3(p1.Y, p2.Y, p3.Y)); // 우하
+
             var u = v2.Pos.ToVector2() - v1.Pos.ToVector2();
             var v = v3.Pos.ToVector2() - v1.Pos.ToVector2();
             float uDv = Vector2.Dot(u, v);
@@ -46,24 +51,23 @@ namespace ParangEngine.Types
             var d = uDv * uDv - vDv * uDu;
             if (d == 0f) return;
             float invD = 1 / d;
-            var minPixel = new Pixel(min);
-            var maxPixel = new Pixel(max);
 
-            minPixel.X = Math.Max(0, Math.Min(minPixel.X, b.Width - 1));
-            minPixel.Y = Math.Max(0, Math.Min(minPixel.Y, b.Height - 1));
+            min.X = Math.Max(size.ScreenMinX, Math.Min(min.X, size.ScreenMaxX));
+            min.Y = Math.Max(size.ScreenMinY, Math.Min(min.Y, size.ScreenMaxY));
 
-            maxPixel.X = Math.Max(0, Math.Min(maxPixel.X, b.Width - 1));
-            maxPixel.Y = Math.Max(0, Math.Min(maxPixel.Y, b.Height - 1));
+            max.X = Math.Max(size.ScreenMinX, Math.Min(max.X, size.ScreenMaxX));
+            max.Y = Math.Max(size.ScreenMinY, Math.Min(max.Y, size.ScreenMaxY));
 
             /* float invZ1 = 1 / v1.Pos.W;
             float invZ2 = 1 / v2.Pos.W;
             float invZ3 = 1 / v3.Pos.W; */
 
-            for (int x = minPixel.X; x < maxPixel.X; x++)
+            for (int x = min.X; x < max.X; x++)
             {
-                for (int y = minPixel.Y; y < maxPixel.Y; y++)
+                for (int y = min.Y; y < max.Y; y++)
                 {
-                    Vector2 w = new Vector2(x, y) - v1.Pos.ToVector2();
+                    Point p = new Point(x, y);
+                    Vector2 w = p.ToVector2(size) - v1.Pos.ToVector2();
                     float wDu = Vector2.Dot(w, u);
                     float wDv = Vector2.Dot(w, v);
                     float s = (wDv * uDv - wDu * vDv) * invD;
@@ -83,15 +87,15 @@ namespace ParangEngine.Types
             }
         }
 
-        private void DrawLine(BitmapData b, Vertex v1, Vertex v2)
+        private void DrawLine(BitmapData b, ScreenSize size, Vertex v1, Vertex v2)
         {
-            var p1 = new Pixel(v1);
-            var p2 = new Pixel(v2);
+            var p1 = new Point(size, v1);
+            var p2 = new Point(size, v2);
 
             int dx = p2.X - p1.X;
             int dy = p2.Y - p1.Y;
 
-            if (Pixel.ClipLine(b, ref p1, ref p2))
+            if (Point.ClipLine(size, ref p1, ref p2))
             {
                 if (Math.Abs(dx) < Math.Abs(dy))
                 {
@@ -130,19 +134,27 @@ namespace ParangEngine.Types
             }
         }
 
-        public void Draw(BitmapData b, System.Numerics.Matrix4x4 mat, Texture texture)
+        public void Draw(BitmapData b, ScreenSize size, Camera camera, Transform transform, Texture texture)
         {
             int count = indicies.Count / 3 * 3;
             for (int i = 0; i < count; i += 3)
             {
-                var v1 = vertices[indicies[i]];
-                var v2 = vertices[indicies[i + 1]];
-                var v3 = vertices[indicies[i + 2]];
-                DrawPolygon(b, texture, v1, v2, v3);
-                DrawLine(b, v1, v2);
-                DrawLine(b, v2, v3);
-                DrawLine(b, v3, v1);
+                var v1 = camera * (transform * vertices[indicies[i]]);
+                var v2 = camera * (transform * vertices[indicies[i + 1]]);
+                var v3 = camera * (transform * vertices[indicies[i + 2]]);
+
+                DrawPolygon(b, size, texture, v1, v2, v3);
+                DrawLine(b, size, v1, v2);
+                DrawLine(b, size, v2, v3);
+                DrawLine(b, size, v3, v1);
             }
+            var pivot = camera * (transform * new Vertex(new Vector4(Vector3.Zero, 1f), Vector2.Zero, "white"));
+            var px = camera * (transform * new Vertex(new Vector4(transform.Right * 20 , 1f), Vector2.Zero, "red"));
+            var py = camera * (transform * new Vertex(new Vector4(transform.Up * 20, 1f), Vector2.Zero, "green"));
+            var pz = camera * (transform * new Vertex(new Vector4(transform.Forward * 20, 1f), Vector2.Zero, "blue"));
+            DrawLine(b, size, pivot, px);
+            DrawLine(b, size, pivot, py);
+            DrawLine(b, size, pivot, pz);
         }
     }
 }
