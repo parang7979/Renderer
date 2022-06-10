@@ -24,17 +24,12 @@ namespace ParangEngine.Types
             this.indicies = indicies;
         }
 
-        public void Render(Camera camera, Transform transform, Texture texture)
+        public void Render(in Camera camera, in Transform transform, in Texture texture)
         {
-            int count = indicies.Count / 3 * 3;
-            for (int i = 0; i < count; i += 3)
-            {
-                // 정점 변환 (VS)
-                var v1 = vertices[indicies[i]] * transform;
-                var v2 = vertices[indicies[i + 1]] * transform;
-                var v3 = vertices[indicies[i + 2]] * transform;
-                camera.Render(v1, v2, v3, texture);
-            }
+            // 애니메이션, 스키닝, 등등..
+            camera.Render(vertices, 
+                transform, texture,
+                (v, m) => Vertex.Transform(v, m));
             camera.RenderAxes(transform);
         }
     }

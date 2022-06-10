@@ -17,6 +17,8 @@ namespace ParangEngine.Types
         public Vector3 Right => Vector3.Transform(Vector3.UnitX, quaternion);
         public Vector3 Up => Vector3.Transform(Vector3.UnitY, quaternion);
         public Vector3 Forward => Vector3.Transform(Vector3.UnitZ, quaternion);
+        public Quaternion Quaternion => quaternion;
+        public Matrix4x4 Mat => mat;
 
         private Quaternion quaternion = Quaternion.Identity;
         private Matrix4x4 mat;
@@ -27,18 +29,6 @@ namespace ParangEngine.Types
             mat = Matrix4x4.CreateFromQuaternion(quaternion) * 
                 Matrix4x4.CreateTranslation(Position) * 
                 Matrix4x4.CreateScale(Scale);
-        }
-
-        static public Vertex operator *(Vertex v, in Transform t)
-        {
-            v.Pos *= t;
-            return v;
-        }
-
-        static public Vector4 operator *(Vector4 pos, in Transform t)
-        {
-            pos = Vector4.Transform(pos, t.mat);
-            return pos;
         }
     }
 }

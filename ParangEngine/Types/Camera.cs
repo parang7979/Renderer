@@ -26,7 +26,8 @@ namespace ParangEngine.Types
 
         private BitmapData locked;
         private Matrix4x4 vMat;
-        private Matrix4x4 mat;
+        private Matrix4x4 pMat;
+        private Matrix4x4 pvMat;
         private Frustum frustum;
 
         public Camera(int width, int height, float fov)
@@ -43,9 +44,9 @@ namespace ParangEngine.Types
                 // 뷰 메트릭스
                 vMat = Matrix4x4.CreateLookAt(Transform.Position, Transform.Position + Transform.Forward, Transform.Up);
                 // 투영 매트릭스
-                var pMat = Matrix4x4.CreatePerspectiveFieldOfView(Fov.ToRad(), Screen.AspectRatio, 1f, 100f);
+                pMat = Matrix4x4.CreatePerspectiveFieldOfView(Fov.ToRad(), Screen.AspectRatio, 1f, 100f);
                 // 매트릭스 합침
-                mat = vMat * pMat;
+                pvMat = vMat * pMat;
                 // 절두체
                 frustum = new Frustum(pMat);
                 // 렌더 타겟 잠금
@@ -62,22 +63,26 @@ namespace ParangEngine.Types
             return frustum.Check(viewPos.ToVector3()) != Frustum.Result.Outside;
         }
 
-        public void Render(Vertex v1, Vertex v2, Vertex v3, in Texture texture)
+        public void Render(List<Vertex> vertices, in Transform transform, in Texture texture, Func<Vertex, Matrix4x4, Vertex> VS)
         {
             if (locked != null)
             {
-                // Local To View
-                v1 = ApplyView(v1);
-                v2 = ApplyView(v2);
-                v3 = ApplyView(v3);
-                
+                // 버텍스 변환 L -> V
+                var mat = transform.Mat * pvMat;
+                for(int i = 0; i < vertices.Count; i++)
+                    vertices[i] = VS(vertices[i], mat);
+
+                for (int i = 0; i < vertices.Count / 3; i++)
+                {
+                    var tri = vertices.GetRange(i * 3, 3);
+                }
+
+                CovertToView(vertices);
                 // 클립
 
 
                 // View to NDC
-                v1 = ConvertToNDC(v1);
-                v2 = ConvertToNDC(v2);
-                v3 = ConvertToNDC(v3);
+                ConvertToNDC(vertices);
 
                 var edge1 = (v2.Pos - v1.Pos).ToVector3();
                 var edge2 = (v3.Pos - v1.Pos).ToVector3();
@@ -104,10 +109,10 @@ namespace ParangEngine.Types
         {
             if (locked != null)
             {
-                var c = ApplyScreen(ConvertToNDC(ApplyView(center * transform)));
-                var x = ApplyScreen(ConvertToNDC(ApplyView(xAxis * transform)));
-                var y = ApplyScreen(ConvertToNDC(ApplyView(yAxis * transform)));
-                var z = ApplyScreen(ConvertToNDC(ApplyView(zAxis * transform)));
+                var c = ApplyScreen(ConvertToNDC(CovertToView(center * transform)));
+                var x = ApplyScreen(ConvertToNDC(CovertToView(xAxis * transform)));
+                var y = ApplyScreen(ConvertToNDC(CovertToView(yAxis * transform)));
+                var z = ApplyScreen(ConvertToNDC(CovertToView(zAxis * transform)));
                 locked.DrawLine(Screen, c, x, new Color("red"));
                 locked.DrawLine(Screen, c, y, new Color("green"));
                 locked.DrawLine(Screen, c, z, new Color("blue"));
@@ -123,8 +128,8 @@ namespace ParangEngine.Types
                     Vector4 v1 = p1;
                     Vector4 v2 = p2;
 
-                    v1 = ApplyView(v1);
-                    v2 = ApplyView(v2);
+                    v1 = CovertToView(v1);
+                    v2 = CovertToView(v2);
 
                     v1 = v1.Clip(v2);
                     v2 = v2.Clip(v1);
@@ -150,16 +155,28 @@ namespace ParangEngine.Types
             }
         }
 
-        private Vertex ApplyView(Vertex v)
+        private void CovertToView(List<Vertex> vertices)
         {
-            v.Pos = ApplyView(v.Pos);
+            for(int i = 0; i < vertices.Count; i++)
+                vertices[i] = CovertToView(vertices[i]);
+        }
+
+        private Vertex CovertToView(Vertex v)
+        {
+            v.Pos = CovertToView(v.Pos);
             return v;
         }
 
-        private Vector4 ApplyView(Vector4 v)
+        private Vector4 CovertToView(Vector4 v)
         {
-            v = Vector4.Transform(v, mat);
+            v = Vector4.Transform(v, vpMat);
             return v;
+        }
+
+        private void ConvertToNDC(List<Vertex> vertices)
+        {
+            for (int i = 0; i < vertices.Count; i++)
+                vertices[i] = ConvertToNDC(vertices[i]);
         }
 
         private Vertex ConvertToNDC(Vertex v)
@@ -176,6 +193,12 @@ namespace ParangEngine.Types
             v.Y *= invW;
             v.Z *= invW;
             return v;
+        }
+
+        private void ApplyScreen(List<Vertex> vertices)
+        {
+            for (int i = 0; i < vertices.Count; i++)
+                vertices[i] = ApplyScreen(vertices[i]);
         }
 
         private Vertex ApplyScreen(Vertex v)

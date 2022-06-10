@@ -59,7 +59,7 @@ namespace ParangEngine.Utils
             return Math.Max(a, Math.Max(b, c));
         }
 
-        static public void DrawPolygon(this BitmapData b, in Screen screen, in Vertex v1, in Vertex v2, in Vertex v3, in Texture texture)
+        static public void DrawTriangle(this BitmapData b, in Screen screen, in Vertex v1, in Vertex v2, in Vertex v3, in Texture texture)
         {
             var p1 = screen.ToPoint(v1);
             var p2 = screen.ToPoint(v2);
