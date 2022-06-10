@@ -59,17 +59,17 @@ namespace ParangEngine.Utils
             return Math.Max(a, Math.Max(b, c));
         }
 
-        static public void DrawPolygon(this BitmapData b, in Screen size, in Vertex v1, in Vertex v2, in Vertex v3, in Texture texture)
+        static public void DrawPolygon(this BitmapData b, in Screen screen, in Vertex v1, in Vertex v2, in Vertex v3, in Texture texture)
         {
-            var p1 = new Point(size, v1);
-            var p2 = new Point(size, v2);
-            var p3 = new Point(size, v3);
+            var p1 = screen.ToPoint(v1);
+            var p2 = screen.ToPoint(v2);
+            var p3 = screen.ToPoint(v3);
 
-            var min = size.Clamp(new Point(
+            var min = screen.Clamp(new Point(
                 Min3(p1.X, p2.X, p3.X),
                 Min3(p1.Y, p2.Y, p3.Y))); // 좌상
 
-            var max = size.Clamp(new Point(
+            var max = screen.Clamp(new Point(
                 Max3(p1.X, p2.X, p3.X),
                 Max3(p1.Y, p2.Y, p3.Y))); // 우하
 
@@ -82,16 +82,16 @@ namespace ParangEngine.Utils
             if (d == 0f) return;
             float invD = 1 / d;
 
-            /* float invZ1 = 1 / v1.Pos.W;
-            float invZ2 = 1 / v2.Pos.W;
-            float invZ3 = 1 / v3.Pos.W; */
+            float invZ1 = 1f / v1.Pos.W;
+            float invZ2 = 1f / v2.Pos.W;
+            float invZ3 = 1f / v3.Pos.W;
 
             for (int x = min.X; x < max.X; x++)
             {
                 for (int y = min.Y; y < max.Y; y++)
                 {
                     Point p = new Point(x, y);
-                    Vector2 w = p.ToVector2(size) - v1.Pos.ToVector2();
+                    Vector2 w = p.ToVector2(screen) - v1.Pos.ToVector2();
                     float wDu = Vector2.Dot(w, u);
                     float wDv = Vector2.Dot(w, v);
                     float s = (wDv * uDv - wDu * vDv) * invD;
@@ -99,11 +99,17 @@ namespace ParangEngine.Utils
                     float o = 1f - s - t;
                     if ((0f <= s && s <= 1f) && (0f <= t && t <= 1f) && (0f <= o && o <= 1f))
                     {
-                        var c = v1.Color * o + v2.Color * s + v3.Color * t;
+                        var z = invZ1 * o + invZ2 * s + invZ3 * t;
+                        var invZ = 1f / z;
+                        Color c;
                         if (texture != null)
                         {
-                            var uv = v1.UV * o + v2.UV * s + v3.UV * t;
+                            var uv = (v1.UV * o * invZ1 + v2.UV * s * invZ2 + v3.UV * t * invZ3) * invZ;
                             c = texture.GetSample(uv);
+                        }
+                        else
+                        {
+                            c = (v1.Color * o * invZ1 + v2.Color * s * invZ2 + v3.Color * t * invZ3) * invZ;
                         }
                         b.SetPixel(x, y, c);
                     }
@@ -111,15 +117,15 @@ namespace ParangEngine.Utils
             }
         }
 
-        static public void DrawLine(this BitmapData b, in Screen size, in Vertex v1, in Vertex v2)
+        static public void DrawLine(this BitmapData b, in Screen screen, in Vertex v1, in Vertex v2)
         {
-            var p1 = new Point(size, v1);
-            var p2 = new Point(size, v2);
+            var p1 = screen.ToPoint(v1);
+            var p2 = screen.ToPoint(v2);
 
             int dx = p2.X - p1.X;
             int dy = p2.Y - p1.Y;
 
-            if (size.ClipLine(ref p1, ref p2))
+            if (screen.ClipLine(ref p1, ref p2))
             {
                 if (Math.Abs(dx) < Math.Abs(dy))
                 {
@@ -158,15 +164,15 @@ namespace ParangEngine.Utils
             }
         }
 
-        static public void DrawLine(this BitmapData b, in Screen size, in Vector4 v1, in Vector4 v2, in Color color)
+        static public void DrawLine(this BitmapData b, in Screen screen, in Vector4 v1, in Vector4 v2, in Color color)
         {
-            var p1 = new Point(size, v1);
-            var p2 = new Point(size, v2);
+            var p1 = screen.ToPoint(v1);
+            var p2 = screen.ToPoint(v2);
 
             int dx = p2.X - p1.X;
             int dy = p2.Y - p1.Y;
 
-            if (size.ClipLine(ref p1, ref p2))
+            if (screen.ClipLine(ref p1, ref p2))
             {
                 if (Math.Abs(dx) < Math.Abs(dy))
                 {

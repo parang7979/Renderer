@@ -13,13 +13,14 @@ namespace ParangEngine.Types
     public class Camera
     {
         static private readonly Vector4 center = new Vector4(Vector3.Zero, 1f);
-        static private readonly Vector4 xAxis = new Vector4(Vector3.UnitX * 20, 1f);
-        static private readonly Vector4 yAxis = new Vector4(Vector3.UnitY * 20, 1f);
-        static private readonly Vector4 zAxis = new Vector4(Vector3.UnitZ * 20, 1f);
+        static private readonly Vector4 xAxis = new Vector4(Vector3.UnitX, 1f);
+        static private readonly Vector4 yAxis = new Vector4(Vector3.UnitY, 1f);
+        static private readonly Vector4 zAxis = new Vector4(Vector3.UnitZ, 1f);
 
         public Transform Transform { get; private set; } = new Transform();
         public Screen Screen { get; private set; }
-        public float Fov { get; set; }
+        public float Fov { get; set; } = 60f;
+        public Color ClearColor { get; set; } = Color.Black;
         
         public Bitmap RenderTarget { get; set; }
 
@@ -37,12 +38,14 @@ namespace ParangEngine.Types
         {
             if (locked == null)
             {
-                locked = RenderTarget.LockBits(new Rectangle(0, 0, RenderTarget.Width, RenderTarget.Height), ImageLockMode.ReadWrite, RenderTarget.PixelFormat);
                 // 뷰 메트릭스 생성
                 mat = Matrix4x4.CreateLookAt(Transform.Position, Transform.Position + Transform.Forward, Transform.Up);
                 // Perspective
                 mat *= Matrix4x4.CreatePerspectiveFieldOfView(Fov.ToRad(), Screen.AspectRatio, 1f, 100f);
-                locked.Clear(Types.Color.White);
+                // 렌더 타겟 잠금
+                locked = RenderTarget.LockBits(new Rectangle(0, 0, RenderTarget.Width, RenderTarget.Height), ImageLockMode.ReadWrite, RenderTarget.PixelFormat);
+                // 컬러 클리어
+                locked.Clear(ClearColor);
             }
         }
 

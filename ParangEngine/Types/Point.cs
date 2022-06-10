@@ -23,27 +23,9 @@ namespace ParangEngine.Types
             Y = y;
         }
 
-        public Point(Screen screen, Vector2 v)
-        {
-            X = (int)(v.X + screen.HalfWidth);
-            Y = (int)(screen.HalfHeight - v.Y);
-        }
-
-        public Point(Screen screen, Vector4 v)
-        {
-            X = (int)(v.X + screen.HalfWidth);
-            Y = (int)(screen.HalfHeight - v.Y);
-        }
-
-        public Point(Screen screen, Vertex v)
-        {
-            X = (int)(v.X + screen.HalfWidth);
-            Y = (int)(screen.HalfHeight - v.Y);
-        }
-
         public Vector2 ToVector2(Screen screen)
         {
-            return new Vector2(X - screen.HalfWidth, screen.HalfHeight - Y);
+            return new Vector2(screen.HalfWidth - X, screen.HalfHeight - Y);
         }   
     }
 }

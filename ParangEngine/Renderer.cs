@@ -33,34 +33,32 @@ namespace ParangEngine
             buffer = context.Allocate(g, new Rectangle(0, 0, res.Width, res.Height));
 
             camera = new Camera(res.Width / downScale, res.Height / downScale, 60f);
-            // camera.Transform.Rotation = new Vector3(0f, 180f, 0f);
-            camera.Transform.Position = new Vector3(0f, 0f, -200f);
+            camera.Transform.Rotation = new Vector3(45f, 0f, 0f);
+            camera.Transform.Position = new Vector3(0f, 5f, -5f);
+            // camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
 
             // TestCode
             mesh = new Mesh(0,
                 new List<Vertex>
                 {
-                    new Vertex(new Vector4(-25f, 25f, 25f, 1), new Vector2(0.125f, 0.125f), "red"),
-                    new Vertex(new Vector4(25f, 25f, 25f, 1), new Vector2(0.25f, 0.125f), "green"),
-                    new Vertex(new Vector4(25f, -25f, 25f, 1), new Vector2(0.25f, 0.25f), "blue"),
-                    new Vertex(new Vector4(-25f, -25f, 25f, 1), new Vector2(0.125f, 0.25f), "white"),
-                    
-                    new Vertex(new Vector4(-25f, 25f, -25f, 1), new Vector2(0f, 0.125f), "cyan"),
-                    new Vertex(new Vector4(25f, 25f, -25f, 1), new Vector2(0.375f, 0.125f), "magenta"),
-                    new Vertex(new Vector4(25f, -25f, -25f, 1), new Vector2(0.375f, 0.25f), "yellow"),
-                    new Vertex(new Vector4(-25f, -25f, -25f, 1), new Vector2(0f, 0.25f), "black"),
+                    new Vertex(new Vector4(-0.5f, 0.5f, 0.5f, 1), new Vector2(0.25f, 0.125f), "cyan"),
+                    new Vertex(new Vector4(0.5f, 0.5f, 0.5f, 1), new Vector2(0.125f, 0.125f), "magenta"),
+                    new Vertex(new Vector4(0.5f, -0.5f, 0.5f, 1), new Vector2(0.125f, 0.25f), "yellow"),
+                    new Vertex(new Vector4(-0.5f, -0.5f, 0.5f, 1), new Vector2(0.25f, 0.25f), "black"),
+                    new Vertex(new Vector4(-0.5f, 0.5f, -0.5f, 1), new Vector2(0.375f, 0.125f), "red"),
+                    new Vertex(new Vector4(0.5f, 0.5f, -0.5f, 1), new Vector2(0f, 0.25f), "green"),
+                    new Vertex(new Vector4(0.5f, -0.5f, -0.5f, 1), new Vector2(0f, 0.125f), "blue"),
+                    new Vertex(new Vector4(-0.5f, -0.5f, -0.5f, 1), new Vector2(0.375f, 0.25f), "white"),
                 },
                 new List<int>
                 {
-                    0, 3, 1, 3, 2, 1,
-                    1, 2, 5, 2, 6, 5,
-                    /* 5, 4, 6, 4, 7, 6,
-                    4, 0, 7, 0, 3, 7,
-                    4, 5, 0, 5, 1, 0,
-                    3, 2, 7, 2, 6, 7, */
+                    0, 3, 2, 0, 2, 1,
+                    1, 2, 6, 1, 6, 5,
+                    4, 7, 3, 4, 3, 0,
                 });
             texture = new Texture(0, "CKMan.png");
             transform = new Transform();
+            transform.Position = new Vector3(0f, 0f, 0f);
             transform2 = new Transform();
         }
 
