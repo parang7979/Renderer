@@ -33,8 +33,8 @@ namespace ParangEngine
             buffer = context.Allocate(g, new Rectangle(0, 0, res.Width, res.Height));
 
             camera = new Camera(res.Width / downScale, res.Height / downScale, 60f);
-            camera.Transform.Rotation = new Vector3(45f, 0f, 0f);
-            camera.Transform.Position = new Vector3(0f, 5f, -5f);
+            // camera.Transform.Rotation = new Vector3(45f, 0f, 0f);
+            camera.Transform.Position = new Vector3(0f, 0f, -5f);
             // camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
 
             // TestCode
@@ -60,6 +60,8 @@ namespace ParangEngine
             transform = new Transform();
             transform.Position = new Vector3(0f, 0f, 0f);
             transform2 = new Transform();
+
+            Gizmos.CreateGrid(10);
         }
 
         public void Update()
@@ -82,8 +84,13 @@ namespace ParangEngine
                 // 텍스쳐 읽기 준비
                 texture.Lock();
                 {
-                    mesh.Render(camera, transform, texture);
-                    // mesh.Render(camera, transform2, texture);
+                    for (int i = 0; i < 1000; i++)
+                    {
+                        transform.Position = new Vector3(i, 0f, 0f);
+                        transform.Update();
+                        if (camera.DrawCheck(transform))
+                            mesh.Render(camera, transform, texture);
+                    }                    
                 }
                 texture.Unlock();
             }

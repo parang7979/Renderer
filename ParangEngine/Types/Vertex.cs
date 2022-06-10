@@ -13,11 +13,18 @@ namespace ParangEngine.Types
         public Vector2 UV { get; set; }
         public Color Color { get; set; }
 
+        public Vertex(in Vector4 v)
+        {
+            Pos = v;
+            UV = Vector2.Zero;
+            Color = Color.White;
+        }
+
         public Vertex(in Vector4 v, in Vector2 uv)
         {
             Pos = v;
             UV = uv;
-            Color = new Color(1f, 1f, 1f);
+            Color = Color.White;
         }
 
         public Vertex(in Vector4 v, in Vector2 uv, in Color color)

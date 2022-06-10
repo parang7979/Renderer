@@ -56,7 +56,8 @@ namespace ParangEngine.Types
                     var v = (int)(y * locked.Height);
                     var bit = locked.Stride / locked.Width;
                     var index = (v * locked.Width + u) * bit;
-                    return new Color(ptr[index + 2], ptr[index + 1], ptr[index]);
+                    if (0 <= index  && index < locked.Stride * locked.Height)
+                        return new Color(ptr[index + 2], ptr[index + 1], ptr[index]);
                 }
             }
             return Color.White; // 나중에 마젠타?

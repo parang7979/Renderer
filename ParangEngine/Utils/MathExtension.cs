@@ -24,27 +24,34 @@ namespace ParangEngine.Utils
             return rad * 180 * InvPI;
         }
 
-        public static (float sin, float cos) GetSinCosRad(this float rad)
-        {
-            return ((float)Math.Sin(rad), (float)Math.Cos(rad));
-        }
-
-        public static (float sin, float cos) GetSinCos(this float degree)
-        {
-            if (degree == 0f) return (0f, 1f);
-            else if (degree == 90f) return (1f, 0f);
-            else if (degree == 180f) return (0f, -1f);
-            else if (degree == 270f) return (-1f, 0f);
-            else return GetSinCosRad(degree);
-        }
-
-        public static Matrix4x4 GetMatrix(Vector4 v1, Vector4 v2, Vector4 v3, Vector4 v4)
+        public static Matrix4x4 MakeMatrix(Vector4 v1, Vector4 v2, Vector4 v3, Vector4 v4)
         {
             return new Matrix4x4(
                 v1.X, v1.Y, v1.Z, v1.W,
                 v2.X, v2.Y, v2.Z, v2.W,
                 v3.X, v3.Y, v3.Z, v3.W,
                 v4.X, v4.Y, v4.Z, v4.W);
+        }
+
+        public static Vector4[] SplitMatrix(this Matrix4x4 mat)
+        {
+            return new Vector4[]
+            {
+                new Vector4(mat.M11, mat.M12, mat.M13, mat.M14),
+                new Vector4(mat.M21, mat.M22, mat.M23, mat.M24),
+                new Vector4(mat.M31, mat.M32, mat.M33, mat.M34),
+                new Vector4(mat.M41, mat.M42, mat.M43, mat.M44),
+            };
+        }
+
+        static public float Distance(this Plane plane, Vector3 v)
+        {
+            return Vector3.Dot(plane.Normal, v) + plane.D;
+        }
+
+        static public bool IsOutside(this Plane plane, Vector3 v)
+        {
+            return plane.Distance(v) > 0f;
         }
     }
 }

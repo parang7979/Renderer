@@ -24,18 +24,19 @@ namespace ParangEngine.Types
         public void Update()
         {
             quaternion = Quaternion.CreateFromYawPitchRoll(Rotation.Y.ToRad(), Rotation.X.ToRad(), Rotation.Z.ToRad());
-            mat = Matrix4x4.CreateTranslation(Position) * Matrix4x4.CreateScale(Scale);
+            mat = Matrix4x4.CreateFromQuaternion(quaternion) * 
+                Matrix4x4.CreateTranslation(Position) * 
+                Matrix4x4.CreateScale(Scale);
         }
 
-        static public Vertex operator *(Vertex v, Transform t)
+        static public Vertex operator *(Vertex v, in Transform t)
         {
             v.Pos *= t;
             return v;
         }
 
-        static public Vector4 operator *(Vector4 pos, Transform t)
+        static public Vector4 operator *(Vector4 pos, in Transform t)
         {
-            pos = Vector4.Transform(pos, t.quaternion);
             pos = Vector4.Transform(pos, t.mat);
             return pos;
         }

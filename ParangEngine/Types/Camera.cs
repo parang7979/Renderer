@@ -25,7 +25,9 @@ namespace ParangEngine.Types
         public Bitmap RenderTarget { get; set; }
 
         private BitmapData locked;
+        private Matrix4x4 vMat;
         private Matrix4x4 mat;
+        private Frustum frustum;
 
         public Camera(int width, int height, float fov)
         {
@@ -38,29 +40,47 @@ namespace ParangEngine.Types
         {
             if (locked == null)
             {
-                // 뷰 메트릭스 생성
-                mat = Matrix4x4.CreateLookAt(Transform.Position, Transform.Position + Transform.Forward, Transform.Up);
-                // Perspective
-                mat *= Matrix4x4.CreatePerspectiveFieldOfView(Fov.ToRad(), Screen.AspectRatio, 1f, 100f);
+                // 뷰 메트릭스
+                vMat = Matrix4x4.CreateLookAt(Transform.Position, Transform.Position + Transform.Forward, Transform.Up);
+                // 투영 매트릭스
+                var pMat = Matrix4x4.CreatePerspectiveFieldOfView(Fov.ToRad(), Screen.AspectRatio, 1f, 100f);
+                // 매트릭스 합침
+                mat = vMat * pMat;
+                // 절두체
+                frustum = new Frustum(pMat);
                 // 렌더 타겟 잠금
                 locked = RenderTarget.LockBits(new Rectangle(0, 0, RenderTarget.Width, RenderTarget.Height), ImageLockMode.ReadWrite, RenderTarget.PixelFormat);
                 // 컬러 클리어
                 locked.Clear(ClearColor);
+                DrawGizemos();
             }
         }
 
-        public void Render(Vertex v1, Vertex v2, Vertex v3, Texture texture)
+        public bool DrawCheck(Transform transform)
+        {
+            var viewPos = Vector4.Transform(new Vector4(transform.Position, 1), vMat);
+            return frustum.Check(viewPos.ToVector3()) != Frustum.Result.Outside;
+        }
+
+        public void Render(Vertex v1, Vertex v2, Vertex v3, in Texture texture)
         {
             if (locked != null)
             {
-                // 정점을 카메라 뷰에 맞게 변환
+                // Local To View
                 v1 = ApplyView(v1);
                 v2 = ApplyView(v2);
                 v3 = ApplyView(v3);
+                
+                // 클립
+
+
+                // View to NDC
+                v1 = ConvertToNDC(v1);
+                v2 = ConvertToNDC(v2);
+                v3 = ConvertToNDC(v3);
 
                 var edge1 = (v2.Pos - v1.Pos).ToVector3();
                 var edge2 = (v3.Pos - v1.Pos).ToVector3();
-                
                 // cw backface culling
                 var faceNormal = -Vector3.Cross(edge1, edge2);
                 if (Vector3.Dot(faceNormal, Vector3.UnitZ) >= 0f)
@@ -80,17 +100,44 @@ namespace ParangEngine.Types
             }
         }
 
-        public void RenderAxes(Transform transform)
+        public void RenderAxes(in Transform transform)
         {
             if (locked != null)
             {
-                var c = ApplyScreen(ApplyView(center * transform));
-                var x = ApplyScreen(ApplyView(xAxis * transform));
-                var y = ApplyScreen(ApplyView(yAxis * transform));
-                var z = ApplyScreen(ApplyView(zAxis * transform));
+                var c = ApplyScreen(ConvertToNDC(ApplyView(center * transform)));
+                var x = ApplyScreen(ConvertToNDC(ApplyView(xAxis * transform)));
+                var y = ApplyScreen(ConvertToNDC(ApplyView(yAxis * transform)));
+                var z = ApplyScreen(ConvertToNDC(ApplyView(zAxis * transform)));
                 locked.DrawLine(Screen, c, x, new Color("red"));
                 locked.DrawLine(Screen, c, y, new Color("green"));
                 locked.DrawLine(Screen, c, z, new Color("blue"));
+            }
+        }
+
+        private void DrawGizemos()
+        {
+            if (Gizmos.Grids != null)
+            {
+                foreach (var (p1, p2) in Gizmos.Grids)
+                {
+                    Vector4 v1 = p1;
+                    Vector4 v2 = p2;
+
+                    v1 = ApplyView(v1);
+                    v2 = ApplyView(v2);
+
+                    v1 = v1.Clip(v2);
+                    v2 = v2.Clip(v1);
+
+                    // View to NDC
+                    v1 = ConvertToNDC(v1);
+                    v2 = ConvertToNDC(v2);
+
+                    v1 = ApplyScreen(v1);
+                    v2 = ApplyScreen(v2);
+
+                    locked.DrawLine(Screen, v1, v2, new Color("gray"));
+                }
             }
         }
 
@@ -103,34 +150,45 @@ namespace ParangEngine.Types
             }
         }
 
-        public Vertex ApplyView(Vertex v)
+        private Vertex ApplyView(Vertex v)
         {
             v.Pos = ApplyView(v.Pos);
             return v;
         }
 
-        public Vector4 ApplyView(Vector4 pos)
+        private Vector4 ApplyView(Vector4 v)
         {
-            pos = Vector4.Transform(pos, mat);
-            pos.Z = pos.Z == 0f ? float.MinValue : pos.Z;
-            var invZ = 1f / pos.Z;
-            pos.X *= invZ;
-            pos.Y *= invZ;
-            pos.Z *= invZ;
-            return pos;
+            v = Vector4.Transform(v, mat);
+            return v;
         }
 
-        public Vertex ApplyScreen(Vertex v)
+        private Vertex ConvertToNDC(Vertex v)
+        {
+            v.Pos = ConvertToNDC(v.Pos);
+            return v;
+        }
+
+        private Vector4 ConvertToNDC(Vector4 v)
+        {
+            v.W = v.W == 0f ? float.Epsilon : v.W;
+            var invW = 1f / v.W;
+            v.X *= invW;
+            v.Y *= invW;
+            v.Z *= invW;
+            return v;
+        }
+
+        private Vertex ApplyScreen(Vertex v)
         {
             v.Pos = ApplyScreen(v.Pos);
             return v;
         }
 
-        public Vector4 ApplyScreen(Vector4 pos)
+        private Vector4 ApplyScreen(Vector4 v)
         {
-            pos.X *= Screen.HalfWidth;
-            pos.Y *= Screen.HalfHeight;
-            return pos;
+            v.X *= Screen.HalfWidth;
+            v.Y *= Screen.HalfHeight;
+            return v;
         }
     }
 }
