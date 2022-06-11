@@ -267,7 +267,7 @@ namespace ParangEngine.Types
             }
         }
 
-        public void Render(Color clearColor)
+        public void Render(Color clearColor, List<Vector3> lights)
         {
             var l1 = new Color("red");
             var l2 = new Color("Green");
@@ -282,15 +282,21 @@ namespace ParangEngine.Types
                 for (int x = 0; x < l.Width; x++)
                 {
                     var c1 = locks[BufferType.Albedo].GetPixel(x, y);
-                    var c2 = Color.Black;//locks[BufferType.Gizmo].GetPixel(x, y);
+                    if (c1.IsBlack) continue;
+                    var c2 = locks[BufferType.Gizmo].GetPixel(x, y);
+
                     var n = locks[BufferType.Normal].GetPixel(x, y);
-                    var normal = new Vector3((n.R * 2f) - 1f, (n.R * 2f) - 1f, (n.R * 2f) - 1f);
-                    var d1 = Vector3.Dot(normal, Vector3.UnitX) * 10f;
-                    var d2 = Vector3.Dot(normal, -Vector3.UnitX) * 10f;
-                    var d3 = Vector3.Dot(normal, Vector3.UnitZ) * 100f;
-                    var c = (c1 * ((l1 * d1) + (l2 * d2) + (l3 * d3))) + c2;
-                    if (!c.IsBlack) 
-                        l.SetPixel(x, y, c);
+                    if (!n.IsBlack)
+                    {
+                        var normal = new Vector3((n.R * 2f) - 1f, (n.R * 2f) - 1f, (n.R * 2f) - 1f);
+                        var d1 = Vector3.Dot(normal, lights[0]);
+                        var d2 = Vector3.Dot(normal, lights[1]) * 10f;
+                        var d3 = Vector3.Dot(normal, lights[2]) * 10f;
+                        c1 += (l3 * d3); //(c1 * ( + (l2 * d2) + (l3 * d3))) + c2;
+                        c1 += c2;
+                    }
+                    // if (!c1.IsBlack) 
+                        l.SetPixel(x, y, c1);
                 }
             }
             render.UnlockBits(l);

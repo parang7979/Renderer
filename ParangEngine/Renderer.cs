@@ -69,7 +69,7 @@ namespace ParangEngine
         public void Update()
         {
             var rot = transform.Rotation;
-            rot.Y += 1;
+            rot.Y -= 1;
             transform.Rotation = rot;
 
             camera.Transform.Update();
@@ -100,9 +100,9 @@ namespace ParangEngine
             if (gBuffer != null)
             {
                 buffer.Graphics.DrawImage(gBuffer.RenderTarget, 0, 0, resolution.Width, resolution.Height);                
-                /* buffer.Graphics.DrawImage(gBuffer.GetBuffer(GBuffer.BufferType.Albedo), 0, 0, resolution.Width / 5, resolution.Height / 5);
+                buffer.Graphics.DrawImage(gBuffer.GetBuffer(GBuffer.BufferType.Albedo), 0, 0, resolution.Width / 5, resolution.Height / 5);
                 buffer.Graphics.DrawImage(gBuffer.GetBuffer(GBuffer.BufferType.Position), 0, resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
-                buffer.Graphics.DrawImage(gBuffer.GetBuffer(GBuffer.BufferType.Normal), 0, 2 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5); */
+                buffer.Graphics.DrawImage(gBuffer.GetBuffer(GBuffer.BufferType.Normal), 0, 2 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
                 buffer.Render(graphics);
             }
         }
