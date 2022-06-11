@@ -86,7 +86,7 @@ namespace ParangEngine
                 {
                     for (int i = 0; i < 1000; i++)
                     {
-                        transform.Position = new Vector3(i, 0f, 0f);
+                        transform.Position = new Vector3(i, 0f, i);
                         transform.Update();
                         if (camera.DrawCheck(transform))
                             mesh.Render(camera, transform, texture);
@@ -98,6 +98,7 @@ namespace ParangEngine
             }
             camera.Unlock();
             buffer.Graphics.DrawImage(camera.RenderTarget, 0, 0, resolution.Width, resolution.Height);
+            buffer.Graphics.DrawImage(camera.DepthTexture, 0, 0, resolution.Width / 5, resolution.Height / 5);
             buffer.Render(graphics);
         }
     }

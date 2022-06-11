@@ -59,7 +59,7 @@ namespace ParangEngine.Utils
             return Math.Max(a, Math.Max(b, c));
         }
 
-        static public void DrawTriangle(this BitmapData b, in Screen screen, in Vertex v1, in Vertex v2, in Vertex v3, in Texture texture)
+        static public void DrawTriangle(this BitmapData b, in Screen screen, in Vertex v1, in Vertex v2, in Vertex v3, in Texture texture, in BitmapData depthData)
         {
             var p1 = screen.ToPoint(v1);
             var p2 = screen.ToPoint(v2);
@@ -99,6 +99,13 @@ namespace ParangEngine.Utils
                     float o = 1f - s - t;
                     if ((0f <= s && s <= 1f) && (0f <= t && t <= 1f) && (0f <= o && o <= 1f))
                     {
+                        if (depthData != null)
+                        {
+                            // depth test
+                            float depth = v1.Z * o + v2.Z * s + v3.Z * t;
+                            if (!depthData.SetDepth(x, y, depth)) continue;
+                        }
+
                         var z = invZ1 * o + invZ2 * s + invZ3 * t;
                         var invZ = 1f / z;
                         Color c;
@@ -205,6 +212,34 @@ namespace ParangEngine.Utils
                         b.SetPixel(x, y, color);
                     }
                 }
+            }
+        }
+
+        static public void ClearDepth(this BitmapData b)
+        {
+            unsafe
+            {
+                for (int i = 0; i < b.Height * b.Width; i++)
+                {
+                    var ptr = (ushort*)b.Scan0;
+                    ptr[i] = 0;
+                }
+            }
+        }
+
+        static public bool SetDepth(this BitmapData b, int x, int y, float depth)
+        {
+            unsafe
+            {
+                var ptr = (ushort*)b.Scan0;
+                var curr = (ushort)((1 - depth) * ushort.MaxValue);
+                var prev = ptr[y * b.Width + x];
+                if (prev < curr)
+                {
+                    ptr[y * b.Width + x] = curr;
+                    return true;
+                }
+                return false;
             }
         }
     }

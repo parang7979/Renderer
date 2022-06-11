@@ -23,25 +23,32 @@ namespace ParangEngine.Types
         public Screen Screen { get; private set; }
         public float Fov { get; set; } = 60f;
         public Color ClearColor { get; set; } = Color.Black;
-        
-        public Bitmap RenderTarget { get; set; }
 
-        private BitmapData locked;
+        public Bitmap RenderTarget => render;
+        public Bitmap DepthTexture => depth;
+
         private Matrix4x4 vMat;
         private Matrix4x4 pMat;
         private Matrix4x4 pvMat;
         private Frustum frustum;
 
+        private Bitmap render;
+        private BitmapData renderData;
+
+        private Bitmap depth;
+        private BitmapData depthData;
+
         public Camera(int width, int height, float fov)
         {
             Screen = new Screen(width, height);
             Fov = fov;
-            RenderTarget = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+            render = new Bitmap(width, height, PixelFormat.Format24bppRgb);
+            depth = new Bitmap(width, height, PixelFormat.Format16bppRgb565);
         }
 
         public void Lock()
         {
-            if (locked == null)
+            if (renderData == null)
             {
                 // 뷰 메트릭스
                 vMat = Matrix4x4.CreateLookAt(Transform.Position, Transform.Position + Transform.Forward, Transform.Up);
@@ -52,9 +59,11 @@ namespace ParangEngine.Types
                 // 절두체
                 frustum = new Frustum(pMat);
                 // 렌더 타겟 잠금
-                locked = RenderTarget.LockBits(new Rectangle(0, 0, RenderTarget.Width, RenderTarget.Height), ImageLockMode.ReadWrite, RenderTarget.PixelFormat);
+                renderData = render.LockBits(new Rectangle(0, 0, render.Width, render.Height), ImageLockMode.ReadWrite, render.PixelFormat);
+                depthData = depth.LockBits(new Rectangle(0, 0, depth.Width, depth.Height), ImageLockMode.ReadWrite, depth.PixelFormat);
                 // 컬러 클리어
-                locked.Clear(ClearColor);
+                renderData.Clear(ClearColor);
+                depthData.ClearDepth();
                 DrawGizemos();
             }
         }
@@ -67,7 +76,7 @@ namespace ParangEngine.Types
 
         public void RenderTri(List<Vertex> vertices, in Transform transform, in Texture texture, Func<Vertex, Matrix4x4, Vertex> VS)
         {
-            if (locked != null)
+            if (renderData != null)
             {
                 // 복사본 생성
                 var vs = vertices.ToList();
@@ -97,8 +106,8 @@ namespace ParangEngine.Types
                 var tri = vertices.GetRange(j * 3, 3);
                 if (!BackfaceCulling(tri)) continue;
                 ApplyScreen(tri);
-                locked.DrawTriangle(Screen, tri[0], tri[1], tri[2], texture);
-                locked.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
+                renderData.DrawTriangle(Screen, tri[0], tri[1], tri[2], texture, depthData);
+                renderData.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
             }
         }
 
@@ -118,7 +127,7 @@ namespace ParangEngine.Types
 
         public void RenderLine(List<Vertex> vertices, in Transform transform)
         {
-            if (locked != null)
+            if (renderData != null)
             {
                 // 복사본 생성
                 var vs = vertices.ToList();
@@ -147,7 +156,7 @@ namespace ParangEngine.Types
             {
                 var line = vertices.GetRange(j * 2, 2);
                 ApplyScreen(line);
-                locked.DrawLine(Screen, line[0], line[1]);
+                renderData.DrawLine(Screen, line[0], line[1]);
             }
         }
 
@@ -160,10 +169,12 @@ namespace ParangEngine.Types
 
         public void Unlock()
         {
-            if (locked != null)
+            if (renderData != null)
             {
-                RenderTarget.UnlockBits(locked);
-                locked = null;
+                render.UnlockBits(renderData);
+                renderData = null;
+                depth.UnlockBits(depthData);
+                depthData = null;
             }
         }
 
