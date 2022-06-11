@@ -11,6 +11,7 @@ namespace ParangEngine.Types
         public static readonly Color White = new Color(1f, 1f, 1f);
         public static readonly Color Black = new Color(0f, 0f, 0f);
 
+        public bool IsBlack => (R + G + B) == 0;
         public float A { get; set; }
         public float R { get; set; }
         public float G { get; set; }
@@ -84,6 +85,24 @@ namespace ParangEngine.Types
                 c.B * t);
         }
 
+        static public Color operator *(Color c1, Color c2)
+        {
+            return new Color(
+                c1.A * c2.A,
+                c1.R * c2.R,
+                c1.G * c2.G,
+                c1.B * c2.B);
+        }
+
+        static public Color operator +(Color c1, float t)
+        {
+            return new Color(
+                c1.A + t,
+                c1.R + t,
+                c1.G + t,
+                c1.B + t);
+        }
+
         static public Color operator +(Color c1, Color c2)
         {
             return new Color(
@@ -91,6 +110,15 @@ namespace ParangEngine.Types
                 c1.R + c2.R,
                 c1.G + c2.G,
                 c1.B + c2.B);
+        }
+
+        static public Color operator -(Color c1, float t)
+        {
+            return new Color(
+                c1.A - t,
+                c1.R - t,
+                c1.G - t,
+                c1.B - t);
         }
 
         static public Color operator -(Color c1, Color c2)

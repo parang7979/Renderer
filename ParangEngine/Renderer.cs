@@ -37,30 +37,32 @@ namespace ParangEngine
             camera.Transform.Position = new Vector3(0f, 5f, -5f);
             // camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
 
+            var v = new List<Vector3>()
+            {
+                new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(-1.0f, -1.0f, 1.0f), new Vector3(-1.0f, 1.0f, 1.0f), new Vector3(-1.0f, 1.0f, -1.0f),
+                new Vector3(-1.0f, -1.0f, 1.0f), new Vector3(-1.0f, 1.0f, 1.0f), new Vector3(1.0f, 1.0f, 1.0f), new Vector3(1.0f, -1.0f, 1.0f),
+                new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(-1.0f, 1.0f, -1.0f), new Vector3(1.0f, 1.0f, -1.0f), new Vector3(1.0f, -1.0f, -1.0f),
+                new Vector3(1.0f, -1.0f, -1.0f), new Vector3(1.0f, -1.0f, 1.0f), new Vector3(1.0f, 1.0f, 1.0f), new Vector3(1.0f, 1.0f, -1.0f),
+                new Vector3(-1.0f, 1.0f, -1.0f), new Vector3(1.0f, 1.0f, -1.0f), new Vector3(1.0f, 1.0f, 1.0f), new Vector3(-1.0f, 1.0f, 1.0f),
+                new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(1.0f, -1.0f, -1.0f), new Vector3(1.0f, -1.0f, 1.0f), new Vector3(-1.0f, -1.0f, 1.0f)
+            };
+
+            var i = new List<int>()
+            {
+                0, 1, 2, 0, 2, 3, // Right
+	            4, 6, 5, 4, 7, 6, // Front
+	            8, 9, 10, 8, 10, 11, // Back
+	            12, 14, 13, 12, 15, 14, // Left
+	            16, 18, 17, 16, 19, 18, // Top
+	            20, 21, 22, 20, 22, 23  // Bottom
+            };
+
             // TestCode
-            mesh = new Mesh(0,
-                new List<Vertex>
-                {
-                    new Vertex(new Vector4(-0.5f, 0.5f, 0.5f, 1), new Vector2(0.25f, 0.125f), "cyan"),
-                    new Vertex(new Vector4(0.5f, 0.5f, 0.5f, 1), new Vector2(0.125f, 0.125f), "magenta"),
-                    new Vertex(new Vector4(0.5f, -0.5f, 0.5f, 1), new Vector2(0.125f, 0.25f), "yellow"),
-                    new Vertex(new Vector4(-0.5f, -0.5f, 0.5f, 1), new Vector2(0.25f, 0.25f), "black"),
-                    new Vertex(new Vector4(-0.5f, 0.5f, -0.5f, 1), new Vector2(0.375f, 0.125f), "red"),
-                    new Vertex(new Vector4(0.5f, 0.5f, -0.5f, 1), new Vector2(0f, 0.25f), "green"),
-                    new Vertex(new Vector4(0.5f, -0.5f, -0.5f, 1), new Vector2(0f, 0.125f), "blue"),
-                    new Vertex(new Vector4(-0.5f, -0.5f, -0.5f, 1), new Vector2(0.375f, 0.25f), "white"),
-                },
-                new List<int>
-                {
-                    0, 3, 2, 0, 2, 1,
-                    1, 2, 6, 1, 6, 5,
-                    4, 7, 3, 4, 3, 0,
-                });
+            mesh = new Mesh(0, v.Select(x => new Vertex(x, 1, color : "white")).ToList(), i);
             texture = new Texture(0, "CKMan.png");
             transform = new Transform();
             transform.Rotation = new Vector3(0f, 180f, 0f);
             transform2 = new Transform();
-
             Gizmos.CreateGrid(10);
         }
 
@@ -81,25 +83,28 @@ namespace ParangEngine
             camera.Lock();
             // 게임 오브젝트 그룹 단위
             {
+                camera.DrawGrid();
                 // 텍스쳐 읽기 준비
                 texture.Lock();
                 {
-                    for (int i = 0; i < 1000; i++)
+                    if (camera.DrawCheck(transform))
                     {
-                        transform.Position = new Vector3(i, 0f, i);
-                        transform.Update();
-                        if (camera.DrawCheck(transform))
-                            mesh.Render(camera, transform, texture);
+                        mesh.Render(camera, transform, texture);
                     }
-                    /* if (camera.DrawCheck(transform))
-                        mesh.Render(camera, transform, texture); */
                 }
                 texture.Unlock();
             }
+            var gBuffer = camera.Render();
             camera.Unlock();
-            buffer.Graphics.DrawImage(camera.RenderTarget, 0, 0, resolution.Width, resolution.Height);
-            buffer.Graphics.DrawImage(camera.DepthTexture, 0, 0, resolution.Width / 5, resolution.Height / 5);
-            buffer.Render(graphics);
+
+            if (gBuffer != null)
+            {
+                buffer.Graphics.DrawImage(gBuffer.RenderTarget, 0, 0, resolution.Width, resolution.Height);                
+                /* buffer.Graphics.DrawImage(gBuffer.GetBuffer(GBuffer.BufferType.Albedo), 0, 0, resolution.Width / 5, resolution.Height / 5);
+                buffer.Graphics.DrawImage(gBuffer.GetBuffer(GBuffer.BufferType.Position), 0, resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
+                buffer.Graphics.DrawImage(gBuffer.GetBuffer(GBuffer.BufferType.Normal), 0, 2 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5); */
+                buffer.Render(graphics);
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ParangEngine.Utils;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -49,16 +50,9 @@ namespace ParangEngine.Types
         {
             if (locked != null)
             {
-                unsafe
-                {
-                    var ptr = (byte*)locked.Scan0;
-                    var u = (int)(x * locked.Width);
-                    var v = (int)(y * locked.Height);
-                    var bit = locked.Stride / locked.Width;
-                    var index = (v * locked.Width + u) * bit;
-                    if (0 <= index  && index < locked.Stride * locked.Height)
-                        return new Color(ptr[index + 2], ptr[index + 1], ptr[index]);
-                }
+                var u = (int)(x * locked.Width);
+                var v = (int)(y * locked.Height);
+                return locked.GetPixel(u, v);
             }
             return Color.White; // 나중에 마젠타?
         }

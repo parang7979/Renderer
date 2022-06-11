@@ -14,6 +14,16 @@ namespace ParangEngine.Utils
         public static readonly float HalfPI = PI * 0.5f;
         public static readonly float InvPI = 1f / PI;
 
+        static public int Min3(int a, int b, int c)
+        {
+            return Math.Min(a, Math.Min(b, c));
+        }
+
+        static public int Max3(int a, int b, int c)
+        {
+            return Math.Max(a, Math.Max(b, c));
+        }
+
         public static float ToRad(this float deg)
         {
             return deg / 180f * PI;

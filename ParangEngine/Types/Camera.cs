@@ -24,31 +24,22 @@ namespace ParangEngine.Types
         public float Fov { get; set; } = 60f;
         public Color ClearColor { get; set; } = Color.Black;
 
-        public Bitmap RenderTarget => render;
-        public Bitmap DepthTexture => depth;
-
+        private GBuffer gBuffer;
         private Matrix4x4 vMat;
         private Matrix4x4 pMat;
         private Matrix4x4 pvMat;
         private Frustum frustum;
 
-        private Bitmap render;
-        private BitmapData renderData;
-
-        private Bitmap depth;
-        private BitmapData depthData;
-
         public Camera(int width, int height, float fov)
         {
             Screen = new Screen(width, height);
             Fov = fov;
-            render = new Bitmap(width, height, PixelFormat.Format24bppRgb);
-            depth = new Bitmap(width, height, PixelFormat.Format16bppRgb565);
+            gBuffer = new GBuffer(width, height);
         }
 
         public void Lock()
         {
-            if (renderData == null)
+            if (!gBuffer.IsLock)
             {
                 // 뷰 메트릭스
                 vMat = Matrix4x4.CreateLookAt(Transform.Position, Transform.Position + Transform.Forward, Transform.Up);
@@ -58,13 +49,8 @@ namespace ParangEngine.Types
                 pvMat = vMat * pMat;
                 // 절두체
                 frustum = new Frustum(pMat);
-                // 렌더 타겟 잠금
-                renderData = render.LockBits(new Rectangle(0, 0, render.Width, render.Height), ImageLockMode.ReadWrite, render.PixelFormat);
-                depthData = depth.LockBits(new Rectangle(0, 0, depth.Width, depth.Height), ImageLockMode.ReadWrite, depth.PixelFormat);
-                // 컬러 클리어
-                renderData.Clear(ClearColor);
-                depthData.ClearDepth();
-                DrawGizemos();
+                // 버퍼 락
+                gBuffer.Lock();
             }
         }
 
@@ -76,7 +62,7 @@ namespace ParangEngine.Types
 
         public void RenderTri(List<Vertex> vertices, in Transform transform, in Texture texture, Func<Vertex, Matrix4x4, Vertex> VS)
         {
-            if (renderData != null)
+            if (gBuffer.IsLock)
             {
                 // 복사본 생성
                 var vs = vertices.ToList();
@@ -106,12 +92,19 @@ namespace ParangEngine.Types
                 var tri = vertices.GetRange(j * 3, 3);
                 if (!BackfaceCulling(tri)) continue;
                 ApplyScreen(tri);
-                renderData.DrawTriangle(Screen, tri[0], tri[1], tri[2], texture, depthData);
-                renderData.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
+                gBuffer.DrawTriangle(Screen, tri[0], tri[1], tri[2], texture);
+                gBuffer.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
             }
         }
 
-        public void RenderAxes(in Transform transform)
+        public void DrawGrid()
+        {
+            var tr = new Transform();
+            tr.Update();
+            RenderLine(Gizmos.Grids, tr);
+        }
+
+        public void DrawAxes(in Transform transform)
         {
             var vertices = new List<Vertex>()
                 {
@@ -125,24 +118,21 @@ namespace ParangEngine.Types
             RenderLine(vertices, transform);
         }
 
-        public void RenderLine(List<Vertex> vertices, in Transform transform)
+        private void RenderLine(List<Vertex> vertices, in Transform transform)
         {
-            if (renderData != null)
+            // 복사본 생성
+            var vs = vertices.ToList();
+
+            // 버텍스 변환 L -> V
+            var mat = transform.Mat * pvMat;
+            for (int i = 0; i < vs.Count; i++)
+                vs[i] = Vertex.Transform(vs[i], mat);
+
+            var lineCount = vs.Count / 2;
+            for (int i = 0; i < lineCount; i++)
             {
-                // 복사본 생성
-                var vs = vertices.ToList();
-
-                // 버텍스 변환 L -> V
-                var mat = transform.Mat * pvMat;
-                for (int i = 0; i < vs.Count; i++)
-                    vs[i] = Vertex.Transform(vs[i], mat);
-
-                var lineCount = vs.Count / 2;
-                for (int i = 0; i < lineCount; i++)
-                {
-                    var line = vs.GetRange(i * 2, 2);
-                    RenderLineOnce(line);
-                }
+                var line = vs.GetRange(i * 2, 2);
+                RenderLineOnce(line);
             }
         }
 
@@ -156,26 +146,21 @@ namespace ParangEngine.Types
             {
                 var line = vertices.GetRange(j * 2, 2);
                 ApplyScreen(line);
-                renderData.DrawLine(Screen, line[0], line[1]);
+                gBuffer.DrawLine(Screen, line[0], line[1]);
             }
-        }
-
-        private void DrawGizemos()
-        {
-            var tr = new Transform();
-            tr.Update();
-            RenderLine(Gizmos.Grids, tr);
         }
 
         public void Unlock()
         {
-            if (renderData != null)
-            {
-                render.UnlockBits(renderData);
-                renderData = null;
-                depth.UnlockBits(depthData);
-                depthData = null;
-            }
+            if (!gBuffer.IsLock) return;
+            gBuffer.Unlock();
+        }
+
+        public GBuffer Render()
+        {
+            if (!gBuffer.IsLock) return null;
+            gBuffer.Render(ClearColor);
+            return gBuffer;
         }
 
         private void ConvertToNDC(List<Vertex> vertices)
