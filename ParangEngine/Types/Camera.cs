@@ -72,36 +72,28 @@ namespace ParangEngine.Types
                 for(int i = 0; i < vertices.Count; i++)
                     vertices[i] = VS(vertices[i], mat);
 
-                for (int i = 0; i < vertices.Count / 3; i++)
+                var triCount = vertices.Count / 3;
+                for (int i = 0; i < triCount; i++)
                 {
-                    var tri = vertices.GetRange(i * 3, 3);
+                    var sub = vertices.GetRange(i * 3, 3);
+                    RenderSub(sub, texture);
                 }
+            }
+        }
 
-                CovertToView(vertices);
-                // 클립
-
-
-                // View to NDC
-                ConvertToNDC(vertices);
-
-                var edge1 = (v2.Pos - v1.Pos).ToVector3();
-                var edge2 = (v3.Pos - v1.Pos).ToVector3();
-                // cw backface culling
-                var faceNormal = -Vector3.Cross(edge1, edge2);
-                if (Vector3.Dot(faceNormal, Vector3.UnitZ) >= 0f)
-                    return;
-
-                // NDC to Screen
-                v1 = ApplyScreen(v1);
-                v2 = ApplyScreen(v2);
-                v3 = ApplyScreen(v3);
-
-                // 폴리곤
-                locked.DrawPolygon(Screen, v1, v2, v3, texture);
-                // 와이어프레임
-                locked.DrawLine(Screen, v1, v2);
-                locked.DrawLine(Screen, v2, v3);
-                locked.DrawLine(Screen, v3, v1);
+        public void RenderSub(List<Vertex> vertices, in Texture texture)
+        {
+            ClipTriangles.ClipTriangle(ref vertices);
+            // View to NDC
+            ConvertToNDC(vertices);
+            var triCount = vertices.Count / 3;
+            for (int j = 0; j < triCount; j++)
+            {
+                var tri = vertices.GetRange(j * 3, 3);
+                if (!BackfaceCulling(tri)) continue;
+                ApplyScreen(tri);
+                locked.DrawTriangle(Screen, tri[0], tri[1], tri[2], texture);
+                locked.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
             }
         }
 
@@ -109,19 +101,19 @@ namespace ParangEngine.Types
         {
             if (locked != null)
             {
-                var c = ApplyScreen(ConvertToNDC(CovertToView(center * transform)));
+                /* var c = ApplyScreen(ConvertToNDC(CovertToView(center * transform)));
                 var x = ApplyScreen(ConvertToNDC(CovertToView(xAxis * transform)));
                 var y = ApplyScreen(ConvertToNDC(CovertToView(yAxis * transform)));
                 var z = ApplyScreen(ConvertToNDC(CovertToView(zAxis * transform)));
                 locked.DrawLine(Screen, c, x, new Color("red"));
                 locked.DrawLine(Screen, c, y, new Color("green"));
-                locked.DrawLine(Screen, c, z, new Color("blue"));
+                locked.DrawLine(Screen, c, z, new Color("blue")); */
             }
         }
 
         private void DrawGizemos()
         {
-            if (Gizmos.Grids != null)
+            /* if (Gizmos.Grids != null)
             {
                 foreach (var (p1, p2) in Gizmos.Grids)
                 {
@@ -143,7 +135,7 @@ namespace ParangEngine.Types
 
                     locked.DrawLine(Screen, v1, v2, new Color("gray"));
                 }
-            }
+            } */
         }
 
         public void Unlock()
@@ -155,24 +147,6 @@ namespace ParangEngine.Types
             }
         }
 
-        private void CovertToView(List<Vertex> vertices)
-        {
-            for(int i = 0; i < vertices.Count; i++)
-                vertices[i] = CovertToView(vertices[i]);
-        }
-
-        private Vertex CovertToView(Vertex v)
-        {
-            v.Pos = CovertToView(v.Pos);
-            return v;
-        }
-
-        private Vector4 CovertToView(Vector4 v)
-        {
-            v = Vector4.Transform(v, vpMat);
-            return v;
-        }
-
         private void ConvertToNDC(List<Vertex> vertices)
         {
             for (int i = 0; i < vertices.Count; i++)
@@ -180,12 +154,6 @@ namespace ParangEngine.Types
         }
 
         private Vertex ConvertToNDC(Vertex v)
-        {
-            v.Pos = ConvertToNDC(v.Pos);
-            return v;
-        }
-
-        private Vector4 ConvertToNDC(Vector4 v)
         {
             v.W = v.W == 0f ? float.Epsilon : v.W;
             var invW = 1f / v.W;
@@ -195,6 +163,17 @@ namespace ParangEngine.Types
             return v;
         }
 
+        private bool BackfaceCulling(List<Vertex> vertices)
+        {
+            var edge1 = vertices[1].Vector3 - vertices[0].Vector3;
+            var edge2 = vertices[2].Vector3 - vertices[0].Vector3;
+            // cw backface culling
+            var faceNormal = -Vector3.Cross(edge1, edge2);
+            if (Vector3.Dot(faceNormal, Vector3.UnitZ) >= 0f)
+                return false;
+            return true;
+        }
+
         private void ApplyScreen(List<Vertex> vertices)
         {
             for (int i = 0; i < vertices.Count; i++)
@@ -202,12 +181,6 @@ namespace ParangEngine.Types
         }
 
         private Vertex ApplyScreen(Vertex v)
-        {
-            v.Pos = ApplyScreen(v.Pos);
-            return v;
-        }
-
-        private Vector4 ApplyScreen(Vector4 v)
         {
             v.X *= Screen.HalfWidth;
             v.Y *= Screen.HalfHeight;

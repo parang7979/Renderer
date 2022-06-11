@@ -73,8 +73,8 @@ namespace ParangEngine.Utils
                 Max3(p1.X, p2.X, p3.X),
                 Max3(p1.Y, p2.Y, p3.Y))); // 우하
 
-            var u = v2.Pos.ToVector2() - v1.Pos.ToVector2();
-            var v = v3.Pos.ToVector2() - v1.Pos.ToVector2();
+            var u = v2.Vector2 - v1.Vector2;
+            var v = v3.Vector2 - v1.Vector2;
             float uDv = Vector2.Dot(u, v);
             float vDv = Vector2.Dot(v, v);
             float uDu = Vector2.Dot(u, u);
@@ -82,16 +82,16 @@ namespace ParangEngine.Utils
             if (d == 0f) return;
             float invD = 1 / d;
 
-            float invZ1 = 1f / v1.Pos.W;
-            float invZ2 = 1f / v2.Pos.W;
-            float invZ3 = 1f / v3.Pos.W;
+            float invZ1 = 1f / v1.W;
+            float invZ2 = 1f / v2.W;
+            float invZ3 = 1f / v3.W;
 
             for (int x = min.X; x < max.X; x++)
             {
                 for (int y = min.Y; y < max.Y; y++)
                 {
                     Point p = new Point(x, y);
-                    Vector2 w = p.ToVector2(screen) - v1.Pos.ToVector2();
+                    Vector2 w = p.ToVector2(screen) - v1.Vector2;
                     float wDu = Vector2.Dot(w, u);
                     float wDv = Vector2.Dot(w, v);
                     float s = (wDv * uDv - wDu * vDv) * invD;
@@ -115,6 +115,13 @@ namespace ParangEngine.Utils
                     }
                 }
             }
+        }
+
+        static public void DrawWireframe(this BitmapData b, in Screen screen, in Vertex v1, in Vertex v2, in Vertex v3)
+        {
+            b.DrawLine(screen, v1, v2);
+            b.DrawLine(screen, v2, v3);
+            b.DrawLine(screen, v3, v1);
         }
 
         static public void DrawLine(this BitmapData b, in Screen screen, in Vertex v1, in Vertex v2)

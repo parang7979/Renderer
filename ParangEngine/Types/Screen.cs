@@ -26,8 +26,8 @@ namespace ParangEngine.Types
 
         public Screen(int width, int height)
         {
-            Width = width;
-            Height = height;
+            Width = width - 1;
+            Height = height - 1;
 
             HalfWidth = Width / 2;
             HalfHeight = Height / 2;

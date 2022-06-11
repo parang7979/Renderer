@@ -21,80 +21,147 @@ namespace ParangEngine.Utils
                 { (TestNZ, ClipNZ) },
             };
 
-        static bool TestW0(Vertex v) => v.Pos.W < 0f;
+        static bool TestW0(Vertex v) => v.W < 0f;
         static Vertex ClipW0(Vertex v1, Vertex v2)
         {
-            var p1 = v1.Pos.W;
-            var p2 = v2.Pos.W;
+            var p1 = v1.W;
+            var p2 = v2.W;
             var t = p1 / (p1 - p2);
-            return new Vertex(v1.Pos * (1f - t) + v2.Pos * t);
+            return v1 * (1f - t) + v2 * t;
         }
 
-        static bool TestNY(Vertex v) => v.Pos.Y < -v.Pos.W;
+        static bool TestNY(Vertex v) => v.Y < -v.W;
         static Vertex ClipNY(Vertex v1, Vertex v2)
         {
-            var p1 = v1.Pos.W + v1.Pos.Y;
-            var p2 = v2.Pos.W + v2.Pos.Y;
+            var p1 = v1.W + v1.Y;
+            var p2 = v2.W + v2.Y;
             var t = p1 / (p1 - p2);
-            return new Vertex(v1.Pos * (1f - t) + v2.Pos * t);
+            return v1 * (1f - t) + v2 * t;
         }
-        static bool TestPY(Vertex v) => v.Pos.Y < v.Pos.W;
+        static bool TestPY(Vertex v) => v.Y > v.W;
         static Vertex ClipPY(Vertex v1, Vertex v2)
         {
-            var p1 = v1.Pos.W - v1.Pos.Y;
-            var p2 = v2.Pos.W - v2.Pos.Y;
+            var p1 = v1.W - v1.Y;
+            var p2 = v2.W - v2.Y;
             var t = p1 / (p1 - p2);
-            return new Vertex(v1.Pos * (1f - t) + v2.Pos * t);
+            return v1 * (1f - t) + v2 * t;
         }
 
-        static bool TestNX(Vertex v) => v.Pos.X < -v.Pos.W;
+        static bool TestNX(Vertex v) => v.X < -v.W;
         static Vertex ClipNX(Vertex v1, Vertex v2)
         {
-            var p1 = v1.Pos.W + v1.Pos.X;
-            var p2 = v2.Pos.W + v2.Pos.X;
+            var p1 = v1.W + v1.X;
+            var p2 = v2.W + v2.X;
             var t = p1 / (p1 - p2);
-            return new Vertex(v1.Pos * (1f - t) + v2.Pos * t);
+            return v1 * (1f - t) + v2 * t;
         }
-        static bool TestPX(Vertex v) => v.Pos.X < v.Pos.W;
+        static bool TestPX(Vertex v) => v.X > v.W;
         static Vertex ClipPX(Vertex v1, Vertex v2)
         {
-            var p1 = v1.Pos.W - v1.Pos.X;
-            var p2 = v2.Pos.W - v2.Pos.X;
+            var p1 = v1.W - v1.X;
+            var p2 = v2.W - v2.X;
             var t = p1 / (p1 - p2);
-            return new Vertex(v1.Pos * (1f - t) + v2.Pos * t);
+            return v1 * (1f - t) + v2 * t;
         }
 
-        static bool TestPZ(Vertex v) => v.Pos.Z < v.Pos.W;
+        static bool TestPZ(Vertex v) => v.Z > v.W;
         static Vertex ClipPZ(Vertex v1, Vertex v2)
         {
-            var p1 = v1.Pos.W - v1.Pos.Z;
-            var p2 = v2.Pos.W - v2.Pos.Z;
+            var p1 = v1.W - v1.Z;
+            var p2 = v2.W - v2.Z;
             var t = p1 / (p1 - p2);
-            return new Vertex(v1.Pos * (1f - t) + v2.Pos * t);
+            return v1 * (1f - t) + v2 * t;
         }
-        static bool TestNZ(Vertex v) => v.Pos.Z < -v.Pos.W;
+        static bool TestNZ(Vertex v) => v.Z < -v.W;
         static Vertex ClipNZ(Vertex v1, Vertex v2)
         {
-            var p1 = v1.Pos.W + v1.Pos.Z;
-            var p2 = v2.Pos.W + v2.Pos.Z;
+            var p1 = v1.W + v1.Z;
+            var p2 = v2.W + v2.Z;
             var t = p1 / (p1 - p2);
-            return new Vertex(v1.Pos * (1f - t) + v2.Pos * t);
+            return v1 * (1f - t) + v2 * t;
         }
-        
-        static public void ClipTriangle(List<Vertex> vertices)
+
+        static public void ClipTriangle(ref List<Vertex> vertices)
         {
-            List<bool> test = new List<bool>();
-            for (int i = 0; i < vertices.Count / 3; i++)
+            foreach (var c in clippers) ClipOnce(ref vertices, c);
+        }
+
+        static private void ClipOnce(ref List<Vertex> vertices, (Func<Vertex, bool>, Func<Vertex, Vertex, Vertex>)clipper)
+        {
+            List<bool> results = new List<bool>();
+            int tris = vertices.Count / 3;
+            for (int i = 0; i < tris; i++)
             {
                 var index = i * 3;
                 var nonPass = 0;
                 for (int j = 0; j < 3; j++)
                 {
-                    var res = clippers[i].Item1(vertices[i + j]);
-                    test.Add(res);
+                    var res = clipper.Item1(vertices[index + j]);
+                    results.Add(res);
                     if (res) nonPass++;
                 }
+                if (nonPass == 0) continue;
+                else if (nonPass == 1)
+                    DivideTwo(ref vertices, index, GetOutsideIndex(results), clipper.Item2);
+                else if (nonPass == 2)
+                    Clip(ref vertices, index, GetInsideIndex(results), clipper.Item2);
+                else
+                {
+                    vertices.RemoveRange(i, 3);
+                    tris--;
+                    i--;
+                }
             }
+        }
+
+        static private int GetOutsideIndex(in List<bool> results)
+        {
+            if (!results[0])
+            {
+                return results[1] ? 1 : 2;
+            }
+            return 0;
+        }
+
+        static private int GetInsideIndex(in List<bool> results)
+        {
+            if (results[0])
+            {
+                return !results[1] ? 1 : 2;
+            }
+            return 0;
+        }
+
+        static private void DivideTwo(ref List<Vertex> vertices, int index, int outSide, Func<Vertex, Vertex, Vertex> clip)
+        {
+            int inside1 = index + ((outSide + 1) % 3);
+            int inside2 = index + ((outSide + 2) % 3);
+            var inV1 = vertices[inside1];
+            var inV2 = vertices[inside2];
+            var outV = vertices[index + outSide];
+
+            var clipV1 = clip(outV, inV1);
+            var clipV2 = clip(outV, inV2);
+
+            vertices[index] = clipV1;
+            vertices[index + 1] = inV1;
+            vertices[index + 2] = inV2;
+            vertices.Add(clipV1);
+            vertices.Add(inV2);
+            vertices.Add(clipV2);
+        }
+
+        static private void Clip(ref List<Vertex> vertices, int index, int inSide, Func<Vertex, Vertex, Vertex> clip)
+        {
+            int outside1 = index + ((inSide + 1) % 3);
+            int outside2 = index + ((inSide + 2) % 3);
+            var outV1 = vertices[outside1];
+            var outV2 = vertices[outside2];
+            var inV = vertices[index + inSide];
+            var clipV1 = clip(inV, outV1);
+            var clipV2 = clip(inV, outV2);
+            vertices[outside1] = clipV1;
+            vertices[outside2] = clipV2;
         }
     }
 }

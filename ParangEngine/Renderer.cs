@@ -58,7 +58,7 @@ namespace ParangEngine
                 });
             texture = new Texture(0, "CKMan.png");
             transform = new Transform();
-            transform.Position = new Vector3(0f, 0f, 0f);
+            transform.Rotation = new Vector3(0f, 180f, 0f);
             transform2 = new Transform();
 
             Gizmos.CreateGrid(10);
@@ -90,7 +90,9 @@ namespace ParangEngine
                         transform.Update();
                         if (camera.DrawCheck(transform))
                             mesh.Render(camera, transform, texture);
-                    }                    
+                    }
+                    /* if (camera.DrawCheck(transform))
+                        mesh.Render(camera, transform, texture); */
                 }
                 texture.Unlock();
             }

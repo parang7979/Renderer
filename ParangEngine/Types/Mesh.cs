@@ -14,20 +14,23 @@ namespace ParangEngine.Types
     {
         public int Id { get; set; }
         
-        private List<Vertex> vertices;
-        private List<int> indicies;
+        // private List<Vertex> vertices;
+        // private List<int> indicies;
+        
+        private List<Vertex> mesh;
 
         public Mesh(int id, List<Vertex> vertices, List<int> indicies)
         {
-            this.Id = id;
-            this.vertices = vertices;
-            this.indicies = indicies;
+            Id = id;
+            // this.vertices = vertices;
+            // this.indicies = indicies;
+            mesh = indicies.Select(x => vertices[x]).ToList();
         }
 
         public void Render(in Camera camera, in Transform transform, in Texture texture)
         {
             // 애니메이션, 스키닝, 등등..
-            camera.Render(vertices, 
+            camera.Render(mesh.ToList(), 
                 transform, texture,
                 (v, m) => Vertex.Transform(v, m));
             camera.RenderAxes(transform);

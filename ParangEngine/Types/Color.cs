@@ -48,6 +48,15 @@ namespace ParangEngine.Types
             Clamp();
         }
 
+        public Color(float a, float r, float g, float b)
+        {
+            A = a;
+            R = r;
+            G = g;
+            B = b;
+            Clamp();
+        }
+
         public Color(string name)
         {
             var color = System.Drawing.Color.FromName(name);
@@ -66,26 +75,31 @@ namespace ParangEngine.Types
             B = Math.Max(0f, Math.Min(B, 1f));
         }
 
-        static public Color operator *(Color c, float f)
+        static public Color operator *(Color c, float t)
         {
-            Color r = c;
-            r.A *= f;
-            r.R *= f;
-            r.G *= f;
-            r.B *= f;
-            r.Clamp();
-            return r;
+            return new Color(
+                c.A * t,
+                c.R * t,
+                c.G * t,
+                c.B * t);
         }
 
         static public Color operator +(Color c1, Color c2)
         {
-            Color r = c1;
-            r.A += c2.A;
-            r.R += c2.R;
-            r.G += c2.G;
-            r.B += c2.B;
-            r.Clamp();
-            return r;
+            return new Color(
+                c1.A + c2.A,
+                c1.R + c2.R,
+                c1.G + c2.G,
+                c1.B + c2.B);
+        }
+
+        static public Color operator -(Color c1, Color c2)
+        {
+            return new Color(
+                c1.A - c2.A,
+                c1.R - c2.R,
+                c1.G - c2.G,
+                c1.B - c2.B);
         }
     }
 }
