@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace ParangEngine.Utils
 {
-    static public class ClipTriangles
+    static public class Clipper
     {
-        static private List<(Func<Vertex, bool>, Func<Vertex, Vertex, Vertex>)> clippers =
+        static public List<(Func<Vertex, bool>, Func<Vertex, Vertex, Vertex>)> Clippers =
             new List<(Func<Vertex, bool>, Func<Vertex, Vertex, Vertex>)>
             {
                 { (TestW0, ClipW0) },
@@ -80,10 +80,31 @@ namespace ParangEngine.Utils
             var t = p1 / (p1 - p2);
             return v1 * (1f - t) + v2 * t;
         }
+    }
 
-        static public void ClipTriangle(ref List<Vertex> vertices)
+    static public class ClipTriangles
+    {
+        static public void Clip(ref List<Vertex> vertices)
         {
-            foreach (var c in clippers) ClipOnce(ref vertices, c);
+            foreach (var c in Clipper.Clippers) ClipOnce(ref vertices, c);
+        }
+
+        static private int GetOutsideIndex(in List<bool> results)
+        {
+            if (!results[0])
+            {
+                return results[1] ? 1 : 2;
+            }
+            return 0;
+        }
+
+        static private int GetInsideIndex(in List<bool> results)
+        {
+            if (results[0])
+            {
+                return !results[1] ? 1 : 2;
+            }
+            return 0;
         }
 
         static private void ClipOnce(ref List<Vertex> vertices, (Func<Vertex, bool>, Func<Vertex, Vertex, Vertex>)clipper)
@@ -114,22 +135,17 @@ namespace ParangEngine.Utils
             }
         }
 
-        static private int GetOutsideIndex(in List<bool> results)
+        static private void Clip(ref List<Vertex> vertices, int index, int inSide, Func<Vertex, Vertex, Vertex> clip)
         {
-            if (!results[0])
-            {
-                return results[1] ? 1 : 2;
-            }
-            return 0;
-        }
-
-        static private int GetInsideIndex(in List<bool> results)
-        {
-            if (results[0])
-            {
-                return !results[1] ? 1 : 2;
-            }
-            return 0;
+            int outside1 = index + ((inSide + 1) % 3);
+            int outside2 = index + ((inSide + 2) % 3);
+            var outV1 = vertices[outside1];
+            var outV2 = vertices[outside2];
+            var inV = vertices[index + inSide];
+            var clipV1 = clip(inV, outV1);
+            var clipV2 = clip(inV, outV2);
+            vertices[outside1] = clipV1;
+            vertices[outside2] = clipV2;
         }
 
         static private void DivideTwo(ref List<Vertex> vertices, int index, int outSide, Func<Vertex, Vertex, Vertex> clip)
@@ -149,19 +165,6 @@ namespace ParangEngine.Utils
             vertices.Add(clipV1);
             vertices.Add(inV2);
             vertices.Add(clipV2);
-        }
-
-        static private void Clip(ref List<Vertex> vertices, int index, int inSide, Func<Vertex, Vertex, Vertex> clip)
-        {
-            int outside1 = index + ((inSide + 1) % 3);
-            int outside2 = index + ((inSide + 2) % 3);
-            var outV1 = vertices[outside1];
-            var outV2 = vertices[outside2];
-            var inV = vertices[index + inSide];
-            var clipV1 = clip(inV, outV1);
-            var clipV2 = clip(inV, outV2);
-            vertices[outside1] = clipV1;
-            vertices[outside2] = clipV2;
         }
     }
 }

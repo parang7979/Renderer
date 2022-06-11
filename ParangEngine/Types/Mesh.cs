@@ -30,8 +30,7 @@ namespace ParangEngine.Types
         public void Render(in Camera camera, in Transform transform, in Texture texture)
         {
             // 애니메이션, 스키닝, 등등..
-            camera.Render(mesh.ToList(), 
-                transform, texture,
+            camera.RenderTri(mesh, transform, texture,
                 (v, m) => Vertex.Transform(v, m));
             camera.RenderAxes(transform);
         }

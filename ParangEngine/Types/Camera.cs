@@ -12,10 +12,12 @@ namespace ParangEngine.Types
 {
     public class Camera
     {
-        static private readonly Vector4 center = new Vector4(Vector3.Zero, 1f);
-        static private readonly Vector4 xAxis = new Vector4(Vector3.UnitX, 1f);
-        static private readonly Vector4 yAxis = new Vector4(Vector3.UnitY, 1f);
-        static private readonly Vector4 zAxis = new Vector4(Vector3.UnitZ, 1f);
+        static private readonly List<Vertex> axes = new List<Vertex>{
+            new Vertex(Vector3.Zero, 1f, "white"),
+            new Vertex(Vector3.UnitX, 1f, "red"),
+            new Vertex(Vector3.UnitY, 1f, "green"),
+            new Vertex(Vector3.UnitZ, 1f, "blue"),
+        };
 
         public Transform Transform { get; private set; } = new Transform();
         public Screen Screen { get; private set; }
@@ -63,27 +65,30 @@ namespace ParangEngine.Types
             return frustum.Check(viewPos.ToVector3()) != Frustum.Result.Outside;
         }
 
-        public void Render(List<Vertex> vertices, in Transform transform, in Texture texture, Func<Vertex, Matrix4x4, Vertex> VS)
+        public void RenderTri(List<Vertex> vertices, in Transform transform, in Texture texture, Func<Vertex, Matrix4x4, Vertex> VS)
         {
             if (locked != null)
             {
+                // 복사본 생성
+                var vs = vertices.ToList();
+
                 // 버텍스 변환 L -> V
                 var mat = transform.Mat * pvMat;
-                for(int i = 0; i < vertices.Count; i++)
-                    vertices[i] = VS(vertices[i], mat);
+                for(int i = 0; i < vs.Count; i++)
+                    vs[i] = VS(vs[i], mat);
 
-                var triCount = vertices.Count / 3;
+                var triCount = vs.Count / 3;
                 for (int i = 0; i < triCount; i++)
                 {
-                    var sub = vertices.GetRange(i * 3, 3);
-                    RenderSub(sub, texture);
+                    var tri = vs.GetRange(i * 3, 3);
+                    RenderTriOnce(tri, texture);
                 }
             }
         }
 
-        public void RenderSub(List<Vertex> vertices, in Texture texture)
+        private void RenderTriOnce(List<Vertex> vertices, in Texture texture)
         {
-            ClipTriangles.ClipTriangle(ref vertices);
+            ClipTriangles.Clip(ref vertices);
             // View to NDC
             ConvertToNDC(vertices);
             var triCount = vertices.Count / 3;
@@ -99,43 +104,58 @@ namespace ParangEngine.Types
 
         public void RenderAxes(in Transform transform)
         {
+            var vertices = new List<Vertex>()
+                {
+                    axes[0],
+                    axes[1],
+                    axes[0],
+                    axes[2],
+                    axes[0],
+                    axes[3],
+                };
+            RenderLine(vertices, transform);
+        }
+
+        public void RenderLine(List<Vertex> vertices, in Transform transform)
+        {
             if (locked != null)
             {
-                /* var c = ApplyScreen(ConvertToNDC(CovertToView(center * transform)));
-                var x = ApplyScreen(ConvertToNDC(CovertToView(xAxis * transform)));
-                var y = ApplyScreen(ConvertToNDC(CovertToView(yAxis * transform)));
-                var z = ApplyScreen(ConvertToNDC(CovertToView(zAxis * transform)));
-                locked.DrawLine(Screen, c, x, new Color("red"));
-                locked.DrawLine(Screen, c, y, new Color("green"));
-                locked.DrawLine(Screen, c, z, new Color("blue")); */
+                // 복사본 생성
+                var vs = vertices.ToList();
+
+                // 버텍스 변환 L -> V
+                var mat = transform.Mat * pvMat;
+                for (int i = 0; i < vs.Count; i++)
+                    vs[i] = Vertex.Transform(vs[i], mat);
+
+                var lineCount = vs.Count / 2;
+                for (int i = 0; i < lineCount; i++)
+                {
+                    var line = vs.GetRange(i * 2, 2);
+                    RenderLineOnce(line);
+                }
+            }
+        }
+
+        private void RenderLineOnce(List<Vertex> vertices)
+        {
+            ClipLines.Clip(ref vertices);
+            // View to NDC
+            ConvertToNDC(vertices);
+            var lineCount = vertices.Count / 2;
+            for (int j = 0; j < lineCount; j++)
+            {
+                var line = vertices.GetRange(j * 2, 2);
+                ApplyScreen(line);
+                locked.DrawLine(Screen, line[0], line[1]);
             }
         }
 
         private void DrawGizemos()
         {
-            /* if (Gizmos.Grids != null)
-            {
-                foreach (var (p1, p2) in Gizmos.Grids)
-                {
-                    Vector4 v1 = p1;
-                    Vector4 v2 = p2;
-
-                    v1 = CovertToView(v1);
-                    v2 = CovertToView(v2);
-
-                    v1 = v1.Clip(v2);
-                    v2 = v2.Clip(v1);
-
-                    // View to NDC
-                    v1 = ConvertToNDC(v1);
-                    v2 = ConvertToNDC(v2);
-
-                    v1 = ApplyScreen(v1);
-                    v2 = ApplyScreen(v2);
-
-                    locked.DrawLine(Screen, v1, v2, new Color("gray"));
-                }
-            } */
+            var tr = new Transform();
+            tr.Update();
+            RenderLine(Gizmos.Grids, tr);
         }
 
         public void Unlock()

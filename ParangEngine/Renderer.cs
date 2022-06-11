@@ -33,8 +33,8 @@ namespace ParangEngine
             buffer = context.Allocate(g, new Rectangle(0, 0, res.Width, res.Height));
 
             camera = new Camera(res.Width / downScale, res.Height / downScale, 60f);
-            // camera.Transform.Rotation = new Vector3(45f, 0f, 0f);
-            camera.Transform.Position = new Vector3(0f, 0f, -5f);
+            camera.Transform.Rotation = new Vector3(45f, 0f, 0f);
+            camera.Transform.Position = new Vector3(0f, 5f, -5f);
             // camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
 
             // TestCode

@@ -31,6 +31,20 @@ namespace ParangEngine.Types
             this.color = Color.White;
         }
 
+        public Vertex(in Vector3 v, float w, string color)
+        {
+            pos = new Vector4(v, w);
+            uv = Vector2.Zero;
+            this.color = new Color(color);
+        }
+
+        public Vertex(float x, float y, float z, float w, string color)
+        {
+            pos = new Vector4(x, y, z, w);
+            uv = Vector2.Zero;
+            this.color = new Color(color);
+        }
+
         public Vertex(in Vector4 v, in Color color)
         {
             pos = v;
