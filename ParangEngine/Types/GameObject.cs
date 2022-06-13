@@ -6,12 +6,26 @@ using System.Threading.Tasks;
 
 namespace ParangEngine.Types
 {
-    public class GameObject
+    abstract public class Component
     {
         public Transform Transform { get; private set; }
-        public Mesh Mesh { get; private set; }
-        public Texture Texture { get; private set; }
 
-        public long DrawId => (Mesh.Id << 32) + Texture.Id;
+        public Component(Transform transform)
+        {
+            Transform = transform;
+        }
+    }
+
+    public class GameObject : Component
+    {
+        public GameObject() : base(new Transform())
+        {
+
+        }
+
+        virtual public void Update()
+        {
+            Transform.Update();
+        }
     }
 }

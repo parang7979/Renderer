@@ -73,14 +73,15 @@ namespace ParangEngine.Types
             return new Vertex(v1.pos - v2.pos, Vector3.Normalize(v1.Normal - v2.Normal), v1.UV - v2.UV, v1.Color - v2.Color);
         }
 
-        public float Dot(in Vertex v)
+        static public float Dot(in Vertex v1, in Vertex v2)
         {
-            return Vector4.Dot(pos, v.pos);
+            return Vector4.Dot(v1.pos, v2.pos);
         }        
 
-        public void SetNormal(Vector3 n)
+        static public Vertex UpdateNormal(Vertex v, Vector3 n)
         {
-            normal = Vector3.Normalize(n);
+            v.normal = Vector3.Normalize(n);
+            return v;
         }
 
         static public Vertex Transform(Vertex v, Matrix4x4 mat)

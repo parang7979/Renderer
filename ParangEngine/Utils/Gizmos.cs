@@ -10,6 +10,15 @@ namespace ParangEngine.Utils
 {
     static public class Gizmos
     {
+        static public readonly List<Vertex> Axes = new List<Vertex>{
+            new Vertex(Vector3.Zero, 1f, "red"),
+            new Vertex(Vector3.UnitX, 1f, "red"),
+            new Vertex(Vector3.Zero, 1f, "green"),
+            new Vertex(Vector3.UnitY, 1f, "green"),
+            new Vertex(Vector3.Zero, 1f, "blue"),
+            new Vertex(Vector3.UnitZ, 1f, "blue"),
+        };
+
         static public List<Vertex> Grids { get; private set; }
 
         static public void CreateGrid(int size)

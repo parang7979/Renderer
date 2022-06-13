@@ -24,6 +24,7 @@ namespace ParangEngine
         private Transform transform;
         private Transform transform2;
         private Transform transform3;
+        private List<Light> lights;
 
         public Renderer(Graphics g, Size res, int downScale)
         {
@@ -69,13 +70,26 @@ namespace ParangEngine
             transform3 = new Transform();
             transform3.Position = new Vector3(-3f, 0f, 0f);
             transform3.Rotation = new Vector3(-45f, 0f, 0f);
+
+            lights = new List<Light>();
+            lights.Add(new DirectionalLight(new Transform()));
+            lights.Add(new DirectionalLight(new Transform()));
+            lights.Add(new DirectionalLight(new Transform()));
+
+            lights[0].Color = new Types.Color(System.Drawing.Color.Red);
+            lights[0].Transform.Rotation = new Vector3(90f, 0f, 0f);
+            lights[1].Color = new Types.Color(System.Drawing.Color.Yellow);
+            lights[1].Transform.Rotation = new Vector3(0f, 90f, 0f);
+            lights[2].Color = new Types.Color(System.Drawing.Color.Cyan);
+            lights[2].Transform.Rotation = new Vector3(0f, -90f, 0f);
+
             Gizmos.CreateGrid(10);
         }
 
         public void Update()
         {
             var rot = transform.Rotation;
-            rot.Y -= 1;
+            /* rot.Y -= 1;
             transform.Rotation = rot;
             
             rot = transform2.Rotation;
@@ -84,12 +98,30 @@ namespace ParangEngine
 
             rot = transform3.Rotation;
             rot.Y -= 1;
-            transform3.Rotation = rot;
+            transform3.Rotation = rot; */
+
+            rot = lights[0].Transform.Rotation;
+            rot.X -= 1;
+            lights[0].Transform.Rotation = rot;
+
+            rot = lights[1].Transform.Rotation;
+            rot.Y += 1;
+            lights[1].Transform.Rotation = rot;
+
+            rot = lights[2].Transform.Rotation;
+            rot.Y -= 1;
+            lights[2].Transform.Rotation = rot;
 
             camera.Transform.Update();
             transform.Update();
             transform2.Update();
             transform3.Update();
+            foreach (var l in lights) l.Transform.Update();
+        }
+
+        public Vertex DefaultVS(Vertex v, Matrix4x4 m)
+        {
+            return Vertex.Transform(v, m);
         }
 
         public void Render()
@@ -102,26 +134,20 @@ namespace ParangEngine
                 // 텍스쳐 읽기 준비
                 texture.Lock();
                 {
-                    if (camera.DrawCheck(transform))
-                    {
-                        mesh.Render(camera, transform3, texture);
-                        mesh.Render(camera, transform2, texture);
-                        mesh.Render(camera, transform, texture);
-                    }
+                    camera.DrawMesh(mesh, transform, texture, DefaultVS);
+                    camera.DrawMesh(mesh, transform2, texture, DefaultVS);
+                    camera.DrawMesh(mesh, transform3, texture, DefaultVS);
                 }
                 texture.Unlock();
             }
-            var gBuffer = camera.Render();
+            camera.Render(lights);
             camera.Unlock();
 
-            if (gBuffer != null)
-            {
-                buffer.Graphics.DrawImage(gBuffer.RenderTarget, 0, 0, resolution.Width, resolution.Height);                
-                buffer.Graphics.DrawImage(gBuffer.GetBuffer(GBuffer.BufferType.Albedo), 0, 0, resolution.Width / 5, resolution.Height / 5);
-                buffer.Graphics.DrawImage(gBuffer.GetBuffer(GBuffer.BufferType.Position), 0, resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
-                buffer.Graphics.DrawImage(gBuffer.GetBuffer(GBuffer.BufferType.Normal), 0, 2 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
-                buffer.Render(graphics);
-            }
+            buffer.Graphics.DrawImage(camera.RenderTarget, 0, 0, resolution.Width, resolution.Height);                
+            buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Albedo), 0, 0, resolution.Width / 5, resolution.Height / 5);
+            buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Position), 0, resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
+            buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Normal), 0, 2 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
+            buffer.Render(graphics);
         }
     }
 }

@@ -13,17 +13,13 @@ namespace ParangEngine.Types
     public class Mesh
     {
         public int Id { get; set; }
+        public List<Vertex> Vertices => vertices.ToList();
 
-        // private List<Vertex> vertices;
-        // private List<int> indicies;
-
-        private List<Vertex> mesh;
+        private List<Vertex> vertices;
 
         public Mesh(int id, List<Vertex> vertices, List<int> indicies)
         {
             Id = id;
-            // this.vertices = vertices;
-            // this.indicies = indicies;
             Dictionary<int, Vector3> normals = new Dictionary<int, Vector3>();
             var triCount = indicies.Count / 3;
             for (int i = 0; i < triCount; i++)
@@ -42,22 +38,8 @@ namespace ParangEngine.Types
                 }
             }
             foreach (var n in normals)
-            {
-                var v = vertices[n.Key];
-                {
-                    v.SetNormal(n.Value);
-                    vertices[n.Key] = v;
-                }
-                mesh = indicies.Select(x => vertices[x]).ToList();
-            }
-        }
-
-        public void Render(in Camera camera, in Transform transform, in Texture texture)
-        {
-            // 애니메이션, 스키닝, 등등..
-            camera.RenderTri(mesh, transform, texture,
-                (v, m) => Vertex.Transform(v, m));
-            // camera.DrawAxes(transform);
+                vertices[n.Key] = Vertex.UpdateNormal(vertices[n.Key], n.Value);
+            this.vertices = indicies.Select(x => vertices[x]).ToList();
         }
     }
 }

@@ -267,12 +267,8 @@ namespace ParangEngine.Types
             }
         }
 
-        public void Render(Color clearColor, List<Vector3> lights)
+        public void Render(Color clearColor, List<Light> lights)
         {
-            var l1 = new Color("red");
-            var l2 = new Color("Green");
-            var l3 = new Color("blue");
-
             if (locks.Count == 0) return;
             var l = render.LockBits(new Rectangle(0, 0, render.Width, render.Height),
                         ImageLockMode.ReadWrite, render.PixelFormat);
@@ -290,10 +286,10 @@ namespace ParangEngine.Types
                     {
                         var normal = 
                             new Vector3((n.R * 2f) - 1f, (n.G * 2f) - 1f, (n.B * 2f) - 1f);
-                        var d1 = -Math.Min(0, Vector3.Dot(normal, lights[0]));
-                        var d2 = -Math.Min(0, Vector3.Dot(normal, lights[1]));
-                        var d3 = -Math.Min(0, Vector3.Dot(normal, lights[2]));
-                        c1 *= c1 * ((l1 * d1) + (l2 * d2) + (l3 * d3));
+                        var c3 = Color.Black;
+                        foreach(var light in lights)
+                            c3 += light.GetColor(normal);
+                        c1 *= c3;
                         c1 += c2;
                     }
                     // if (!c1.IsBlack) 

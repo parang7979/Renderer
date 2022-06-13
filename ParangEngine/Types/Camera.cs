@@ -10,19 +10,13 @@ using System.Threading.Tasks;
 
 namespace ParangEngine.Types
 {
-    public class Camera
+    public partial class Camera
     {
-        static private readonly List<Vertex> axes = new List<Vertex>{
-            new Vertex(Vector3.Zero, 1f, "white"),
-            new Vertex(Vector3.UnitX, 1f, "red"),
-            new Vertex(Vector3.UnitY, 1f, "green"),
-            new Vertex(Vector3.UnitZ, 1f, "blue"),
-        };
-
         public Transform Transform { get; private set; } = new Transform();
         public Screen Screen { get; private set; }
         public float Fov { get; set; } = 60f;
         public Color ClearColor { get; set; } = Color.Black;
+        public Image RenderTarget => gBuffer.RenderTarget;
 
         private GBuffer gBuffer;
         private Matrix4x4 vMat;
@@ -54,121 +48,22 @@ namespace ParangEngine.Types
             }
         }
 
-        public bool DrawCheck(Transform transform)
-        {
-            var viewPos = Vector4.Transform(new Vector4(transform.Position, 1), vMat);
-            return frustum.Check(viewPos.ToVector3()) != Frustum.Result.Outside;
-        }
-
-        public void RenderTri(List<Vertex> vertices, in Transform transform, in Texture texture, Func<Vertex, Matrix4x4, Vertex> VS)
-        {
-            if (gBuffer.IsLock)
-            {
-                // 복사본 생성
-                var vs = vertices.ToList();
-
-                // 버텍스 변환 L -> V
-                var mat = transform.Mat * pvMat;
-                for(int i = 0; i < vs.Count; i++)
-                    vs[i] = VS(vs[i], mat);
-
-                var triCount = vs.Count / 3;
-                for (int i = 0; i < triCount; i++)
-                {
-                    var tri = vs.GetRange(i * 3, 3);
-                    RenderTriOnce(tri, texture);
-                }
-            }
-        }
-
-        private void RenderTriOnce(List<Vertex> vertices, in Texture texture)
-        {
-            ClipTriangles.Clip(ref vertices);
-            // View to NDC
-            ConvertToNDC(vertices);
-            var triCount = vertices.Count / 3;
-            for (int j = 0; j < triCount; j++)
-            {
-                var tri = vertices.GetRange(j * 3, 3);
-                if (!BackfaceCulling(tri)) continue;
-                ApplyScreen(tri);
-                gBuffer.DrawTriangle(Screen, tri[0], tri[1], tri[2], texture);
-                gBuffer.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
-            }
-        }
-
-        public void DrawGrid()
-        {
-            var tr = new Transform();
-            tr.Update();
-            RenderLine(Gizmos.Grids, tr);
-        }
-
-        public void DrawAxes(in Transform transform)
-        {
-            var vertices = new List<Vertex>()
-                {
-                    axes[0],
-                    axes[1],
-                    axes[0],
-                    axes[2],
-                    axes[0],
-                    axes[3],
-                };
-            RenderLine(vertices, transform);
-        }
-
-        private void RenderLine(List<Vertex> vertices, in Transform transform)
-        {
-            // 복사본 생성
-            var vs = vertices.ToList();
-
-            // 버텍스 변환 L -> V
-            var mat = transform.Mat * pvMat;
-            for (int i = 0; i < vs.Count; i++)
-                vs[i] = Vertex.Transform(vs[i], mat);
-
-            var lineCount = vs.Count / 2;
-            for (int i = 0; i < lineCount; i++)
-            {
-                var line = vs.GetRange(i * 2, 2);
-                RenderLineOnce(line);
-            }
-        }
-
-        private void RenderLineOnce(List<Vertex> vertices)
-        {
-            ClipLines.Clip(ref vertices);
-            // View to NDC
-            ConvertToNDC(vertices);
-            var lineCount = vertices.Count / 2;
-            for (int j = 0; j < lineCount; j++)
-            {
-                var line = vertices.GetRange(j * 2, 2);
-                ApplyScreen(line);
-                gBuffer.DrawLine(Screen, line[0], line[1]);
-            }
-        }
-
         public void Unlock()
         {
             if (!gBuffer.IsLock) return;
             gBuffer.Unlock();
         }
 
-        public GBuffer Render()
+        public void Render(List<Light> lights)
         {
-            if (!gBuffer.IsLock) return null;
-            var v1 = Vector4.Transform(Vector4.UnitX, pvMat);
-            var v2 = Vector4.Transform(-Vector4.UnitX, pvMat);
-            var v3 = Vector4.Transform(-Vector4.UnitY, pvMat);
-            var lights = new List<Vector3>() {
-                Vector3.Normalize(v1.ToVector3()),
-                Vector3.Normalize(v2.ToVector3()),
-                Vector3.Normalize(v3.ToVector3()),
-            };
+            if (!gBuffer.IsLock) return;
+            foreach (var l in lights) l.Setup(pvMat);
             gBuffer.Render(ClearColor, lights);
-            return gBuffer;
+        }
+
+        public Image GetBuffer(GBuffer.BufferType type)
+        {
+            return gBuffer.GetBuffer(type);
         }
 
         private void ConvertToNDC(List<Vertex> vertices)
