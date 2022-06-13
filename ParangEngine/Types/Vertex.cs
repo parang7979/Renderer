@@ -86,7 +86,7 @@ namespace ParangEngine.Types
         static public Vertex Transform(Vertex v, Matrix4x4 mat)
         {
             v.pos = Vector4.Transform(v.pos, mat);
-            v.normal = Vector3.Transform(v.normal, mat);
+            v.normal = Vector4.Transform(new Vector4(v.normal, 0), mat).ToVector3();
             return v;
         }
     }

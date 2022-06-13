@@ -225,14 +225,14 @@ namespace ParangEngine.Types
                 {
                     ptr[index] = cz;
                     ptr[index + 1] = (byte)((pos.Y + screen.HalfHeight) / screen.Height * 255f);
-                    ptr[index + 2] = (byte)((pos.X + screen.HalfWidth) / screen.Height * 255f);
+                    ptr[index + 2] = (byte)((pos.X + screen.HalfWidth) / screen.Width * 255f);
                     return true;
                 }
                 return false;
             }
         }
 
-        public void SetNormalBuffer(int x, int y, Vector3 pos)
+        public void SetNormalBuffer(int x, int y, Vector3 normal)
         {
             if (locks.Count == 0) return;
 
@@ -243,10 +243,10 @@ namespace ParangEngine.Types
             unsafe
             {
                 var ptr = (byte*)b.Scan0;
-                pos = Vector3.Normalize(pos);
-                ptr[index] = (byte)((pos.Z + 1) / 2 * 255);
-                ptr[index + 1] = (byte)((pos.Y + 1) / 2 * 255);
-                ptr[index + 2] = (byte)((pos.X + 1) / 2 * 255);
+                normal = Vector3.Normalize(normal);
+                ptr[index] = (byte)((normal.Z + 1) / 2 * 255);
+                ptr[index + 1] = (byte)((normal.Y + 1) / 2 * 255);
+                ptr[index + 2] = (byte)((normal.X + 1) / 2 * 255);
             }
         }
 
@@ -288,11 +288,12 @@ namespace ParangEngine.Types
                     var n = locks[BufferType.Normal].GetPixel(x, y);
                     if (!n.IsBlack)
                     {
-                        var normal = new Vector3((n.R * 2f) - 1f, (n.R * 2f) - 1f, (n.R * 2f) - 1f);
-                        var d1 = Vector3.Dot(normal, lights[0]);
-                        var d2 = Vector3.Dot(normal, lights[1]) * 10f;
-                        var d3 = Vector3.Dot(normal, lights[2]) * 10f;
-                        c1 += (l3 * d3); //(c1 * ( + (l2 * d2) + (l3 * d3))) + c2;
+                        var normal = 
+                            new Vector3((n.R * 2f) - 1f, (n.G * 2f) - 1f, (n.B * 2f) - 1f);
+                        var d1 = -Math.Min(0, Vector3.Dot(normal, lights[0]));
+                        var d2 = -Math.Min(0, Vector3.Dot(normal, lights[1]));
+                        var d3 = -Math.Min(0, Vector3.Dot(normal, lights[2]));
+                        c1 *= c1 * ((l1 * d1) + (l2 * d2) + (l3 * d3));
                         c1 += c2;
                     }
                     // if (!c1.IsBlack) 

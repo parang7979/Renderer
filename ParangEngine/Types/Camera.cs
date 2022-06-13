@@ -159,10 +159,13 @@ namespace ParangEngine.Types
         public GBuffer Render()
         {
             if (!gBuffer.IsLock) return null;
+            var v1 = Vector4.Transform(Vector4.UnitX, pvMat);
+            var v2 = Vector4.Transform(-Vector4.UnitX, pvMat);
+            var v3 = Vector4.Transform(-Vector4.UnitY, pvMat);
             var lights = new List<Vector3>() {
-                Vector3.Normalize(Vector3.Transform(Vector3.UnitX, pvMat)),
-                Vector3.Normalize(Vector3.Transform(-Vector3.UnitX, pvMat)),
-                Vector3.Normalize(Vector3.Transform(-Vector3.UnitY, pvMat)),
+                Vector3.Normalize(v1.ToVector3()),
+                Vector3.Normalize(v2.ToVector3()),
+                Vector3.Normalize(v3.ToVector3()),
             };
             gBuffer.Render(ClearColor, lights);
             return gBuffer;

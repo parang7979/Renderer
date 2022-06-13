@@ -23,6 +23,7 @@ namespace ParangEngine
         private Texture texture;
         private Transform transform;
         private Transform transform2;
+        private Transform transform3;
 
         public Renderer(Graphics g, Size res, int downScale)
         {
@@ -61,8 +62,13 @@ namespace ParangEngine
             mesh = new Mesh(0, v.Select(x => new Vertex(x, 1, color : "white")).ToList(), i);
             texture = new Texture(0, "CKMan.png");
             transform = new Transform();
-            transform.Rotation = new Vector3(0f, 180f, 0f);
             transform2 = new Transform();
+            transform2.Position = new Vector3(3f, 0f, 0f);
+            transform2.Rotation = new Vector3(45f, 0f, 0f);
+
+            transform3 = new Transform();
+            transform3.Position = new Vector3(-3f, 0f, 0f);
+            transform3.Rotation = new Vector3(-45f, 0f, 0f);
             Gizmos.CreateGrid(10);
         }
 
@@ -71,10 +77,19 @@ namespace ParangEngine
             var rot = transform.Rotation;
             rot.Y -= 1;
             transform.Rotation = rot;
+            
+            rot = transform2.Rotation;
+            rot.Y += 1;
+            transform2.Rotation = rot;
+
+            rot = transform3.Rotation;
+            rot.Y -= 1;
+            transform3.Rotation = rot;
 
             camera.Transform.Update();
             transform.Update();
             transform2.Update();
+            transform3.Update();
         }
 
         public void Render()
@@ -83,12 +98,14 @@ namespace ParangEngine
             camera.Lock();
             // 게임 오브젝트 그룹 단위
             {
-                camera.DrawGrid();
+                // camera.DrawGrid();
                 // 텍스쳐 읽기 준비
                 texture.Lock();
                 {
                     if (camera.DrawCheck(transform))
                     {
+                        mesh.Render(camera, transform3, texture);
+                        mesh.Render(camera, transform2, texture);
                         mesh.Render(camera, transform, texture);
                     }
                 }

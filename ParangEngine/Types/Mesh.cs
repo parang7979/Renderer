@@ -57,7 +57,7 @@ namespace ParangEngine.Types
             // 애니메이션, 스키닝, 등등..
             camera.RenderTri(mesh, transform, texture,
                 (v, m) => Vertex.Transform(v, m));
-            camera.DrawAxes(transform);
+            // camera.DrawAxes(transform);
         }
     }
 }
