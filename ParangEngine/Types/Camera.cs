@@ -57,7 +57,16 @@ namespace ParangEngine.Types
         public void Render(List<Light> lights)
         {
             if (!gBuffer.IsLock) return;
-            foreach (var l in lights) l.Setup(pvMat);
+            foreach (var l in lights)
+            {
+                l.Setup(pvMat);
+                var v = new Vertex(Vector3.Zero, 1, "red");
+                gBuffer.DrawCircle(Screen, 
+                    ConvertToNDC(Vertex.Transform(v, l.Transform.Mat * pvMat)), 
+                    l.Intensity * 30f, 
+                    l.Color);
+                DrawAxes(l.Transform);
+            }
             gBuffer.Render(ClearColor, lights);
         }
 

@@ -18,6 +18,7 @@ namespace ParangEngine.Types
             Albedo,
             Position,
             Normal,
+            Light,
         }
 
         public bool IsLock => locks.Count > 0;
@@ -66,6 +67,31 @@ namespace ParangEngine.Types
             }
             return Color.White;
         } */
+
+        public void DrawCircle(Screen screen, Vertex v, float r, Color color)
+        {
+            if (locks.Count == 0) return;
+
+            var s = screen.ToPoint(v);
+            var sp = s.ToVector2(screen);
+
+            var ir = (int)r;
+            var r2 = r * r;
+
+            for (int x = s.X - ir; x < s.X + ir; x++)
+            {
+                for (int y = s.Y - ir; y < s.Y + ir; y++)
+                {
+                    Point p = new Point(x, y);
+                    Vector2 w = p.ToVector2(screen);
+                    if (Vector2.DistanceSquared(sp, w) < r2)
+                    {
+                        if (!CheckPositionBuffer(screen, x, y, v.Vector3)) continue;
+                        SetLightBuffer(x, y, color);
+                    }
+                }
+            }
+        }
 
         public void DrawTriangle(Screen screen, Vertex v1, Vertex v2, Vertex v3, in Texture texture)
         {
@@ -232,6 +258,28 @@ namespace ParangEngine.Types
             }
         }
 
+        public bool CheckPositionBuffer(Screen screen, int x, int y, Vector3 pos)
+        {
+            if (locks.Count == 0) return false;
+
+            var b = locks[BufferType.Position];
+            var index = y * b.Width + x;
+            if (index < 0 || b.Width * b.Height <= index) return false;
+            index *= 3;
+            unsafe
+            {
+                var ptr = (byte*)b.Scan0;
+                byte cz = (byte)((1 - pos.Z) * 255f);
+                byte pz = ptr[index];
+                // depth testing
+                if (pz < cz)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
         public void SetNormalBuffer(int x, int y, Vector3 normal)
         {
             if (locks.Count == 0) return;
@@ -267,6 +315,23 @@ namespace ParangEngine.Types
             }
         }
 
+        public void SetLightBuffer(int x, int y, Color color)
+        {
+            if (locks.Count == 0) return;
+
+            var b = locks[BufferType.Light];
+            var index = y * b.Width + x;
+            if (index < 0 || b.Width * b.Height <= index) return;
+            index *= 3;
+            unsafe
+            {
+                var ptr = (byte*)b.Scan0;
+                ptr[index] = color.BB;
+                ptr[index + 1] = color.BG;
+                ptr[index + 2] = color.BR;
+            }
+        }
+
         public void Render(Color clearColor, List<Light> lights)
         {
             if (locks.Count == 0) return;
@@ -280,20 +345,20 @@ namespace ParangEngine.Types
                     var c1 = locks[BufferType.Albedo].GetPixel(x, y);
                     if (c1.IsBlack) continue;
                     var c2 = locks[BufferType.Gizmo].GetPixel(x, y);
-
                     var n = locks[BufferType.Normal].GetPixel(x, y);
+                    var c3 = locks[BufferType.Light].GetPixel(x, y);
                     if (!n.IsBlack)
                     {
                         var normal = 
                             new Vector3((n.R * 2f) - 1f, (n.G * 2f) - 1f, (n.B * 2f) - 1f);
-                        var c3 = Color.Black;
+                        var c = Color.Black;
                         foreach(var light in lights)
-                            c3 += light.GetColor(normal);
-                        c1 *= c3;
+                            c += light.GetColor(normal);
+                        c1 *= c;
+                        c1 += c3;
                         c1 += c2;
                     }
-                    // if (!c1.IsBlack) 
-                        l.SetPixel(x, y, c1);
+                    l.SetPixel(x, y, c1);
                 }
             }
             render.UnlockBits(l);

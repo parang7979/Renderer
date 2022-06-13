@@ -77,11 +77,11 @@ namespace ParangEngine
             lights.Add(new DirectionalLight(new Transform()));
 
             lights[0].Color = new Types.Color(System.Drawing.Color.Red);
-            lights[0].Transform.Rotation = new Vector3(90f, 0f, 0f);
+            lights[0].Transform.Position = new Vector3(1f, 0f, -2.5f);
             lights[1].Color = new Types.Color(System.Drawing.Color.Yellow);
-            lights[1].Transform.Rotation = new Vector3(0f, 90f, 0f);
+            // lights[1].Transform.Position = new Vector3(-5f, 0f, 1f);
             lights[2].Color = new Types.Color(System.Drawing.Color.Cyan);
-            lights[2].Transform.Rotation = new Vector3(0f, -90f, 0f);
+            // lights[2].Transform.Position = new Vector3(5f, 0f, 1f);
 
             Gizmos.CreateGrid(10);
         }

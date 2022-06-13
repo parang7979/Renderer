@@ -50,14 +50,6 @@ namespace ParangEngine.Types
             this.color = color;
         }
 
-        public Vertex(Vector4 v, Vector3 n = default, Vector2 uv = default, string color = "white")
-        {
-            pos = v;
-            normal = n;
-            this.uv = uv;
-            this.color = new Color(color);
-        }
-
         static public Vertex operator* (Vertex v, float t)
         {
             return new Vertex(v.pos * t, v.normal, v.UV * t, v.Color * t);
