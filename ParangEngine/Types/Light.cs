@@ -23,7 +23,7 @@ namespace ParangEngine.Types
 
         }
 
-        virtual public Color GetColor(Vector3 normal)
+        virtual public Color GetColor(Vector3 pos, Vector3 normal)
         {
             return Color * Intensity;
         }
@@ -40,14 +40,43 @@ namespace ParangEngine.Types
 
         public override void Setup(Matrix4x4 pvMat)
         {
+            base.Setup(pvMat);
             var mat = Transform.Mat * pvMat;
             direction = Vector3.Normalize(Vector4.Transform(Vector4.UnitZ, mat).ToVector3());
         }
 
-        public override Color GetColor(Vector3 normal)
+        public override Color GetColor(Vector3 pos, Vector3 normal)
         {
             var d = -Math.Min(0, Vector3.Dot(normal, direction));
-            return Color * d * Intensity;
+            return base.GetColor(pos, normal) * d;
+        }
+    }
+
+    public class PointLight : Light
+    {
+        public float Radius { get; set; }
+
+        private Vector3 position = Vector3.Zero;
+
+        public PointLight(Transform transform) : base(transform)
+        {
+
+        }
+
+        public override void Setup(Matrix4x4 pvMat)
+        {
+            base.Setup(pvMat);
+            var mat = Transform.Mat * pvMat;
+            position = Vector4.Transform(new Vector4(Vector3.Zero, 1), mat).ToVector3();
+        }
+
+        public override Color GetColor(Vector3 pos, Vector3 normal)
+        {
+            var dir = pos - position;
+            var r = dir.Length();
+            if (Radius < r) return Color.Black;
+            var d = Math.Min(0f, Vector3.Dot(normal, dir)) < 0f ? 1f : 0f;
+            return base.GetColor(pos, normal) * d * (r / Radius);
         }
     }
 }

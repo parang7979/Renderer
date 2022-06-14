@@ -44,8 +44,8 @@ namespace ParangEngine.Types
             foreach(var b in buffers)
             {
                 var l = b.Value.LockBits(
-                        new Rectangle(0, 0, render.Width, render.Height),
-                        ImageLockMode.ReadWrite, render.PixelFormat);
+                        new Rectangle(0, 0, b.Value.Width, b.Value.Height),
+                        ImageLockMode.ReadWrite, b.Value.PixelFormat);
                 l.Clear(Color.Black);
                 locks.Add(b.Key, l);
             }
@@ -76,18 +76,17 @@ namespace ParangEngine.Types
             var sp = s.ToVector2(screen);
 
             var ir = (int)r;
-            var r2 = r * r;
-
             for (int x = s.X - ir; x < s.X + ir; x++)
             {
                 for (int y = s.Y - ir; y < s.Y + ir; y++)
                 {
                     Point p = new Point(x, y);
                     Vector2 w = p.ToVector2(screen);
-                    if (Vector2.DistanceSquared(sp, w) < r2)
+                    var dist = Vector2.Distance(sp, w);
+                    if (dist < r)
                     {
                         if (!CheckPositionBuffer(screen, x, y, v.Vector3)) continue;
-                        SetLightBuffer(x, y, color);
+                        SetLightBuffer(x, y, color * (1 - dist / r));
                     }
                 }
             }
@@ -332,7 +331,7 @@ namespace ParangEngine.Types
             }
         }
 
-        public void Render(Color clearColor, List<Light> lights)
+        public void Render(Screen screen, Color clearColor, List<Light> lights)
         {
             if (locks.Count == 0) return;
             var l = render.LockBits(new Rectangle(0, 0, render.Width, render.Height),
@@ -346,14 +345,22 @@ namespace ParangEngine.Types
                     if (c1.IsBlack) continue;
                     var c2 = locks[BufferType.Gizmo].GetPixel(x, y);
                     var n = locks[BufferType.Normal].GetPixel(x, y);
+                    var p = locks[BufferType.Position].GetPixel(x, y);
                     var c3 = locks[BufferType.Light].GetPixel(x, y);
                     if (!n.IsBlack)
                     {
                         var normal = 
                             new Vector3((n.R * 2f) - 1f, (n.G * 2f) - 1f, (n.B * 2f) - 1f);
+                       
+                        var pos =
+                            new Vector3(
+                                (p.R * screen.Width) - screen.HalfWidth, 
+                                (p.G * screen.Height) - screen.HalfHeight, 
+                                (p.B * 99f) + 1f);
+
                         var c = Color.Black;
                         foreach(var light in lights)
-                            c += light.GetColor(normal);
+                            c += light.GetColor(pos, normal);
                         c1 *= c;
                         c1 += c3;
                         c1 += c2;

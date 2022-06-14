@@ -60,35 +60,21 @@ namespace ParangEngine.Types
             foreach (var l in lights)
             {
                 l.Setup(pvMat);
-                var v = new Vertex(Vector3.Zero, 1, "red");
+                /* var v = new Vertex(Vector3.Zero, 1, "red");
+                v = Vertex.ToNDC(Vertex.Transform(v, l.Transform.Mat * pvMat));
+                v = Vertex.ToScreen(v, Screen);
                 gBuffer.DrawCircle(Screen, 
-                    ConvertToNDC(Vertex.Transform(v, l.Transform.Mat * pvMat)), 
+                    v, 
                     l.Intensity * 30f, 
                     l.Color);
-                DrawAxes(l.Transform);
+                DrawAxes(l.Transform); */
             }
-            gBuffer.Render(ClearColor, lights);
+            gBuffer.Render(Screen, ClearColor, lights);
         }
 
         public Image GetBuffer(GBuffer.BufferType type)
         {
             return gBuffer.GetBuffer(type);
-        }
-
-        private void ConvertToNDC(List<Vertex> vertices)
-        {
-            for (int i = 0; i < vertices.Count; i++)
-                vertices[i] = ConvertToNDC(vertices[i]);
-        }
-
-        private Vertex ConvertToNDC(Vertex v)
-        {
-            v.W = v.W == 0f ? float.Epsilon : v.W;
-            var invW = 1f / v.W;
-            v.X *= invW;
-            v.Y *= invW;
-            v.Z *= invW;
-            return v;
         }
 
         private bool BackfaceCulling(List<Vertex> vertices)
@@ -100,19 +86,6 @@ namespace ParangEngine.Types
             if (Vector3.Dot(faceNormal, Vector3.UnitZ) >= 0f)
                 return false;
             return true;
-        }
-
-        private void ApplyScreen(List<Vertex> vertices)
-        {
-            for (int i = 0; i < vertices.Count; i++)
-                vertices[i] = ApplyScreen(vertices[i]);
-        }
-
-        private Vertex ApplyScreen(Vertex v)
-        {
-            v.X *= Screen.HalfWidth;
-            v.Y *= Screen.HalfHeight;
-            return v;
         }
     }
 }

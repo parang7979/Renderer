@@ -105,7 +105,7 @@ namespace ParangEngine.Types
             return true;
         }
 
-        public Point ToPoint(float x, float y, float w)
+        public Point ToPoint(float x, float y)
         {
             int px = (int)(HalfWidth - x);
             int py = (int)(HalfHeight - y);
@@ -114,17 +114,17 @@ namespace ParangEngine.Types
 
         public Point ToPoint(Vector2 v)
         {
-            return ToPoint(v.X, v.Y, 1);
+            return ToPoint(v.X, v.Y);
         }
 
         public Point ToPoint(Vector4 v)
         {
-            return ToPoint(v.X, v.Y, v.W);
+            return ToPoint(v.X, v.Y);
         }
 
         public Point ToPoint(Vertex v)
         {
-            return ToPoint(v.X, v.Y, v.W);
+            return ToPoint(v.X, v.Y);
         }
     }
 }

@@ -82,5 +82,35 @@ namespace ParangEngine.Types
             v.normal = Vector4.Transform(new Vector4(v.normal, 0), mat).ToVector3();
             return v;
         }
+
+        static public void ToNDC(List<Vertex> vertices)
+        {
+            for (int i = 0; i < vertices.Count; i++)
+                vertices[i] = ToNDC(vertices[i]);
+        }
+
+        static public Vertex ToNDC(Vertex v)
+        {
+            v.W = v.W == 0f ? float.Epsilon : v.W;
+            var invW = 1f / v.W;
+            v.X *= invW;
+            v.Y *= invW;
+            v.Z *= invW;
+            return v;
+        }
+
+        static public void ToScreen(List<Vertex> vertices, Screen screen)
+        {
+            for (int i = 0; i < vertices.Count; i++)
+                vertices[i] = ToScreen(vertices[i], screen);
+        }
+
+        static public Vertex ToScreen(Vertex v, Screen screen)
+        {
+            v.X *= screen.HalfWidth;
+            v.Y *= screen.HalfHeight;
+            return v;
+        }
+
     }
 }

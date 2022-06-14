@@ -57,13 +57,13 @@ namespace ParangEngine.Types
         {
             ClipTriangles.Clip(ref vertices);
             // View to NDC
-            ConvertToNDC(vertices);
+            Vertex.ToNDC(vertices);
             var triCount = vertices.Count / 3;
             for (int j = 0; j < triCount; j++)
             {
                 var tri = vertices.GetRange(j * 3, 3);
                 if (!BackfaceCulling(tri)) continue;
-                ApplyScreen(tri);
+                Vertex.ToScreen(tri, Screen);
                 gBuffer.DrawTriangle(Screen, tri[0], tri[1], tri[2], texture);
                 gBuffer.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
             }
@@ -88,12 +88,12 @@ namespace ParangEngine.Types
         {
             ClipLines.Clip(ref vertices);
             // View to NDC
-            ConvertToNDC(vertices);
+            Vertex.ToNDC(vertices);
             var lineCount = vertices.Count / 2;
             for (int j = 0; j < lineCount; j++)
             {
                 var line = vertices.GetRange(j * 2, 2);
-                ApplyScreen(line);
+                Vertex.ToScreen(line, Screen);
                 gBuffer.DrawLine(Screen, line[0], line[1]);
             }
         }

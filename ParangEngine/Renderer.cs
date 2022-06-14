@@ -72,24 +72,19 @@ namespace ParangEngine
             transform3.Rotation = new Vector3(-45f, 0f, 0f);
 
             lights = new List<Light>();
-            lights.Add(new DirectionalLight(new Transform()));
-            lights.Add(new DirectionalLight(new Transform()));
-            lights.Add(new DirectionalLight(new Transform()));
-
-            lights[0].Color = new Types.Color(System.Drawing.Color.Red);
-            lights[0].Transform.Position = new Vector3(1f, 0f, -2.5f);
-            lights[1].Color = new Types.Color(System.Drawing.Color.Yellow);
-            // lights[1].Transform.Position = new Vector3(-5f, 0f, 1f);
-            lights[2].Color = new Types.Color(System.Drawing.Color.Cyan);
-            // lights[2].Transform.Position = new Vector3(5f, 0f, 1f);
+            var pointLight = new PointLight(new Transform());
+            pointLight.Color = new Types.Color(System.Drawing.Color.Red);
+            pointLight.Radius = 10f;
+            pointLight.Transform.Position = new Vector3(1f, -1f, -3f);
+            lights.Add(pointLight);
 
             Gizmos.CreateGrid(10);
         }
 
         public void Update()
         {
-            var rot = transform.Rotation;
-            /* rot.Y -= 1;
+            /*var rot = transform.Rotation;
+            rot.Y -= 1;
             transform.Rotation = rot;
             
             rot = transform2.Rotation;
@@ -100,17 +95,13 @@ namespace ParangEngine
             rot.Y -= 1;
             transform3.Rotation = rot; */
 
-            rot = lights[0].Transform.Rotation;
+            /* rot = lights[0].Transform.Rotation;
             rot.X -= 1;
-            lights[0].Transform.Rotation = rot;
+            lights[0].Transform.Rotation = rot; */
 
-            rot = lights[1].Transform.Rotation;
-            rot.Y += 1;
-            lights[1].Transform.Rotation = rot;
-
-            rot = lights[2].Transform.Rotation;
-            rot.Y -= 1;
-            lights[2].Transform.Rotation = rot;
+            var pos = lights[0].Transform.Position;
+            pos.X = (pos.X + 1f) % 10;
+            lights[0].Transform.Position = pos;
 
             camera.Transform.Update();
             transform.Update();
