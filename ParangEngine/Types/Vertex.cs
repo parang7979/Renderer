@@ -46,6 +46,15 @@ namespace ParangEngine.Types
             view = Vector4.Zero;
         }
 
+        public Vertex(float x, float y, float z, float w, Vector3 n = default, Vector2 uv = default, Color color = default)
+        {
+            pos = new Vector4(x, y, z, w);
+            normal = n;
+            this.uv = uv;
+            this.color = color;
+            view = Vector4.Zero;
+        }
+
         public Vertex(Vector4 v, Vector3 n = default, Vector2 uv = default, Color color = default)
         {
             pos = v;

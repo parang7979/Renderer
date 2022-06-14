@@ -23,10 +23,10 @@ namespace ParangEngine.Types
             return frustum.Check(viewPos.ToVector3()) != Frustum.Result.Outside;
         }
 
-        public void DrawMesh(in Mesh mesh, in Transform transform, in Texture texture, Func<Vertex, Matrix4x4, Vertex> VS)
+        public void DrawMesh(in Mesh mesh, in Transform transform, in Texture texture, Color color, Func<Vertex, Matrix4x4, Vertex> VS)
         {
             if (!DrawCheck(transform)) return;
-            RenderTri(mesh.Vertices, transform, texture, VS);
+            RenderTri(mesh.Vertices, transform, texture, color, VS);
             DrawAxes(transform);
         }
 
@@ -35,7 +35,7 @@ namespace ParangEngine.Types
             RenderLine(Gizmos.Axes.ToList(), transform);
         }
 
-        private void RenderTri(List<Vertex> vertices, in Transform transform, in Texture texture, Func<Vertex, Matrix4x4, Vertex> VS)
+        private void RenderTri(List<Vertex> vertices, in Transform transform, in Texture texture, Color color, Func<Vertex, Matrix4x4, Vertex> VS)
         {
             if (gBuffer.IsLock)
             {
@@ -48,12 +48,12 @@ namespace ParangEngine.Types
                 for (int i = 0; i < triCount; i++)
                 {
                     var tri = vertices.GetRange(i * 3, 3);
-                    RenderTriOnce(tri, texture);
+                    RenderTriOnce(tri, texture, color);
                 }
             }
         }
 
-        private void RenderTriOnce(List<Vertex> vertices, in Texture texture)
+        private void RenderTriOnce(List<Vertex> vertices, in Texture texture, Color color)
         {
             ClipTriangles.Clip(ref vertices);
             // View to NDC
@@ -64,7 +64,7 @@ namespace ParangEngine.Types
                 var tri = vertices.GetRange(j * 3, 3);
                 if (!BackfaceCulling(tri)) continue;
                 Vertex.ToScreen(tri, Screen);
-                gBuffer.DrawTriangle(Screen, tri[0], tri[1], tri[2], texture);
+                gBuffer.DrawTriangle(Screen, tri[0], tri[1], tri[2], texture, color);
                 // gBuffer.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
             }
         }

@@ -17,15 +17,15 @@ namespace ParangEngine.Types
         public float G { get; set; }
         public float B { get; set; }
 
-        public byte BA => (byte)(A * byte.MaxValue);
-        public byte BR => (byte)(R * byte.MaxValue);
-        public byte BG => (byte)(G * byte.MaxValue);
-        public byte BB => (byte)(B * byte.MaxValue);
+        public byte BA => (byte)(Math.Max(0f, Math.Min(A, 1f)) * byte.MaxValue);
+        public byte BR => (byte)(Math.Max(0f, Math.Min(R, 1f)) * byte.MaxValue);
+        public byte BG => (byte)(Math.Max(0f, Math.Min(G, 1f)) * byte.MaxValue);
+        public byte BB => (byte)(Math.Max(0f, Math.Min(B, 1f)) * byte.MaxValue);
 
-        public ushort SA => (ushort)(A * ushort.MaxValue);
-        public ushort SR => (ushort)(R * ushort.MaxValue);
-        public ushort SG => (ushort)(G * ushort.MaxValue);
-        public ushort SB => (ushort)(B * ushort.MaxValue);
+        public ushort SA => (ushort)(Math.Max(0f, Math.Min(A, 1f)) * ushort.MaxValue);
+        public ushort SR => (ushort)(Math.Max(0f, Math.Min(R, 1f)) * ushort.MaxValue);
+        public ushort SG => (ushort)(Math.Max(0f, Math.Min(G, 1f)) * ushort.MaxValue);
+        public ushort SB => (ushort)(Math.Max(0f, Math.Min(B, 1f)) * ushort.MaxValue);
 
         public Color(System.Drawing.Color color)
         {
@@ -33,7 +33,6 @@ namespace ParangEngine.Types
             R = color.R / (float)byte.MaxValue;
             G = color.G / (float)byte.MaxValue;
             B = color.B / (float)byte.MaxValue;
-            Clamp();
         }
 
         public Color(byte r, byte g, byte b)
@@ -42,7 +41,6 @@ namespace ParangEngine.Types
             R = r / (float)byte.MaxValue;
             G = g / (float)byte.MaxValue;
             B = b / (float)byte.MaxValue;
-            Clamp();
         }
 
         public Color(byte a, byte r, byte g, byte b)
@@ -51,7 +49,6 @@ namespace ParangEngine.Types
             R = r / (float)byte.MaxValue;
             G = g / (float)byte.MaxValue;
             B = b / (float)byte.MaxValue;
-            Clamp();
         }
 
         public Color(ushort r, ushort g, ushort b)
@@ -60,7 +57,6 @@ namespace ParangEngine.Types
             R = r / (float)ushort.MaxValue;
             G = g / (float)ushort.MaxValue;
             B = b / (float)ushort.MaxValue;
-            Clamp();
         }
 
         public Color(float r, float g, float b)
@@ -69,7 +65,6 @@ namespace ParangEngine.Types
             R = r;
             G = g;
             B = b;
-            Clamp();
         }
 
         public Color(float a, float r, float g, float b)
@@ -78,7 +73,6 @@ namespace ParangEngine.Types
             R = r;
             G = g;
             B = b;
-            Clamp();
         }
 
         public Color(string name)
@@ -88,15 +82,6 @@ namespace ParangEngine.Types
             R = color.R / (float)byte.MaxValue;
             G = color.G / (float)byte.MaxValue;
             B = color.B / (float)byte.MaxValue;
-            Clamp();
-        }
-
-        private void Clamp()
-        {
-            A = Math.Max(0f, Math.Min(A, 1f));
-            R = Math.Max(0f, Math.Min(R, 1f));
-            G = Math.Max(0f, Math.Min(G, 1f));
-            B = Math.Max(0f, Math.Min(B, 1f));
         }
 
         static public Color operator *(Color c, float t)

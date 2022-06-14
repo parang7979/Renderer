@@ -27,6 +27,11 @@ namespace ParangEngine.Types
         {
             return Color * Intensity;
         }
+
+        virtual public Color GetSpecular(Vector3 pos, Color albedo, Vector3 reflect)
+        {
+            return Color * albedo * Intensity;
+        }
     }
 
     public class DirectionalLight : Light
@@ -50,6 +55,12 @@ namespace ParangEngine.Types
             var d = -Math.Min(0, Vector3.Dot(normal, direction));
             return base.GetColor(pos, normal) * d;
         }
+
+        public override Color GetSpecular(Vector3 pos, Color albedo, Vector3 reflect)
+        {
+            var d = -Math.Min(0, Vector3.Dot(reflect, direction));
+            return base.GetSpecular(pos, albedo, reflect) * d;
+        }
     }
 
     public class PointLight : Light
@@ -57,6 +68,7 @@ namespace ParangEngine.Types
         public float Radius { get; set; }
 
         private Vector3 position = Vector3.Zero;
+        private float r = 0f;
 
         public PointLight(Transform transform) : base(transform)
         {
@@ -68,15 +80,26 @@ namespace ParangEngine.Types
             base.Setup(pvMat);
             var mat = Transform.Mat * pvMat;
             position = Vector4.Transform(new Vector4(Vector3.Zero, 1), mat).ToVector3();
+            r = Vector4.Transform(new Vector4(Vector3.UnitZ * Radius, 0), mat).ToVector3().Length();
         }
 
         public override Color GetColor(Vector3 pos, Vector3 normal)
         {
             var dir = pos - position;
-            var r = dir.Length();
-            if (Radius < r) return Color.Black;
+            var l = dir.Length();
+            if (r < l) return Color.Black;
             var d = Math.Min(0f, Vector3.Dot(normal, dir)) < 0f ? 1f : 0f;
-            return base.GetColor(pos, normal) * d * (1 - r / Radius);
+            // var d = -Math.Min(0, Vector3.Dot(normal, dir));
+            return base.GetColor(pos, normal) * d * (1 / (l * l));//(1 - r / Radius);
+        }
+
+        public override Color GetSpecular(Vector3 pos, Color albedo, Vector3 reflect)
+        {
+            var dir = pos - position;
+            var l = dir.Length();
+            if (r < l) return Color.Black;
+            var d = -Math.Min(0, Vector3.Dot(reflect, dir));
+            return base.GetSpecular(pos, albedo, reflect) * d * (1 / (l * l));
         }
     }
 }

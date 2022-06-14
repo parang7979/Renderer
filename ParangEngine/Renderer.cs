@@ -35,18 +35,21 @@ namespace ParangEngine
             buffer = context.Allocate(g, new Rectangle(0, 0, res.Width, res.Height));
 
             camera = new Camera(res.Width / downScale, res.Height / downScale, 60f);
-            camera.Transform.Rotation = new Vector3(45f, 0f, 0f);
-            camera.Transform.Position = new Vector3(0f, 5f, -5f);
+            camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
+            camera.Transform.Position = new Vector3(0f, 0f, -5f);
             // camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
 
-            var v = new List<Vector3>()
+            var v = new List<Vertex>()
             {
-                new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(-1.0f, -1.0f, 1.0f), new Vector3(-1.0f, 1.0f, 1.0f), new Vector3(-1.0f, 1.0f, -1.0f),
-                new Vector3(-1.0f, -1.0f, 1.0f), new Vector3(-1.0f, 1.0f, 1.0f), new Vector3(1.0f, 1.0f, 1.0f), new Vector3(1.0f, -1.0f, 1.0f),
-                new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(-1.0f, 1.0f, -1.0f), new Vector3(1.0f, 1.0f, -1.0f), new Vector3(1.0f, -1.0f, -1.0f),
-                new Vector3(1.0f, -1.0f, -1.0f), new Vector3(1.0f, -1.0f, 1.0f), new Vector3(1.0f, 1.0f, 1.0f), new Vector3(1.0f, 1.0f, -1.0f),
-                new Vector3(-1.0f, 1.0f, -1.0f), new Vector3(1.0f, 1.0f, -1.0f), new Vector3(1.0f, 1.0f, 1.0f), new Vector3(-1.0f, 1.0f, 1.0f),
-                new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(1.0f, -1.0f, -1.0f), new Vector3(1.0f, -1.0f, 1.0f), new Vector3(-1.0f, -1.0f, 1.0f)
+                new Vertex(-1.0f, -1.0f, -1.0f, 1f), new Vertex(-1.0f, -1.0f, 1.0f, 1f), new Vertex(-1.0f, 1.0f, 1.0f, 1f), new Vertex(-1.0f, 1.0f, -1.0f, 1f),
+                new Vertex(-1.0f, -1.0f, 1.0f, 1f, uv: new Vector2(1f, 1f)), 
+                new Vertex(-1.0f, 1.0f, 1.0f, 1f, uv: new Vector2(1f, 0f)),
+                new Vertex(1.0f, 1.0f, 1.0f, 1f, uv: new Vector2(0f, 0f)),
+                new Vertex(1.0f, -1.0f, 1.0f, 1f, uv: new Vector2(0f, 1f)),
+                new Vertex(-1.0f, -1.0f, -1.0f, 1f), new Vertex(-1.0f, 1.0f, -1.0f, 1f), new Vertex(1.0f, 1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, -1.0f, 1f),
+                new Vertex(1.0f, -1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, 1.0f, 1f), new Vertex(1.0f, 1.0f, 1.0f, 1f), new Vertex(1.0f, 1.0f, -1.0f, 1f),
+                new Vertex(-1.0f, 1.0f, -1.0f, 1f), new Vertex(1.0f, 1.0f, -1.0f, 1f), new Vertex(1.0f, 1.0f, 1.0f, 1f), new Vertex(-1.0f, 1.0f, 1.0f, 1f),
+                new Vertex(-1.0f, -1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, 1.0f, 1f), new Vertex(-1.0f, -1.0f, 1.0f, 1f)
             };
 
             var i = new List<int>()
@@ -60,53 +63,69 @@ namespace ParangEngine
             };
 
             // TestCode
-            mesh = new Mesh(0, v.Select(x => new Vertex(x, 1, color : "white")).ToList(), i);
-            texture = new Texture(0, "CKMan.png");
+            mesh = new Mesh(0, v.ToList(), i);
+            texture = new Texture(0, "wall1_n.png");
             transform = new Transform();
+            transform.Rotation = new Vector3(0f, 180f, 0f);
+            transform.Scale = new Vector3(1f, 1f, 1f);
+
             transform2 = new Transform();
-            transform2.Position = new Vector3(3f, 0f, 2f);
-            // transform2.Rotation = new Vector3(45f, 0f, 0f);
+            transform2.Position = new Vector3(3f, 0f, 0f);
+            transform2.Rotation = new Vector3(0f, 180f, 0f);
 
             transform3 = new Transform();
-            transform3.Position = new Vector3(-3f, 0f, 2f);
-            // transform3.Rotation = new Vector3(-45f, 0f, 0f);
+            transform3.Position = new Vector3(-3f, 0f, 0f);
+            transform3.Rotation = new Vector3(0f, 180f, 0f);
 
             lights = new List<Light>();
-            var pointLight = new PointLight(new Transform());
-            pointLight.Color = new Types.Color(System.Drawing.Color.Red);
+            /*var pointLight = new PointLight(new Transform());
+            pointLight.Color = new Types.Color(System.Drawing.Color.Blue);
             pointLight.Radius = 4f;
-            pointLight.Transform.Position = new Vector3(-2f, 1f, 0f);
+            pointLight.Transform.Position = new Vector3(-4f, 0f, -1f);
             lights.Add(pointLight);
 
             pointLight = new PointLight(new Transform());
             pointLight.Color = new Types.Color(System.Drawing.Color.Green);
             pointLight.Radius = 4f;
-            pointLight.Transform.Position = new Vector3(2f, 1f, 0f);
+            pointLight.Transform.Position = new Vector3(4f, 0f, -1f);
+            lights.Add(pointLight);*/
+
+            var pointLight = new PointLight(new Transform());
+            pointLight.Color = new Types.Color(System.Drawing.Color.White);
+            pointLight.Intensity = 1f;
+            pointLight.Radius = 25f;
+            pointLight.Transform.Position = new Vector3(0f, 0f, -4.5f);
             lights.Add(pointLight);
 
-            pointLight = new PointLight(new Transform());
+            /* pointLight = new PointLight(new Transform());
             pointLight.Color = new Types.Color(System.Drawing.Color.Blue);
+
+            pointLight = new PointLight(new Transform());
+            pointLight.Color = new Types.Color(System.Drawing.Color.Green);
             pointLight.Radius = 6f;
             pointLight.Transform.Position = new Vector3(0f, 0f, -2f);
             lights.Add(pointLight);
 
             pointLight = new PointLight(new Transform());
-            pointLight.Color = new Types.Color(System.Drawing.Color.Cyan);
+            pointLight.Color = new Types.Color(System.Drawing.Color.Green);
             pointLight.Radius = 6f;
             pointLight.Transform.Position = new Vector3(0f, 2f, 3f);
-            lights.Add(pointLight);
+            lights.Add(pointLight); */
 
-            var dirLight = new DirectionalLight(new Transform());
-            dirLight.Color = new Types.Color(System.Drawing.Color.Yellow);
-            dirLight.Intensity = 0.5f;
-            lights.Add(dirLight);
+            /*var dirLight = new DirectionalLight(new Transform());
+            dirLight.Color = new Types.Color(System.Drawing.Color.White);
+            var rot = dirLight.Transform.Rotation;
+            rot = new Vector3(0f, 0f, 0f);
+            dirLight.Transform.Rotation = rot;
+            dirLight.Intensity = 1f;
+            lights.Add(dirLight); */
 
             Gizmos.CreateGrid(10);
         }
 
         public void Update()
         {
-            var rot = transform.Rotation;
+            /* var rot = transform.Rotation;
             rot.Y -= 1;
             transform.Rotation = rot;
             
@@ -116,15 +135,17 @@ namespace ParangEngine
 
             rot = transform3.Rotation;
             rot.Y -= 1;
-            transform3.Rotation = rot;
+            transform3.Rotation = rot; */
 
-            /* rot = lights[0].Transform.Rotation;
-            rot.X -= 1;
+            /* var rot = lights[0].Transform.Rotation;
+            rot.Y -= 2;
             lights[0].Transform.Rotation = rot; */
 
             /* var pos = lights[0].Transform.Position;
             pos.X = (pos.X + 0.1f) % 10;
             lights[0].Transform.Position = pos; */
+
+            
 
             camera.Transform.Update();
             transform.Update();
@@ -148,9 +169,9 @@ namespace ParangEngine
                 // 텍스쳐 읽기 준비
                 texture.Lock();
                 {
-                    camera.DrawMesh(mesh, transform, texture, DefaultVS);
-                    camera.DrawMesh(mesh, transform2, texture, DefaultVS);
-                    camera.DrawMesh(mesh, transform3, texture, DefaultVS);
+                    camera.DrawMesh(mesh, transform, texture, new Types.Color("red"), DefaultVS);
+                    // camera.DrawMesh(mesh, transform2, texture, new Types.Color("green"), DefaultVS);
+                    // camera.DrawMesh(mesh, transform3, texture, new Types.Color("blue"), DefaultVS);
                 }
                 texture.Unlock();
             }
@@ -161,6 +182,7 @@ namespace ParangEngine
             buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Albedo), 0, 0, resolution.Width / 5, resolution.Height / 5);
             buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Position), 0, resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
             buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Normal), 0, 2 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
+            buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Specular), 0, 3 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
             buffer.Render(graphics);
         }
     }

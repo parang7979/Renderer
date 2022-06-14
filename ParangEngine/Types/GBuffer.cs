@@ -17,7 +17,7 @@ namespace ParangEngine.Types
             Albedo,
             Position,
             Normal,
-            Light,
+            Specular,
             Gizmo,
         }
 
@@ -34,7 +34,7 @@ namespace ParangEngine.Types
             buffers.Add(BufferType.Albedo, new Bitmap(width, height, PixelFormat.Format24bppRgb));
             buffers.Add(BufferType.Position, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             buffers.Add(BufferType.Normal, new Bitmap(width, height, PixelFormat.Format48bppRgb));
-            buffers.Add(BufferType.Light, new Bitmap(width, height, PixelFormat.Format24bppRgb));
+            buffers.Add(BufferType.Specular, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             buffers.Add(BufferType.Gizmo, new Bitmap(width, height, PixelFormat.Format24bppRgb));
             locks.Clear();
         }
@@ -52,7 +52,7 @@ namespace ParangEngine.Types
             }
         }
 
-        public void DrawTriangle(Screen screen, Vertex v1, Vertex v2, Vertex v3, in Texture texture)
+        public void DrawTriangle(Screen screen, Vertex v1, Vertex v2, Vertex v3, in Texture texture, Color color)
         {
             if (locks.Count == 0) return;
 
@@ -94,6 +94,10 @@ namespace ParangEngine.Types
                     float o = 1f - s - t;
                     if ((0f <= s && s <= 1f) && (0f <= t && t <= 1f) && (0f <= o && o <= 1f))
                     {
+                        var z = invZ1 * o + invZ2 * s + invZ3 * t;
+                        var invZ = 1f / z;
+                        var uv = (v1.UV * o * invZ1 + v2.UV * s * invZ2 + v3.UV * t * invZ3) * invZ;
+
                         // position
                         /* var pos = Vertex.ToView(v1, screen).Vector3 * o +
                             Vertex.ToView(v2, screen).Vector3 * s + 
@@ -103,22 +107,25 @@ namespace ParangEngine.Types
                         
                         // Normal
                         var normal = v1.Normal * o + v2.Normal * s + v3.Normal * t;
-                        SetNormalBuffer(x, y, normal);
+                        var n = texture.GetSample(uv);
+                        var normalT = new Vector3();
+                        normalT.X = n.R * 2 - 1;
+                        normalT.Y = n.G * 2 - 1;
+                        normalT.Z = n.B * 2 - 1;
+                        SetNormalBuffer(x, y, Vector3.Normalize(normal + normalT));
 
                         // Albedo
-                        var z = invZ1 * o + invZ2 * s + invZ3 * t;
-                        var invZ = 1f / z;
                         Color albedo;
                         if (texture != null)
                         {
-                            var uv = (v1.UV * o * invZ1 + v2.UV * s * invZ2 + v3.UV * t * invZ3) * invZ;
-                            albedo = texture.GetSample(uv);
+                            albedo = color;// texture.GetSample(uv) * color;
                         }
                         else
                         {
                             albedo = (v1.Color * o * invZ1 + v2.Color * s * invZ2 + v3.Color * t * invZ3) * invZ;
                         }
                         SetAlbedoBuffer(x, y, albedo);
+                        SetSpecularBuffer(x, y, normal);
                     }
                 }
             }
@@ -279,20 +286,21 @@ namespace ParangEngine.Types
             }
         }
 
-        public void SetLightBuffer(int x, int y, Color color)
+        public void SetSpecularBuffer(int x, int y, Vector3 normal)
         {
             if (locks.Count == 0) return;
 
-            var b = locks[BufferType.Light];
+            var b = locks[BufferType.Specular];
             var index = y * b.Width + x;
             if (index < 0 || b.Width * b.Height <= index) return;
             index *= 3;
             unsafe
             {
-                var ptr = (byte*)b.Scan0;
-                ptr[index] = color.BB;
-                ptr[index + 1] = color.BG;
-                ptr[index + 2] = color.BR;
+                var ptr = (ushort*)b.Scan0;
+                var reflect = Vector3.Normalize(Vector3.Reflect(Vector3.UnitZ, normal));
+                ptr[index] = (ushort)((reflect.Z + 1) / 2 * ushort.MaxValue);
+                ptr[index + 1] = (ushort)((reflect.Y + 1) / 2 * ushort.MaxValue);
+                ptr[index + 2] = (ushort)((reflect.X + 1) / 2 * ushort.MaxValue);
             }
         }
 
@@ -301,35 +309,45 @@ namespace ParangEngine.Types
             if (locks.Count == 0) return;
             var b = render.LockBits(new Rectangle(0, 0, render.Width, render.Height),
                         ImageLockMode.ReadWrite, render.PixelFormat);
-            b.Clear(new Color(0.1f, 0.1f, 0.1f));
+            b.Clear(clearColor);
             for (int y = 0; y < b.Height; y++)
             {
                 for (int x = 0; x < b.Width; x++)
                 {
                     // 알베도
-                    var albedo = locks[BufferType.Albedo].GetPixel(x, y);
+                    var a = locks[BufferType.Albedo].GetPixel(x, y);
+                    var albedo = a;
                     // 포지션 버퍼가 없으면 아무것도 없는 공간
                     var p = locks[BufferType.Position].GetPixel(x, y);
                     if (!p.IsBlack)
                     {
+                        var pos = new Vector3(
+                            (p.R * screen.Width) - screen.HalfWidth,
+                            (p.G * screen.Height) - screen.HalfHeight,
+                            (p.B * screen.ViewDistance));
+
                         var n = locks[BufferType.Normal].GetPixel(x, y);
                         if (!n.IsBlack)
                         {
                             var normal =
-                            new Vector3((n.R * 2f) - 1f, (n.G * 2f) - 1f, (n.B * 2f) - 1f);
-                            var pos =
-                                new Vector3(
-                                    (p.R * screen.Width) - screen.HalfWidth,
-                                    (p.G * screen.Height) - screen.HalfHeight,
-                                    (p.B * screen.ViewDistance));
+                                new Vector3((n.R * 2f) - 1f, (n.G * 2f) - 1f, (n.B * 2f) - 1f);
                             var l = Color.Black;
                             foreach (var light in lights)
                                 l += light.GetColor(pos, normal);
                             albedo *= l;
                         }
+
+                        /* var s = locks[BufferType.Specular].GetPixel(x, y);
+                        if (!s.IsBlack && !albedo.IsBlack)
+                        {
+                            var specular =
+                                    new Vector3((s.R * 2f) - 1f, (s.G * 2f) - 1f, (s.B * 2f) - 1f);
+                            var l = Color.Black;
+                            foreach (var light in lights)
+                                l += light.GetSpecular(pos, a, specular);
+                            albedo += l;
+                        } */
                     }
-                    var lightColor = locks[BufferType.Light].GetPixel(x, y);
-                    albedo += lightColor;
                     // var gizmo = locks[BufferType.Gizmo].GetPixel(x, y);
                     // albedo = !gizmo.IsBlack ? gizmo : albedo;
                     b.SetPixel(x, y, albedo);
