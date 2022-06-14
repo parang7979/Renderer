@@ -38,7 +38,7 @@ namespace ParangEngine.Types
                 // 뷰 메트릭스
                 vMat = Matrix4x4.CreateLookAt(Transform.Position, Transform.Position + Transform.Forward, Transform.Up);
                 // 투영 매트릭스
-                pMat = Matrix4x4.CreatePerspectiveFieldOfView(Fov.ToRad(), Screen.AspectRatio, 1f, 100f);
+                pMat = Matrix4x4.CreatePerspectiveFieldOfView(Fov.ToRad(), Screen.AspectRatio, Screen.NearPlane, Screen.FarPlane);
                 // 매트릭스 합침
                 pvMat = vMat * pMat;
                 // 절두체
@@ -57,18 +57,7 @@ namespace ParangEngine.Types
         public void Render(List<Light> lights)
         {
             if (!gBuffer.IsLock) return;
-            foreach (var l in lights)
-            {
-                l.Setup(pvMat);
-                /* var v = new Vertex(Vector3.Zero, 1, "red");
-                v = Vertex.ToNDC(Vertex.Transform(v, l.Transform.Mat * pvMat));
-                v = Vertex.ToScreen(v, Screen);
-                gBuffer.DrawCircle(Screen, 
-                    v, 
-                    l.Intensity * 30f, 
-                    l.Color);
-                DrawAxes(l.Transform); */
-            }
+            foreach (var l in lights) l.Setup(pvMat);
             gBuffer.Render(Screen, ClearColor, lights);
         }
 

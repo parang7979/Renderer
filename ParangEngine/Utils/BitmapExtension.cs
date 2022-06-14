@@ -16,9 +16,23 @@ namespace ParangEngine.Utils
             if (index < 0 || b.Width * b.Height <= index) return Color.White;
             unsafe
             {
-                var ptr = (byte*)b.Scan0;
-                index *= 3;
-                return new Color(ptr[index + 2], ptr[index + 1], ptr[index]);
+                if (b.PixelFormat == PixelFormat.Format48bppRgb)
+                {
+                    // short
+                    var ptr = (ushort*)b.Scan0;
+                    index *= 3;
+                    return new Color(ptr[index + 2], ptr[index + 1], ptr[index]);
+                }
+                else
+                {
+                    var ptr = (byte*)b.Scan0;
+                    var k = b.Stride / b.Width;
+                    index *= k;
+                    if (k == 3)
+                        return new Color(ptr[index + 2], ptr[index + 1], ptr[index]);
+                    else
+                        return new Color(ptr[index + 3], ptr[index + 2], ptr[index + 1], ptr[index]);
+                }
             }
         }
 
@@ -32,11 +46,33 @@ namespace ParangEngine.Utils
             if (index < 0 || b.Width * b.Height <= index) return;
             unsafe
             {
-                var ptr = (byte*)b.Scan0;
-                index *= 3;
-                ptr[index] = color.BB;
-                ptr[index + 1] = color.BG;
-                ptr[index + 2] = color.BR;
+                if (b.PixelFormat == PixelFormat.Format48bppRgb)
+                {
+                    var ptr = (ushort*)b.Scan0;
+                    index *= 3;
+                    ptr[index] = color.SB;
+                    ptr[index + 1] = color.SG;
+                    ptr[index + 2] = color.SR;
+                }
+                else
+                {
+                    var ptr = (byte*)b.Scan0;
+                    var k = b.Stride / b.Width;
+                    index *= k;
+                    if (k == 3)
+                    {
+                        ptr[index] = color.BB;
+                        ptr[index + 1] = color.BG;
+                        ptr[index + 2] = color.BR;
+                    }
+                    else
+                    {
+                        ptr[index] = color.BB;
+                        ptr[index + 1] = color.BG;
+                        ptr[index + 2] = color.BR;
+                        ptr[index + 3] = color.BA;
+                    }
+                }
             }
         }
 
@@ -48,21 +84,6 @@ namespace ParangEngine.Utils
         static public void Clear(this BitmapData b, Color color)
         {
             for (int i = 0; i < b.Height * b.Width; i++) SetPixel(b, i, color);
-        }
-
-        static public void Blend(this BitmapData dst, in BitmapData src1, in BitmapData src2)
-        {
-            unsafe
-            {
-                var d = (byte*)dst.Scan0;
-                var p1 = (byte*)src1.Scan0;
-                var p2 = (byte*)src2.Scan0;
-
-                for (int i = 0; i < dst.Height * dst.Width * 3; i++)
-                {
-                    d[i] = (byte)((p1[i] / 255f) * (p2[i] / 255f) * 255f);
-                }
-            }
         }
     }
 }

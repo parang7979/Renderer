@@ -14,11 +14,11 @@ namespace ParangEngine.Types
     {
         public enum BufferType
         {
-            Gizmo,
             Albedo,
             Position,
             Normal,
             Light,
+            Gizmo,
         }
 
         public bool IsLock => locks.Count > 0;
@@ -31,10 +31,11 @@ namespace ParangEngine.Types
         public GBuffer(int width, int height)
         {
             render = new Bitmap(width, height, PixelFormat.Format24bppRgb);
-            foreach(BufferType t in Enum.GetValues(typeof(BufferType)))
-            {
-                buffers.Add(t, new Bitmap(width, height, PixelFormat.Format24bppRgb));
-            }
+            buffers.Add(BufferType.Albedo, new Bitmap(width, height, PixelFormat.Format24bppRgb));
+            buffers.Add(BufferType.Position, new Bitmap(width, height, PixelFormat.Format48bppRgb));
+            buffers.Add(BufferType.Normal, new Bitmap(width, height, PixelFormat.Format48bppRgb));
+            buffers.Add(BufferType.Light, new Bitmap(width, height, PixelFormat.Format24bppRgb));
+            buffers.Add(BufferType.Gizmo, new Bitmap(width, height, PixelFormat.Format24bppRgb));
             locks.Clear();
         }
 
@@ -48,47 +49,6 @@ namespace ParangEngine.Types
                         ImageLockMode.ReadWrite, b.Value.PixelFormat);
                 l.Clear(Color.Black);
                 locks.Add(b.Key, l);
-            }
-        }
-
-        public void Clear()
-        {
-            if (locks.Count == 0) return;
-            foreach (var l in locks) l.Value.Clear(Color.Black);
-        }
-
-        /* public Color GetPixel(BufferType type, int x, int y)
-        {
-            if (locks.Count == 0) return Color.Black;
-            if (locks.ContainsKey(type))
-            {
-                var l = locks[type];
-                return l.GetPixel(x, y);
-            }
-            return Color.White;
-        } */
-
-        public void DrawCircle(Screen screen, Vertex v, float r, Color color)
-        {
-            if (locks.Count == 0) return;
-
-            var s = screen.ToPoint(v);
-            var sp = s.ToVector2(screen);
-
-            var ir = (int)r;
-            for (int x = s.X - ir; x < s.X + ir; x++)
-            {
-                for (int y = s.Y - ir; y < s.Y + ir; y++)
-                {
-                    Point p = new Point(x, y);
-                    Vector2 w = p.ToVector2(screen);
-                    var dist = Vector2.Distance(sp, w);
-                    if (dist < r)
-                    {
-                        if (!CheckPositionBuffer(screen, x, y, v.Vector3)) continue;
-                        SetLightBuffer(x, y, color * (1 - dist / r));
-                    }
-                }
             }
         }
 
@@ -134,13 +94,20 @@ namespace ParangEngine.Types
                     float o = 1f - s - t;
                     if ((0f <= s && s <= 1f) && (0f <= t && t <= 1f) && (0f <= o && o <= 1f))
                     {
-                        var pos = v1.Vector3 * o + v2.Vector3 * s + v3.Vector3 * t;
+                        // position
+                        /* var pos = Vertex.ToView(v1, screen).Vector3 * o +
+                            Vertex.ToView(v2, screen).Vector3 * s + 
+                            Vertex.ToView(v3, screen).Vector3 * t; */
+                        var pos = v1.View * o + v2.View * s + v3.View * t;
                         if (!SetPositionBuffer(screen, x, y, pos)) continue;
-                        var z = invZ1 * o + invZ2 * s + invZ3 * t;
-                        var invZ = 1f / z;
+                        
                         // Normal
                         var normal = v1.Normal * o + v2.Normal * s + v3.Normal * t;
+                        SetNormalBuffer(x, y, normal);
+
                         // Albedo
+                        var z = invZ1 * o + invZ2 * s + invZ3 * t;
+                        var invZ = 1f / z;
                         Color albedo;
                         if (texture != null)
                         {
@@ -151,8 +118,6 @@ namespace ParangEngine.Types
                         {
                             albedo = (v1.Color * o * invZ1 + v2.Color * s * invZ2 + v3.Color * t * invZ3) * invZ;
                         }
-                        // PS 에 노말 알베도 버텍스 컬러 전달?
-                        SetNormalBuffer(x, y, normal);
                         SetAlbedoBuffer(x, y, albedo);
                     }
                 }
@@ -232,7 +197,7 @@ namespace ParangEngine.Types
             }
         }
 
-        public bool SetPositionBuffer(Screen screen, int x, int y, Vector3 pos)
+        public bool SetPositionBuffer(Screen screen, int x, int y, Vector4 pos)
         {
             if (locks.Count == 0) return false;
 
@@ -242,22 +207,22 @@ namespace ParangEngine.Types
             index *= 3;
             unsafe
             {
-                var ptr = (byte*)b.Scan0;
-                byte cz = (byte)((1 - pos.Z) * 255f);
-                byte pz = ptr[index];
+                var ptr = (ushort*)b.Scan0;
+                var cz = (ushort)((1 - pos.Z / pos.W) / 2f * ushort.MaxValue);
+                var pz = ptr[index];
                 // depth testing
                 if (pz < cz)
                 {
                     ptr[index] = cz;
-                    ptr[index + 1] = (byte)((pos.Y + screen.HalfHeight) / screen.Height * 255f);
-                    ptr[index + 2] = (byte)((pos.X + screen.HalfWidth) / screen.Width * 255f);
+                    ptr[index + 1] = (ushort)((pos.Y + screen.HalfHeight) / screen.Height * ushort.MaxValue);
+                    ptr[index + 2] = (ushort)((pos.X + screen.HalfWidth) / screen.Width * ushort.MaxValue);
                     return true;
                 }
                 return false;
             }
         }
 
-        public bool CheckPositionBuffer(Screen screen, int x, int y, Vector3 pos)
+        public bool CheckPositionBuffer(Screen screen, int x, int y, Vector4 pos)
         {
             if (locks.Count == 0) return false;
 
@@ -267,9 +232,9 @@ namespace ParangEngine.Types
             index *= 3;
             unsafe
             {
-                var ptr = (byte*)b.Scan0;
-                byte cz = (byte)((1 - pos.Z) * 255f);
-                byte pz = ptr[index];
+                var ptr = (ushort*)b.Scan0;
+                var cz = (ushort)(pos.Z / pos.W * ushort.MaxValue);
+                var pz = ptr[index];
                 // depth testing
                 if (pz < cz)
                 {
@@ -289,11 +254,11 @@ namespace ParangEngine.Types
             index *= 3;
             unsafe
             {
-                var ptr = (byte*)b.Scan0;
+                var ptr = (ushort*)b.Scan0;
                 normal = Vector3.Normalize(normal);
-                ptr[index] = (byte)((normal.Z + 1) / 2 * 255);
-                ptr[index + 1] = (byte)((normal.Y + 1) / 2 * 255);
-                ptr[index + 2] = (byte)((normal.X + 1) / 2 * 255);
+                ptr[index] = (ushort)((normal.Z + 1) / 2 * ushort.MaxValue);
+                ptr[index + 1] = (ushort)((normal.Y + 1) / 2 * ushort.MaxValue);
+                ptr[index + 2] = (ushort)((normal.X + 1) / 2 * ushort.MaxValue);
             }
         }
 
@@ -334,41 +299,43 @@ namespace ParangEngine.Types
         public void Render(Screen screen, Color clearColor, List<Light> lights)
         {
             if (locks.Count == 0) return;
-            var l = render.LockBits(new Rectangle(0, 0, render.Width, render.Height),
+            var b = render.LockBits(new Rectangle(0, 0, render.Width, render.Height),
                         ImageLockMode.ReadWrite, render.PixelFormat);
-            l.Clear(clearColor);
-            for (int y = 0; y < l.Height; y++)
+            b.Clear(new Color(0.1f, 0.1f, 0.1f));
+            for (int y = 0; y < b.Height; y++)
             {
-                for (int x = 0; x < l.Width; x++)
+                for (int x = 0; x < b.Width; x++)
                 {
-                    var c1 = locks[BufferType.Albedo].GetPixel(x, y);
-                    if (c1.IsBlack) continue;
-                    var c2 = locks[BufferType.Gizmo].GetPixel(x, y);
-                    var n = locks[BufferType.Normal].GetPixel(x, y);
+                    // 알베도
+                    var albedo = locks[BufferType.Albedo].GetPixel(x, y);
+                    // 포지션 버퍼가 없으면 아무것도 없는 공간
                     var p = locks[BufferType.Position].GetPixel(x, y);
-                    var c3 = locks[BufferType.Light].GetPixel(x, y);
-                    if (!n.IsBlack)
+                    if (!p.IsBlack)
                     {
-                        var normal = 
+                        var n = locks[BufferType.Normal].GetPixel(x, y);
+                        if (!n.IsBlack)
+                        {
+                            var normal =
                             new Vector3((n.R * 2f) - 1f, (n.G * 2f) - 1f, (n.B * 2f) - 1f);
-                       
-                        var pos =
-                            new Vector3(
-                                (p.R * screen.Width) - screen.HalfWidth, 
-                                (p.G * screen.Height) - screen.HalfHeight, 
-                                (p.B * 99f) + 1f);
-
-                        var c = Color.Black;
-                        foreach(var light in lights)
-                            c += light.GetColor(pos, normal);
-                        c1 *= c;
-                        c1 += c3;
-                        c1 += c2;
+                            var pos =
+                                new Vector3(
+                                    (p.R * screen.Width) - screen.HalfWidth,
+                                    (p.G * screen.Height) - screen.HalfHeight,
+                                    (p.B * screen.ViewDistance));
+                            var l = Color.Black;
+                            foreach (var light in lights)
+                                l += light.GetColor(pos, normal);
+                            albedo *= l;
+                        }
                     }
-                    l.SetPixel(x, y, c1);
+                    var lightColor = locks[BufferType.Light].GetPixel(x, y);
+                    albedo += lightColor;
+                    // var gizmo = locks[BufferType.Gizmo].GetPixel(x, y);
+                    // albedo = !gizmo.IsBlack ? gizmo : albedo;
+                    b.SetPixel(x, y, albedo);
                 }
             }
-            render.UnlockBits(l);
+            render.UnlockBits(b);
         }
 
         public void Unlock()

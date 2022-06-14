@@ -64,26 +64,49 @@ namespace ParangEngine
             texture = new Texture(0, "CKMan.png");
             transform = new Transform();
             transform2 = new Transform();
-            transform2.Position = new Vector3(3f, 0f, 0f);
-            transform2.Rotation = new Vector3(45f, 0f, 0f);
+            transform2.Position = new Vector3(3f, 0f, 2f);
+            // transform2.Rotation = new Vector3(45f, 0f, 0f);
 
             transform3 = new Transform();
-            transform3.Position = new Vector3(-3f, 0f, 0f);
-            transform3.Rotation = new Vector3(-45f, 0f, 0f);
+            transform3.Position = new Vector3(-3f, 0f, 2f);
+            // transform3.Rotation = new Vector3(-45f, 0f, 0f);
 
             lights = new List<Light>();
             var pointLight = new PointLight(new Transform());
             pointLight.Color = new Types.Color(System.Drawing.Color.Red);
-            pointLight.Radius = 10f;
-            pointLight.Transform.Position = new Vector3(1f, -1f, -3f);
+            pointLight.Radius = 4f;
+            pointLight.Transform.Position = new Vector3(-2f, 1f, 0f);
             lights.Add(pointLight);
+
+            pointLight = new PointLight(new Transform());
+            pointLight.Color = new Types.Color(System.Drawing.Color.Green);
+            pointLight.Radius = 4f;
+            pointLight.Transform.Position = new Vector3(2f, 1f, 0f);
+            lights.Add(pointLight);
+
+            pointLight = new PointLight(new Transform());
+            pointLight.Color = new Types.Color(System.Drawing.Color.Blue);
+            pointLight.Radius = 6f;
+            pointLight.Transform.Position = new Vector3(0f, 0f, -2f);
+            lights.Add(pointLight);
+
+            pointLight = new PointLight(new Transform());
+            pointLight.Color = new Types.Color(System.Drawing.Color.Cyan);
+            pointLight.Radius = 6f;
+            pointLight.Transform.Position = new Vector3(0f, 2f, 3f);
+            lights.Add(pointLight);
+
+            var dirLight = new DirectionalLight(new Transform());
+            dirLight.Color = new Types.Color(System.Drawing.Color.Yellow);
+            dirLight.Intensity = 0.5f;
+            lights.Add(dirLight);
 
             Gizmos.CreateGrid(10);
         }
 
         public void Update()
         {
-            /*var rot = transform.Rotation;
+            var rot = transform.Rotation;
             rot.Y -= 1;
             transform.Rotation = rot;
             
@@ -93,15 +116,15 @@ namespace ParangEngine
 
             rot = transform3.Rotation;
             rot.Y -= 1;
-            transform3.Rotation = rot; */
+            transform3.Rotation = rot;
 
             /* rot = lights[0].Transform.Rotation;
             rot.X -= 1;
             lights[0].Transform.Rotation = rot; */
 
-            var pos = lights[0].Transform.Position;
-            pos.X = (pos.X + 1f) % 10;
-            lights[0].Transform.Position = pos;
+            /* var pos = lights[0].Transform.Position;
+            pos.X = (pos.X + 0.1f) % 10;
+            lights[0].Transform.Position = pos; */
 
             camera.Transform.Update();
             transform.Update();

@@ -65,7 +65,7 @@ namespace ParangEngine.Types
                 if (!BackfaceCulling(tri)) continue;
                 Vertex.ToScreen(tri, Screen);
                 gBuffer.DrawTriangle(Screen, tri[0], tri[1], tri[2], texture);
-                gBuffer.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
+                // gBuffer.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
             }
         }
 

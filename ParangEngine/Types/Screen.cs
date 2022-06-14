@@ -24,6 +24,10 @@ namespace ParangEngine.Types
         
         public float AspectRatio { get; private set; }
 
+        public float NearPlane { get; private set; }
+        public float FarPlane { get; private set; }
+        public float ViewDistance { get; private set; }
+
         public Screen(int width, int height)
         {
             Width = width - 1;
@@ -39,6 +43,9 @@ namespace ParangEngine.Types
             MaxY = Height;
 
             AspectRatio = Width / (float)Height;
+            NearPlane = 1f;
+            FarPlane = 100f;
+            ViewDistance = FarPlane - NearPlane;
         }
 
         public Point Clamp(Point p)

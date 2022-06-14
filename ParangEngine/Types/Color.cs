@@ -17,26 +17,49 @@ namespace ParangEngine.Types
         public float G { get; set; }
         public float B { get; set; }
 
-        public byte BA => (byte)(A * 255f);
-        public byte BR => (byte)(R * 255f);
-        public byte BG => (byte)(G * 255f);
-        public byte BB => (byte)(B * 255f);
+        public byte BA => (byte)(A * byte.MaxValue);
+        public byte BR => (byte)(R * byte.MaxValue);
+        public byte BG => (byte)(G * byte.MaxValue);
+        public byte BB => (byte)(B * byte.MaxValue);
+
+        public ushort SA => (ushort)(A * ushort.MaxValue);
+        public ushort SR => (ushort)(R * ushort.MaxValue);
+        public ushort SG => (ushort)(G * ushort.MaxValue);
+        public ushort SB => (ushort)(B * ushort.MaxValue);
 
         public Color(System.Drawing.Color color)
         {
-            A = color.A / 255f;
-            R = color.R / 255f;
-            G = color.G / 255f;
-            B = color.B / 255f;
+            A = color.A / (float)byte.MaxValue;
+            R = color.R / (float)byte.MaxValue;
+            G = color.G / (float)byte.MaxValue;
+            B = color.B / (float)byte.MaxValue;
             Clamp();
         }
 
         public Color(byte r, byte g, byte b)
         {
             A = 1f;
-            R = r / 255f;
-            G = g / 255f;
-            B = b / 255f;
+            R = r / (float)byte.MaxValue;
+            G = g / (float)byte.MaxValue;
+            B = b / (float)byte.MaxValue;
+            Clamp();
+        }
+
+        public Color(byte a, byte r, byte g, byte b)
+        {
+            A = a / (float)byte.MaxValue;
+            R = r / (float)byte.MaxValue;
+            G = g / (float)byte.MaxValue;
+            B = b / (float)byte.MaxValue;
+            Clamp();
+        }
+
+        public Color(ushort r, ushort g, ushort b)
+        {
+            A = 1f;
+            R = r / (float)ushort.MaxValue;
+            G = g / (float)ushort.MaxValue;
+            B = b / (float)ushort.MaxValue;
             Clamp();
         }
 
@@ -61,10 +84,10 @@ namespace ParangEngine.Types
         public Color(string name)
         {
             var color = System.Drawing.Color.FromName(name);
-            A = color.A / 255f;
-            R = color.R / 255f;
-            G = color.G / 255f;
-            B = color.B / 255f;
+            A = color.A / (float)byte.MaxValue;
+            R = color.R / (float)byte.MaxValue;
+            G = color.G / (float)byte.MaxValue;
+            B = color.B / (float)byte.MaxValue;
             Clamp();
         }
 

@@ -76,7 +76,7 @@ namespace ParangEngine.Types
             var r = dir.Length();
             if (Radius < r) return Color.Black;
             var d = Math.Min(0f, Vector3.Dot(normal, dir)) < 0f ? 1f : 0f;
-            return base.GetColor(pos, normal) * d * (r / Radius);
+            return base.GetColor(pos, normal) * d * (1 - r / Radius);
         }
     }
 }

@@ -20,11 +20,13 @@ namespace ParangEngine.Types
         public Vector2 UV => uv;
         public Vector3 Normal => normal;
         public Color Color => color;
+        public Vector4 View => view;
 
         private Vector4 pos;
         private Vector3 normal;
         private Vector2 uv;
         private Color color;
+        private Vector4 view;
 
         public Vertex(Vector3 v, float w, string color)
         {
@@ -32,6 +34,7 @@ namespace ParangEngine.Types
             normal = Vector3.Zero;
             uv = Vector2.Zero;
             this.color = new Color(color);
+            view = Vector4.Zero;
         }
 
         public Vertex(float x, float y, float z, float w, string color)
@@ -40,6 +43,7 @@ namespace ParangEngine.Types
             normal = Vector3.Zero;
             uv = Vector2.Zero;
             this.color = new Color(color);
+            view = Vector4.Zero;
         }
 
         public Vertex(Vector4 v, Vector3 n = default, Vector2 uv = default, Color color = default)
@@ -48,6 +52,7 @@ namespace ParangEngine.Types
             normal = n;
             this.uv = uv;
             this.color = color;
+            view = Vector4.Zero;
         }
 
         static public Vertex operator* (Vertex v, float t)
@@ -83,6 +88,20 @@ namespace ParangEngine.Types
             return v;
         }
 
+        static public Vertex ToView(Vertex v, Screen screen)
+        {
+            // Screen -> NDC
+            v.X /= screen.HalfWidth;
+            v.Y /= screen.HalfHeight;
+
+            // NDC -> View
+            v.W = v.W == 0f ? float.Epsilon : v.W;
+            v.X *= v.W;
+            v.Y *= v.W;
+            v.Z *= v.W;
+            return v;
+        }
+
         static public void ToNDC(List<Vertex> vertices)
         {
             for (int i = 0; i < vertices.Count; i++)
@@ -91,6 +110,7 @@ namespace ParangEngine.Types
 
         static public Vertex ToNDC(Vertex v)
         {
+            v.view = v.pos;
             v.W = v.W == 0f ? float.Epsilon : v.W;
             var invW = 1f / v.W;
             v.X *= invW;
