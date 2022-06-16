@@ -59,6 +59,14 @@ namespace ParangEngine.Types
             B = b / (float)ushort.MaxValue;
         }
 
+        public Color(ushort a, ushort r, ushort g, ushort b)
+        {
+            A = a / (float)ushort.MaxValue;
+            R = r / (float)ushort.MaxValue;
+            G = g / (float)ushort.MaxValue;
+            B = b / (float)ushort.MaxValue;
+        }
+
         public Color(float r, float g, float b)
         {
             A = 1f;

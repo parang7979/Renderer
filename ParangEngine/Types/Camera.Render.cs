@@ -23,7 +23,7 @@ namespace ParangEngine.Types
             return frustum.Check(viewPos.ToVector3()) != Frustum.Result.Outside;
         }
 
-        public void DrawMesh(in Mesh mesh, in Transform transform, in Texture texture, Color color, Func<Vertex, Matrix4x4, Vertex> VS)
+        public void DrawMesh(in Mesh mesh, in Transform transform, in Texture texture, Color color, Func<Vertex, Matrix4x4, Matrix4x4, Vertex> VS)
         {
             if (!DrawCheck(transform)) return;
             RenderTri(mesh.Vertices, transform, texture, color, VS);
@@ -35,14 +35,13 @@ namespace ParangEngine.Types
             RenderLine(Gizmos.Axes.ToList(), transform);
         }
 
-        private void RenderTri(List<Vertex> vertices, in Transform transform, in Texture texture, Color color, Func<Vertex, Matrix4x4, Vertex> VS)
+        private void RenderTri(List<Vertex> vertices, in Transform transform, in Texture texture, Color color, Func<Vertex, Matrix4x4, Matrix4x4, Vertex> VS)
         {
             if (gBuffer.IsLock)
             {
                 // 버텍스 변환 L -> V
-                var mat = transform.Mat * pvMat;
                 for (int i = 0; i < vertices.Count; i++)
-                    vertices[i] = VS(vertices[i], mat);
+                    vertices[i] = VS(vertices[i], transform.Mat, pvMat);
 
                 var triCount = vertices.Count / 3;
                 for (int i = 0; i < triCount; i++)

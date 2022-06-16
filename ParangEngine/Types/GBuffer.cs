@@ -24,6 +24,7 @@ namespace ParangEngine.Types
         public bool IsLock => locks.Count > 0;
         public Bitmap RenderTarget => render;
 
+        private int spliter = 8;
         private Bitmap render;
         private Dictionary<BufferType, Bitmap> buffers = new Dictionary<BufferType, Bitmap>();
         private Dictionary<BufferType, BitmapData> locks = new Dictionary<BufferType, BitmapData>();
@@ -32,7 +33,7 @@ namespace ParangEngine.Types
         {
             render = new Bitmap(width, height, PixelFormat.Format24bppRgb);
             buffers.Add(BufferType.Albedo, new Bitmap(width, height, PixelFormat.Format24bppRgb));
-            buffers.Add(BufferType.Position, new Bitmap(width, height, PixelFormat.Format48bppRgb));
+            buffers.Add(BufferType.Position, new Bitmap(width, height, PixelFormat.Format64bppArgb));
             buffers.Add(BufferType.Normal, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             buffers.Add(BufferType.Specular, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             buffers.Add(BufferType.Gizmo, new Bitmap(width, height, PixelFormat.Format24bppRgb));
@@ -112,7 +113,7 @@ namespace ParangEngine.Types
                         normalT.X = n.R * 2 - 1;
                         normalT.Y = n.G * 2 - 1;
                         normalT.Z = n.B * 2 - 1;
-                        SetNormalBuffer(x, y, Vector3.Normalize(normal + normalT));
+                        SetNormalBuffer(x, y, Vector3.Normalize(normal - normalT));
 
                         // Albedo
                         Color albedo;
@@ -125,7 +126,7 @@ namespace ParangEngine.Types
                             albedo = (v1.Color * o * invZ1 + v2.Color * s * invZ2 + v3.Color * t * invZ3) * invZ;
                         }
                         SetAlbedoBuffer(x, y, albedo);
-                        SetSpecularBuffer(x, y, normal);
+                        // SetSpecularBuffer(x, y, normal);
                     }
                 }
             }
@@ -211,18 +212,20 @@ namespace ParangEngine.Types
             var b = locks[BufferType.Position];
             var index = y * b.Width + x;
             if (index < 0 || b.Width * b.Height <= index) return false;
-            index *= 3;
+            index *= 4;
             unsafe
             {
                 var ptr = (ushort*)b.Scan0;
-                var cz = (ushort)((1 - pos.Z / pos.W) / 2f * ushort.MaxValue);
+                if (pos.Z < 0) return false;
+                var cz = (ushort)((1 - pos.Z) * ushort.MaxValue / spliter);
                 var pz = ptr[index];
                 // depth testing
                 if (pz < cz)
                 {
                     ptr[index] = cz;
-                    ptr[index + 1] = (ushort)((pos.Y + screen.HalfHeight) / screen.Height * ushort.MaxValue);
-                    ptr[index + 2] = (ushort)((pos.X + screen.HalfWidth) / screen.Width * ushort.MaxValue);
+                    ptr[index + 1] = (ushort)((pos.Y + 1f) / 2f * ushort.MaxValue / spliter);
+                    ptr[index + 2] = (ushort)((pos.X + 1f) / 2f * ushort.MaxValue / spliter);
+                    ptr[index + 3] = (ushort)(pos.W / screen.ViewDistance * ushort.MaxValue / spliter);
                     return true;
                 }
                 return false;
@@ -263,9 +266,9 @@ namespace ParangEngine.Types
             {
                 var ptr = (ushort*)b.Scan0;
                 normal = Vector3.Normalize(normal);
-                ptr[index] = (ushort)((normal.Z + 1) / 2 * ushort.MaxValue);
-                ptr[index + 1] = (ushort)((normal.Y + 1) / 2 * ushort.MaxValue);
-                ptr[index + 2] = (ushort)((normal.X + 1) / 2 * ushort.MaxValue);
+                ptr[index] = (ushort)((normal.Z + 1) / 2 * ushort.MaxValue / spliter);
+                ptr[index + 1] = (ushort)((normal.Y + 1) / 2 * ushort.MaxValue / spliter);
+                ptr[index + 2] = (ushort)((normal.X + 1) / 2 * ushort.MaxValue / spliter);
             }
         }
 
@@ -321,16 +324,12 @@ namespace ParangEngine.Types
                     var p = locks[BufferType.Position].GetPixel(x, y);
                     if (!p.IsBlack)
                     {
-                        var pos = new Vector3(
-                            (p.R * screen.Width) - screen.HalfWidth,
-                            (p.G * screen.Height) - screen.HalfHeight,
-                            (p.B * screen.ViewDistance));
-
+                        var pos = new Vector4(p.R * spliter * 2f - 1f, p.G * spliter * 2f - 1f, 1 - p.B * spliter, p.A * spliter * screen.ViewDistance);
                         var n = locks[BufferType.Normal].GetPixel(x, y);
                         if (!n.IsBlack)
                         {
                             var normal =
-                                new Vector3((n.R * 2f) - 1f, (n.G * 2f) - 1f, (n.B * 2f) - 1f);
+                                new Vector3((n.R * spliter * 2f) - 1f, (n.G * spliter * 2f) - 1f, (n.B  * spliter * 2f) - 1f);
                             var l = Color.Black;
                             foreach (var light in lights)
                                 l += light.GetColor(pos, normal);

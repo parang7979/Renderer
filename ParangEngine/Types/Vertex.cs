@@ -28,6 +28,15 @@ namespace ParangEngine.Types
         private Color color;
         private Vector4 view;
 
+        public Vertex(Vector3 v, float w)
+        {
+            pos = new Vector4(v, w);
+            normal = Vector3.Zero;
+            uv = Vector2.Zero;
+            color = Color.White;
+            view = Vector4.Zero;
+        }
+
         public Vertex(Vector3 v, float w, string color)
         {
             pos = new Vector4(v, w);
@@ -93,21 +102,12 @@ namespace ParangEngine.Types
         static public Vertex Transform(Vertex v, Matrix4x4 mat)
         {
             v.pos = Vector4.Transform(v.pos, mat);
-            v.normal = Vector4.Transform(new Vector4(v.normal, 0), mat).ToVector3();
             return v;
         }
 
-        static public Vertex ToView(Vertex v, Screen screen)
+        static public Vertex TransformNormal(Vertex v, Matrix4x4 mat)
         {
-            // Screen -> NDC
-            v.X /= screen.HalfWidth;
-            v.Y /= screen.HalfHeight;
-
-            // NDC -> View
-            v.W = v.W == 0f ? float.Epsilon : v.W;
-            v.X *= v.W;
-            v.Y *= v.W;
-            v.Z *= v.W;
+            v.normal = Vector3.Normalize(Vector4.Transform(new Vector4(v.normal, 0), mat).ToVector3());
             return v;
         }
 
@@ -118,13 +118,8 @@ namespace ParangEngine.Types
         }
 
         static public Vertex ToNDC(Vertex v)
-        {
-            v.view = v.pos;
-            v.W = v.W == 0f ? float.Epsilon : v.W;
-            var invW = 1f / v.W;
-            v.X *= invW;
-            v.Y *= invW;
-            v.Z *= invW;
+        {;
+            v.pos = v.view = v.pos.ToNDC();
             return v;
         }
 
@@ -136,8 +131,7 @@ namespace ParangEngine.Types
 
         static public Vertex ToScreen(Vertex v, Screen screen)
         {
-            v.X *= screen.HalfWidth;
-            v.Y *= screen.HalfHeight;
+            v.pos = v.pos.ToScreen(screen);
             return v;
         }
 

@@ -23,7 +23,7 @@ namespace ParangEngine.Types
 
         }
 
-        virtual public Color GetColor(Vector3 pos, Vector3 normal)
+        virtual public Color GetColor(Vector4 pos, Vector3 normal)
         {
             return Color * Intensity;
         }
@@ -50,7 +50,7 @@ namespace ParangEngine.Types
             direction = Vector3.Normalize(Vector4.Transform(Vector4.UnitZ, mat).ToVector3());
         }
 
-        public override Color GetColor(Vector3 pos, Vector3 normal)
+        public override Color GetColor(Vector4 pos, Vector3 normal)
         {
             var d = -Math.Min(0, Vector3.Dot(normal, direction));
             return base.GetColor(pos, normal) * d;
@@ -67,8 +67,7 @@ namespace ParangEngine.Types
     {
         public float Radius { get; set; }
 
-        private Vector3 position = Vector3.Zero;
-        private float r = 0f;
+        private Matrix4x4 invMat;
 
         public PointLight(Transform transform) : base(transform)
         {
@@ -78,28 +77,32 @@ namespace ParangEngine.Types
         public override void Setup(Matrix4x4 pvMat)
         {
             base.Setup(pvMat);
-            var mat = Transform.Mat * pvMat;
-            position = Vector4.Transform(new Vector4(Vector3.Zero, 1), mat).ToVector3();
-            r = Vector4.Transform(new Vector4(Vector3.UnitZ * Radius, 0), mat).ToVector3().Length();
+            Matrix4x4.Invert(pvMat, out invMat);
         }
 
-        public override Color GetColor(Vector3 pos, Vector3 normal)
+        public override Color GetColor(Vector4 pos, Vector3 normal)
         {
-            var dir = pos - position;
+            // 위치를 빛의 좌표계로 이동함
+            pos = pos.ToInvNDC();
+            var p = Vector4.Transform(pos, invMat).ToVector3();
+            var c = Vector4.Transform(new Vector4(Vector3.Zero, 1), Transform.Mat).ToVector3();
+            var dir = p - c;
+            // 벡터가 곧 방향과 길이
             var l = dir.Length();
-            if (r < l) return Color.Black;
-            var d = Math.Min(0f, Vector3.Dot(normal, dir)) < 0f ? 1f : 0f;
+            if (Radius < l) return Color.Black;
+            var d = Vector3.Dot(normal, Vector3.Normalize(dir)); // > 0f ? 1f : 0f;
             // var d = -Math.Min(0, Vector3.Dot(normal, dir));
-            return base.GetColor(pos, normal) * d * (1 / (l * l));//(1 - r / Radius);
+            return base.GetColor(pos, normal) * (d < 0 ? -d : 0) * (1 / (l * l));//(1 - r / Radius);
         }
 
         public override Color GetSpecular(Vector3 pos, Color albedo, Vector3 reflect)
         {
-            var dir = pos - position;
+            /* var dir = pos - position;
             var l = dir.Length();
-            if (r < l) return Color.Black;
+            if (radius < l) return Color.Black;
             var d = -Math.Min(0, Vector3.Dot(reflect, dir));
-            return base.GetSpecular(pos, albedo, reflect) * d * (1 / (l * l));
+            return base.GetSpecular(pos, albedo, reflect) * d * (1 / (l * l)); */
+            return base.GetSpecular(pos, albedo, reflect);
         }
     }
 }

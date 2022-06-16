@@ -16,12 +16,16 @@ namespace ParangEngine.Utils
             if (index < 0 || b.Width * b.Height <= index) return Color.White;
             unsafe
             {
-                if (b.PixelFormat == PixelFormat.Format48bppRgb)
+                if (b.PixelFormat == PixelFormat.Format48bppRgb || b.PixelFormat == PixelFormat.Format64bppArgb)
                 {
                     // short
                     var ptr = (ushort*)b.Scan0;
-                    index *= 3;
-                    return new Color(ptr[index + 2], ptr[index + 1], ptr[index]);
+                    var k = (b.Stride / b.Width) / 2;
+                    index *= k;
+                    if (k == 3)
+                        return new Color(ptr[index + 2], ptr[index + 1], ptr[index]);
+                    else
+                        return new Color(ptr[index + 3], ptr[index + 2], ptr[index + 1], ptr[index]);
                 }
                 else
                 {
@@ -46,13 +50,24 @@ namespace ParangEngine.Utils
             if (index < 0 || b.Width * b.Height <= index) return;
             unsafe
             {
-                if (b.PixelFormat == PixelFormat.Format48bppRgb)
+                if (b.PixelFormat == PixelFormat.Format48bppRgb || b.PixelFormat == PixelFormat.Format64bppArgb)
                 {
                     var ptr = (ushort*)b.Scan0;
-                    index *= 3;
-                    ptr[index] = color.SB;
-                    ptr[index + 1] = color.SG;
-                    ptr[index + 2] = color.SR;
+                    var k = (b.Stride / b.Width) / 2;
+                    index *= k;
+                    if (k == 3)
+                    {
+                        ptr[index] = color.SB;
+                        ptr[index + 1] = color.SG;
+                        ptr[index + 2] = color.SR;
+                    }
+                    else
+                    {
+                        ptr[index] = color.SB;
+                        ptr[index + 1] = color.SG;
+                        ptr[index + 2] = color.SR;
+                        ptr[index + 3] = color.SA;
+                    }
                 }
                 else
                 {

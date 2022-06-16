@@ -66,15 +66,15 @@ namespace ParangEngine
             mesh = new Mesh(0, v.ToList(), i);
             texture = new Texture(0, "wall1_n.png");
             transform = new Transform();
+            transform.Position = new Vector3(0f, 0f, 3f);
             transform.Rotation = new Vector3(0f, 180f, 0f);
-            transform.Scale = new Vector3(1f, 1f, 1f);
 
             transform2 = new Transform();
-            transform2.Position = new Vector3(3f, 0f, 0f);
+            transform2.Position = new Vector3(5f, 3f, 10f);
             transform2.Rotation = new Vector3(0f, 180f, 0f);
 
             transform3 = new Transform();
-            transform3.Position = new Vector3(-3f, 0f, 0f);
+            transform3.Position = new Vector3(-3f, -1f, 0f);
             transform3.Rotation = new Vector3(0f, 180f, 0f);
 
             lights = new List<Light>();
@@ -92,9 +92,9 @@ namespace ParangEngine
 
             var pointLight = new PointLight(new Transform());
             pointLight.Color = new Types.Color(System.Drawing.Color.White);
-            pointLight.Intensity = 1f;
-            pointLight.Radius = 25f;
-            pointLight.Transform.Position = new Vector3(0f, 0f, -4.5f);
+            pointLight.Intensity = 10f;
+            pointLight.Radius = 10f;
+            pointLight.Transform.Position = new Vector3(0f, 0f, 8f);
             lights.Add(pointLight);
 
             /* pointLight = new PointLight(new Transform());
@@ -125,7 +125,7 @@ namespace ParangEngine
 
         public void Update()
         {
-            /* var rot = transform.Rotation;
+            var rot = transform.Rotation;
             rot.Y -= 1;
             transform.Rotation = rot;
             
@@ -135,7 +135,7 @@ namespace ParangEngine
 
             rot = transform3.Rotation;
             rot.Y -= 1;
-            transform3.Rotation = rot; */
+            transform3.Rotation = rot;
 
             /* var rot = lights[0].Transform.Rotation;
             rot.Y -= 2;
@@ -154,9 +154,11 @@ namespace ParangEngine
             foreach (var l in lights) l.Transform.Update();
         }
 
-        public Vertex DefaultVS(Vertex v, Matrix4x4 m)
+        public Vertex DefaultVS(Vertex v, Matrix4x4 mat, Matrix4x4 pvMat)
         {
-            return Vertex.Transform(v, m);
+            v = Vertex.Transform(v, mat);
+            v = Vertex.TransformNormal(v, mat);
+            return Vertex.Transform(v, pvMat);
         }
 
         public void Render()
@@ -169,8 +171,8 @@ namespace ParangEngine
                 // 텍스쳐 읽기 준비
                 texture.Lock();
                 {
-                    camera.DrawMesh(mesh, transform, texture, new Types.Color("red"), DefaultVS);
-                    // camera.DrawMesh(mesh, transform2, texture, new Types.Color("green"), DefaultVS);
+                    // camera.DrawMesh(mesh, transform, texture, new Types.Color("white"), DefaultVS);
+                    camera.DrawMesh(mesh, transform2, texture, new Types.Color("white"), DefaultVS);
                     // camera.DrawMesh(mesh, transform3, texture, new Types.Color("blue"), DefaultVS);
                 }
                 texture.Unlock();
@@ -182,7 +184,7 @@ namespace ParangEngine
             buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Albedo), 0, 0, resolution.Width / 5, resolution.Height / 5);
             buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Position), 0, resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
             buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Normal), 0, 2 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
-            buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Specular), 0, 3 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
+            // buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Specular), 0, 3 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5); */
             buffer.Render(graphics);
         }
     }
