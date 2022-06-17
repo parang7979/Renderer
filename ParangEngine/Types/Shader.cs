@@ -62,8 +62,8 @@ namespace ParangEngine.Types
                 uvs.Add(v1.UVs[i] * (1f - t) + v2.UVs[i] * t);
             return new OutputVS
             {
-                Position = v1.position * (1f - t) + v2.position * t,
-                Normal = v1.Normal * (1f - t) + v2.Normal * t,
+                Position = v1.Position * (1f - t) + v2.Position * t,
+                Normal = Vector3.Normalize(v1.Normal + v2.Normal),
                 UVs = uvs.ToArray(),
                 Color = v1.Color * (1f - t) + v2.Color * t,
             };

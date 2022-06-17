@@ -39,8 +39,8 @@ namespace ParangEngine
 
             camera = new Camera(res.Width / downScale, res.Height / downScale, 60f);
             camera.Transform = new Transform();
-            camera.Transform.Rotation = new Vector3(90f, 0f, 0f);
-            camera.Transform.Position = new Vector3(0f, 5f, 0f);
+            camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
+            camera.Transform.Position = new Vector3(0f, 0f, -3f);
             // camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
 
             var v = new List<Vertex>()
@@ -62,10 +62,10 @@ namespace ParangEngine
             var i = new List<int>()
             {
                 // 0, 1, 2, 0, 2, 3, // Right
-	            // 4, 6, 5, 4, 7, 6, // Front
+	            4, 6, 5, 4, 7, 6, // Front
 	            /* 8, 9, 10, 8, 10, 11, // Back
 	            12, 14, 13, 12, 15, 14, // Left*/
-	            16, 18, 17, 16, 19, 18, // Top
+	            // 16, 18, 17, 16, 19, 18, // Top
 	            /* 20, 21, 22, 20, 22, 23  // Bottom */
             };
 
@@ -76,7 +76,7 @@ namespace ParangEngine
 
             transform = new Transform();
             transform.Position = new Vector3(0f, 0f, 0f);
-            transform.Rotation = new Vector3(0f, 0f, 0f);
+            transform.Rotation = new Vector3(0f, 180f, 0f);
 
             transform2 = new Transform();
             transform2.Position = new Vector3(3f, 1f, 2f);
@@ -133,21 +133,21 @@ namespace ParangEngine
 
         public void Update()
         {
-            /* var rot = transform.Rotation;
+            var rot = transform.Rotation;
             rot.Y -= 1;
             transform.Rotation = rot;
             
-            rot = transform2.Rotation;
+            /* rot = transform2.Rotation;
             rot.Y += 1;
             transform2.Rotation = rot;
 
             rot = transform3.Rotation;
             rot.Y -= 1;
-            transform3.Rotation = rot; */
+            transform3.Rotation = rot;
 
             var rot = lights[0].Transform.Rotation;
             rot.X -= 2;
-            lights[0].Transform.Rotation = rot;
+            lights[0].Transform.Rotation = rot; */
 
             /* var pos = lights[1].Transform.Position;
             pos.X = (pos.X + 0.1f) % 10;
