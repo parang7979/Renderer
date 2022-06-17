@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ParangEngine.Types
 {
-    public class InputVS
+    public struct InputVS
     {
         public Vector4 Position { get; set; }
         public Vector3 Normal { get; set; }
@@ -18,7 +18,7 @@ namespace ParangEngine.Types
         public Matrix4x4 PVMat { get; set; }
     }
 
-    public class OutputVS
+    public struct OutputVS
     {
         public Vector4 Position
         {
@@ -32,7 +32,19 @@ namespace ParangEngine.Types
         }
         public Vector3 Vector3 { get; private set; }
         public Vector2 Vector2 { get; private set; }
-        public Vector3 Normal { get; set; }
+        public Vector3 Normal
+        {
+            get => normal;
+            set
+            {
+                normal = value;
+                var c = Vector3.Cross(Vector3.UnitZ, normal);
+                var s = (float)Math.Sqrt((1f + Vector3.Dot(Vector3.UnitZ, normal)) * 2f);
+                RotNormal = Quaternion.Identity;
+                if (s != 0) RotNormal = new Quaternion(c.X / s, c.Y / s, c.Z / s, s / 2f);
+            }
+        }
+        public Quaternion RotNormal { get; set; }
         public Vector2[] UVs { get; set; }
         public Color Color { get; set; }
         public Vector4 View { get; set; }
@@ -43,19 +55,23 @@ namespace ParangEngine.Types
         public float W => position.W;
 
         private Vector4 position;
+        private Vector3 normal;
 
-        public void ToNDC()
+        static public OutputVS ToNDC(OutputVS v)
         {
-            Position = View = Position.ToNDC();
+            v.Position = v.View = v.Position.ToNDC();
+            return v;
         }
 
-        public void ToScreen(Screen screen)
+        static public OutputVS ToScreen(OutputVS v, Screen screen)
         {
-            Position = Position.ToScreen(screen);
+            v.Position = v.Position.ToScreen(screen);
+            return v;
         }
 
         static public OutputVS Blend(OutputVS v1, OutputVS v2, float t)
         {
+            t = t < 0 || 1 < t ? 1 : t;
             var uvs = new List<Vector2>();
             int count = Math.Min(v1.UVs.Length, v2.UVs.Length);
             for(int i = 0; i < count; i++)
@@ -70,22 +86,23 @@ namespace ParangEngine.Types
         }
     }
 
-    public class InputPS
+    public struct InputPS
     {
         public Color Color { get; set; }
         public Texture[] Textures { get; set; }
-        public List<Vector2> UVs { get; set; }
+        public Vector2[] UVs { get; set; }
         public Vector3 Normal { get; set; }
+        public Quaternion RotNormal { get; set; }
         public Color VertexColor { get; set; }
 
         public Color GetSample(Material.Type type)
         {
             int index = (int)type;
-            return Textures[index]?.GetSample(UVs[index % UVs.Count]) ?? Color.White;
+            return Textures[index]?.GetSample(UVs[index % UVs.Length]) ?? Color.White;
         }
     }
 
-    public class OutputPS
+    public struct OutputPS
     {
         public Color Color { get; set; }
         public Vector3 Normal { get; set; }

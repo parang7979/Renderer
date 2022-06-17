@@ -40,14 +40,15 @@ namespace ParangEngine.Types
             });
         }
 
-        public OutputPS Convert(List<Vector2> uvs, Vector3 normal, Color vertexColor)
+        public OutputPS Convert(List<Vector2> uvs, Vector3 normal, Quaternion normalQuat, Color vertexColor)
         {
             return ps.Invoke(new InputPS
             {
                 Color = Color,
                 Textures = textures,
-                UVs = uvs,
+                UVs = uvs.ToArray(),
                 Normal = normal,
+                RotNormal = normalQuat,
                 VertexColor = vertexColor,
             });
         }

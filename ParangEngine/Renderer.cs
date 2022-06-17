@@ -39,8 +39,8 @@ namespace ParangEngine
 
             camera = new Camera(res.Width / downScale, res.Height / downScale, 60f);
             camera.Transform = new Transform();
-            camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
-            camera.Transform.Position = new Vector3(0f, 0f, -3f);
+            camera.Transform.Rotation = new Vector3(45f, 0f, 0f);
+            camera.Transform.Position = new Vector3(0f, 2f, -2f);
             // camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
 
             var v = new List<Vertex>()
@@ -52,10 +52,10 @@ namespace ParangEngine
                 new Vertex(1.0f, -1.0f, 1.0f, 1f, uv: new Vector2(0f, 1f)),
                 new Vertex(-1.0f, -1.0f, -1.0f, 1f), new Vertex(-1.0f, 1.0f, -1.0f, 1f), new Vertex(1.0f, 1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, -1.0f, 1f),
                 new Vertex(1.0f, -1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, 1.0f, 1f), new Vertex(1.0f, 1.0f, 1.0f, 1f), new Vertex(1.0f, 1.0f, -1.0f, 1f),
-                new Vertex(-1.0f, 1.0f, -1.0f, 1f, uv: new Vector2(1f, 1f)), 
-                new Vertex(1.0f, 1.0f, -1.0f, 1f, uv: new Vector2(1f, 0f)), 
-                new Vertex(1.0f, 1.0f, 1.0f, 1f, uv: new Vector2(0f, 0f)), 
-                new Vertex(-1.0f, 1.0f, 1.0f, 1f, uv: new Vector2(0f, 1f)),
+                new Vertex(-1.0f, 1.0f, -1.0f, 1f, uv: new Vector2(0f, 0f)), //16
+                new Vertex(1.0f, 1.0f, -1.0f, 1f, uv: new Vector2(1f, 0f)),  //17
+                new Vertex(1.0f, 1.0f, 1.0f, 1f, uv: new Vector2(1f, 1f)), //19
+                new Vertex(-1.0f, 1.0f, 1.0f, 1f, uv: new Vector2(0f, 1f)),//19
                 new Vertex(-1.0f, -1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, 1.0f, 1f), new Vertex(-1.0f, -1.0f, 1.0f, 1f)
             };
 
@@ -65,13 +65,14 @@ namespace ParangEngine
 	            4, 6, 5, 4, 7, 6, // Front
 	            /* 8, 9, 10, 8, 10, 11, // Back
 	            12, 14, 13, 12, 15, 14, // Left*/
-	            // 16, 18, 17, 16, 19, 18, // Top
+	            16, 18, 17, 16, 19, 18, // Top
 	            /* 20, 21, 22, 20, 22, 23  // Bottom */
             };
 
             // TestCode
             mesh = new Mesh(0, v.ToList(), i);
             material = new Material(0);
+            material.AddTexture(Material.Type.Albedo, new Texture("wall1_color.png"));
             material.AddTexture(Material.Type.Normal, new Texture("wall1_n.png"));
 
             transform = new Transform();
@@ -96,7 +97,7 @@ namespace ParangEngine
             dirLight.Intensity = 1f;
             lights.Add(dirLight);
 
-            /* var pointLight = new PointLight();
+            var pointLight = new PointLight();
             pointLight.Transform = new Transform();
             pointLight.Color = new Types.Color(System.Drawing.Color.White);
             pointLight.Intensity = 5f;
@@ -126,16 +127,16 @@ namespace ParangEngine
             pointLight.Intensity = 4f;
             pointLight.Radius = 4f;
             pointLight.Transform.Position = new Vector3(-1f, 1f, -1f);
-            lights.Add(pointLight); */
+            lights.Add(pointLight);
 
             Gizmos.CreateGrid(10);
         }
 
         public void Update()
         {
-            var rot = transform.Rotation;
+            /* var rot = transform.Rotation;
             rot.Y -= 1;
-            transform.Rotation = rot;
+            transform.Rotation = rot; */
             
             /* rot = transform2.Rotation;
             rot.Y += 1;
@@ -143,11 +144,11 @@ namespace ParangEngine
 
             rot = transform3.Rotation;
             rot.Y -= 1;
-            transform3.Rotation = rot;
+            transform3.Rotation = rot; */
 
             var rot = lights[0].Transform.Rotation;
-            rot.X -= 2;
-            lights[0].Transform.Rotation = rot; */
+            rot.X += 2;
+            lights[0].Transform.Rotation = rot;
 
             /* var pos = lights[1].Transform.Position;
             pos.X = (pos.X + 0.1f) % 10;
@@ -186,9 +187,9 @@ namespace ParangEngine
             camera.Unlock();
 
             buffer.Graphics.DrawImage(camera.RenderTarget, 0, 0, resolution.Width, resolution.Height);                
-            buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Albedo), 0, 0, resolution.Width / 5, resolution.Height / 5);
+            /* buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Albedo), 0, 0, resolution.Width / 5, resolution.Height / 5);
             buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Position), 0, resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
-            buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Normal), 0, 2 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
+            buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Normal), 0, 2 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5); */
             // buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Specular), 0, 3 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5); */
             buffer.Render(graphics);
         }

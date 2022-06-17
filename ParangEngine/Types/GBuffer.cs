@@ -111,12 +111,13 @@ namespace ParangEngine.Types
 
                         // normal
                         var normal = v1.Normal * o + v2.Normal * s + v3.Normal * t;
+                        var rotNormal = v1.RotNormal * o + v2.RotNormal * s + v3.RotNormal * t;
 
                         // vertex color
                         Color vertexColor = (v1.Color * o * invZ1 + v2.Color * s * invZ2 + v3.Color * t * invZ3) * invZ;
 
                         // convert ps
-                        var output = material.Convert(uvs, normal, vertexColor);
+                        var output = material.Convert(uvs, normal, rotNormal, vertexColor);
 
                         // output buffer
                         SetNormalBuffer(x, y, Vector3.Normalize(output.Normal));

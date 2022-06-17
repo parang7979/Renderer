@@ -57,13 +57,15 @@ namespace ParangEngine.Types
         {
             ClipTriangles.Clip(ref vertices);
             // View to NDC
-            foreach (var v in vertices) v.ToNDC();
+            for(int i = 0; i < vertices.Count; i++)
+                vertices[i] = OutputVS.ToNDC(vertices[i]);
             var triCount = vertices.Count / 3;
             for (int j = 0; j < triCount; j++)
             {
                 var tri = vertices.GetRange(j * 3, 3);
                 if (!BackfaceCulling(tri)) continue;
-                foreach (var t in tri) t.ToScreen(Screen);
+                for (int i = 0; i < tri.Count; i++)
+                    tri[i] = OutputVS.ToScreen(tri[i], Screen);
                 gBuffer.DrawTriangle(Screen, tri[0], tri[1], tri[2], material);
                 gBuffer.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
             }
@@ -77,6 +79,7 @@ namespace ParangEngine.Types
                     Position = v.Vector4,
                     Normal = v.Normal,
                     UVs = new Vector2[] { v.UV, v.UV },
+                    Color = v.Color,
                     TMat = transform.Mat,
                     PVMat = pvMat,
                 }));
@@ -93,12 +96,14 @@ namespace ParangEngine.Types
         {
             ClipLines.Clip(ref vertices);
             // View to NDC
-            foreach (var v in vertices) v.ToNDC();
+            for (int i = 0; i < vertices.Count; i++)
+                vertices[i] = OutputVS.ToNDC(vertices[i]);
             var lineCount = vertices.Count / 2;
             for (int j = 0; j < lineCount; j++)
             {
                 var line = vertices.GetRange(j * 2, 2);
-                foreach (var l in line) l.ToScreen(Screen);
+                for (int i = 0; i < line.Count; i++)
+                    line[i] = OutputVS.ToScreen(line[i], Screen);
                 gBuffer.DrawLine(Screen, line[0], line[1]);
             }
         }
