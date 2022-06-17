@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.Threading.Tasks;
 
@@ -32,7 +33,7 @@ namespace ParangEngine
             while (running)
             {
                 renderer.Update();
-                await Task.Delay(1000 / 60);
+                await Task.Delay(33);
             }
         }
 
@@ -40,8 +41,14 @@ namespace ParangEngine
         {
             while (running)
             {
+                var now = DateTime.UtcNow;
                 renderer.Render();
-                await Task.Delay(1000 / 30);
+                var span = DateTime.UtcNow - now;
+                var diff = (int)span.TotalMilliseconds;
+                if (diff < 33)
+                    await Task.Delay(33 - diff);
+                else
+                    await Task.Delay(1);
             }
         }
     }

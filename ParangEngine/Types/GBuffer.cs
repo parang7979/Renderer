@@ -41,7 +41,7 @@ namespace ParangEngine.Types
             locks.Clear();
         }
 
-        public void Lock()
+        public void Lock(bool clear)
         {
             if (locks.Count > 0) return;
             foreach(var b in buffers)
@@ -49,7 +49,7 @@ namespace ParangEngine.Types
                 var l = b.Value.LockBits(
                         new Rectangle(0, 0, b.Value.Width, b.Value.Height),
                         ImageLockMode.ReadWrite, b.Value.PixelFormat);
-                l.Clear(Color.Black);
+                if (clear) l.Clear(Color.Black);
                 locks.Add(b.Key, l);
             }
         }
