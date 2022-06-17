@@ -54,13 +54,13 @@ namespace ParangEngine.Types
             }
         }
 
-        public void DrawTriangle(Screen screen, Vertex v1, Vertex v2, Vertex v3, in Texture texture, Color color)
+        public void DrawTriangle(Screen screen, OutputVS v1, OutputVS v2, OutputVS v3, in Material material)
         {
             if (locks.Count == 0) return;
 
-            var p1 = screen.ToPoint(v1);
-            var p2 = screen.ToPoint(v2);
-            var p3 = screen.ToPoint(v3);
+            var p1 = screen.ToPoint(v1.Position);
+            var p2 = screen.ToPoint(v2.Position);
+            var p3 = screen.ToPoint(v3.Position);
 
             var min = screen.Clamp(new Point(
                 MathExtension.Min3(p1.X, p2.X, p3.X),
@@ -96,56 +96,49 @@ namespace ParangEngine.Types
                     float o = 1f - s - t;
                     if ((0f <= s && s <= 1f) && (0f <= t && t <= 1f) && (0f <= o && o <= 1f))
                     {
-                        // uv
-                        var z = invZ1 * o + invZ2 * s + invZ3 * t;
-                        var invZ = 1f / z;
-                        var uv = (v1.UV * o * invZ + v2.UV * s * invZ2 + v3.UV * t * invZ) * invZ;
-
                         // position
                         var pos = v1.View * o + v2.View * s + v3.View * t;
+                        // output buffer and depth testing
                         if (!SetPositionBuffer(screen, x, y, pos)) continue;
-                        
-                        // Normal
+
+                        var z = invZ1 * o + invZ2 * s + invZ3 * t;
+                        var invZ = 1f / z;
+
+                        // uvs
+                        var uvs = new List<Vector2>();
+                        for (int i = 0; i < (int)Material.Type.Max; i++)
+                            uvs.Add((v1.UVs[i] * o * invZ1 + v2.UVs[i] * s * invZ2 + v3.UVs[i] * t * invZ3) * invZ);
+
+                        // normal
                         var normal = v1.Normal * o + v2.Normal * s + v3.Normal * t;
-                        if (texture != null)
-                        {
-                            var normalT = new Vector3();
-                            var n = texture.GetSample(uv);
-                            normalT.X = n.R * 2 - 1;
-                            normalT.Y = n.G * 2 - 1;
-                            normalT.Z = n.B * 2 - 1;
-                            normal += normalT;
-                        }
-                        SetNormalBuffer(x, y, Vector3.Normalize(normal));
 
-                        // Albedo
-                        Color albedo;
-                        if (texture != null)
-                            albedo = texture.GetSample(uv) * color;
-                        else
-                            albedo = color;
-                        SetAlbedoBuffer(x, y, albedo);
+                        // vertex color
+                        Color vertexColor = (v1.Color * o * invZ1 + v2.Color * s * invZ2 + v3.Color * t * invZ3) * invZ;
 
-                        // vertexColor
-                        // Color vertex = (v1.Color * o * invZ1 + v2.Color * s * invZ2 + v3.Color * t * invZ3) * invZ;
+                        // convert ps
+                        var output = material.Convert(uvs, normal, vertexColor);
+
+                        // output buffer
+                        SetNormalBuffer(x, y, Vector3.Normalize(output.Normal));
+                        SetAlbedoBuffer(x, y, output.Color);
                     }
                 }
             }
         }
 
-        public void DrawWireframe(Screen screen, Vertex v1, Vertex v2, Vertex v3)
+        public void DrawWireframe(Screen screen, OutputVS v1, OutputVS v2, OutputVS v3)
         {
             DrawLine(screen, v1, v2);
             DrawLine(screen, v2, v3);
             DrawLine(screen, v3, v1);
         }
 
-        public void DrawLine(Screen screen, Vertex v1, Vertex v2)
+        public void DrawLine(Screen screen, OutputVS v1, OutputVS v2)
         {
             if (locks.Count == 0) return;
 
-            var p1 = screen.ToPoint(v1);
-            var p2 = screen.ToPoint(v2);
+            var p1 = screen.ToPoint(v1.Position);
+            var p2 = screen.ToPoint(v2.Position);
 
             int dx = p2.X - p1.X;
             int dy = p2.Y - p1.Y;

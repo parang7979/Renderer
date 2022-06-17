@@ -13,11 +13,6 @@ namespace ParangEngine.Types
         public Color Color { get; set; }
         public float Intensity { get; set; } = 1f;
 
-        public Light(Transform transform) : base(transform)
-        {
-
-        }
-
         virtual public Color GetLight(Vector3 pos, Vector3 normal)
         {
             return Color * Intensity;
@@ -32,11 +27,6 @@ namespace ParangEngine.Types
     public class DirectionalLight : Light
     {
         private Vector3 direction = Vector3.UnitZ;
-
-        public DirectionalLight(Transform transform) : base(transform)
-        {
-
-        }
 
         public override void Update()
         {
@@ -62,11 +52,6 @@ namespace ParangEngine.Types
 
         private Vector3 center;
         private float r2;
-
-        public PointLight(Transform transform) : base(transform)
-        {
-
-        }
 
         public override void Update()
         {

@@ -17,10 +17,13 @@ namespace ParangEngine
         private Graphics graphics;
         private BufferedGraphicsContext context;
         private BufferedGraphics buffer;
-        
+
+        private List<GameObject> objects;
+
         private Camera camera;
         private Mesh mesh;
-        private Texture texture;
+        private Material material;
+
         private Transform transform;
         private Transform transform2;
         private Transform transform3;
@@ -35,8 +38,9 @@ namespace ParangEngine
             buffer = context.Allocate(g, new Rectangle(0, 0, res.Width, res.Height));
 
             camera = new Camera(res.Width / downScale, res.Height / downScale, 60f);
-            camera.Transform.Rotation = new Vector3(45f, 0f, 0f);
-            camera.Transform.Position = new Vector3(0f, 5f, -5f);
+            camera.Transform = new Transform();
+            camera.Transform.Rotation = new Vector3(90f, 0f, 0f);
+            camera.Transform.Position = new Vector3(0f, 5f, 0f);
             // camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
 
             var v = new List<Vertex>()
@@ -48,26 +52,31 @@ namespace ParangEngine
                 new Vertex(1.0f, -1.0f, 1.0f, 1f, uv: new Vector2(0f, 1f)),
                 new Vertex(-1.0f, -1.0f, -1.0f, 1f), new Vertex(-1.0f, 1.0f, -1.0f, 1f), new Vertex(1.0f, 1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, -1.0f, 1f),
                 new Vertex(1.0f, -1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, 1.0f, 1f), new Vertex(1.0f, 1.0f, 1.0f, 1f), new Vertex(1.0f, 1.0f, -1.0f, 1f),
-                new Vertex(-1.0f, 1.0f, -1.0f, 1f), new Vertex(1.0f, 1.0f, -1.0f, 1f), new Vertex(1.0f, 1.0f, 1.0f, 1f), new Vertex(-1.0f, 1.0f, 1.0f, 1f),
+                new Vertex(-1.0f, 1.0f, -1.0f, 1f, uv: new Vector2(1f, 1f)), 
+                new Vertex(1.0f, 1.0f, -1.0f, 1f, uv: new Vector2(1f, 0f)), 
+                new Vertex(1.0f, 1.0f, 1.0f, 1f, uv: new Vector2(0f, 0f)), 
+                new Vertex(-1.0f, 1.0f, 1.0f, 1f, uv: new Vector2(0f, 1f)),
                 new Vertex(-1.0f, -1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, 1.0f, 1f), new Vertex(-1.0f, -1.0f, 1.0f, 1f)
             };
 
             var i = new List<int>()
             {
-                0, 1, 2, 0, 2, 3, // Right
-	            4, 6, 5, 4, 7, 6, // Front
-	            8, 9, 10, 8, 10, 11, // Back
-	            12, 14, 13, 12, 15, 14, // Left
+                // 0, 1, 2, 0, 2, 3, // Right
+	            // 4, 6, 5, 4, 7, 6, // Front
+	            /* 8, 9, 10, 8, 10, 11, // Back
+	            12, 14, 13, 12, 15, 14, // Left*/
 	            16, 18, 17, 16, 19, 18, // Top
-	            20, 21, 22, 20, 22, 23  // Bottom
+	            /* 20, 21, 22, 20, 22, 23  // Bottom */
             };
 
             // TestCode
             mesh = new Mesh(0, v.ToList(), i);
-            texture = new Texture(0, "wall1_n.png");
+            material = new Material(0);
+            material.AddTexture(Material.Type.Normal, new Texture("wall1_n.png"));
+
             transform = new Transform();
             transform.Position = new Vector3(0f, 0f, 0f);
-            transform.Rotation = new Vector3(0f, 180f, 0f);
+            transform.Rotation = new Vector3(0f, 0f, 0f);
 
             transform2 = new Transform();
             transform2.Position = new Vector3(3f, 1f, 2f);
@@ -78,48 +87,53 @@ namespace ParangEngine
             transform3.Rotation = new Vector3(0f, 180f, 0f);
 
             lights = new List<Light>();
-            var dirLight = new DirectionalLight(new Transform());
+            var dirLight = new DirectionalLight();
+            dirLight.Transform = new Transform();
             dirLight.Color = new Types.Color(System.Drawing.Color.White);
             var rot = dirLight.Transform.Rotation;
-            rot = new Vector3(45f, 45f, 0f);
+            rot = new Vector3(0f, 0f, 90f);
             dirLight.Transform.Rotation = rot;
-            dirLight.Intensity = 0.4f;
+            dirLight.Intensity = 1f;
             lights.Add(dirLight);
 
-            var pointLight = new PointLight(new Transform());
+            /* var pointLight = new PointLight();
+            pointLight.Transform = new Transform();
             pointLight.Color = new Types.Color(System.Drawing.Color.White);
             pointLight.Intensity = 5f;
             pointLight.Radius = 5f;
             pointLight.Transform.Position = new Vector3(0f, 0f, -2f);
             lights.Add(pointLight);
 
-            pointLight = new PointLight(new Transform());
+            pointLight = new PointLight();
+            pointLight.Transform = new Transform();
             pointLight.Color = new Types.Color(System.Drawing.Color.Green);
             pointLight.Intensity = 6f;
             pointLight.Radius = 6f;
             pointLight.Transform.Position = new Vector3(0f, 0f, 2f);
             lights.Add(pointLight);
 
-            pointLight = new PointLight(new Transform());
+            pointLight = new PointLight();
+            pointLight.Transform = new Transform();
             pointLight.Color = new Types.Color(System.Drawing.Color.Red);
             pointLight.Intensity = 6f;
             pointLight.Radius = 6f;
             pointLight.Transform.Position = new Vector3(0f, 2f, 0f);
             lights.Add(pointLight);
 
-            pointLight = new PointLight(new Transform());
+            pointLight = new PointLight();
+            pointLight.Transform = new Transform();
             pointLight.Color = new Types.Color(System.Drawing.Color.Blue);
             pointLight.Intensity = 4f;
             pointLight.Radius = 4f;
             pointLight.Transform.Position = new Vector3(-1f, 1f, -1f);
-            lights.Add(pointLight);
+            lights.Add(pointLight); */
 
             Gizmos.CreateGrid(10);
         }
 
         public void Update()
         {
-            var rot = transform.Rotation;
+            /* var rot = transform.Rotation;
             rot.Y -= 1;
             transform.Rotation = rot;
             
@@ -129,29 +143,28 @@ namespace ParangEngine
 
             rot = transform3.Rotation;
             rot.Y -= 1;
-            transform3.Rotation = rot;
+            transform3.Rotation = rot; */
 
-            rot = lights[0].Transform.Rotation;
-            rot.Y -= 2;
+            var rot = lights[0].Transform.Rotation;
+            rot.X -= 2;
             lights[0].Transform.Rotation = rot;
 
-            var pos = lights[1].Transform.Position;
+            /* var pos = lights[1].Transform.Position;
             pos.X = (pos.X + 0.1f) % 10;
-            lights[1].Transform.Position = pos;
+            lights[1].Transform.Position = pos; */
 
             camera.Transform.Update();
             transform.Update();
             transform2.Update();
             transform3.Update();
-            foreach (var l in lights) l.Transform.Update();
+            foreach (var l in lights)
+            {
+                l.Transform.Update();
+                l.Update();
+            }
         }
 
-        public Vertex DefaultVS(Vertex v, Matrix4x4 mat, Matrix4x4 pvMat)
-        {
-            v = Vertex.Transform(v, mat);
-            v = Vertex.TransformNormal(v, mat);
-            return Vertex.Transform(v, pvMat);
-        }
+        
 
         public void Render()
         {
@@ -161,13 +174,13 @@ namespace ParangEngine
             {
                 camera.DrawGrid();
                 // 텍스쳐 읽기 준비
-                texture.Lock();
+                material.Lock();
                 {
-                    camera.DrawMesh(mesh, transform, null, new Types.Color("white"), DefaultVS);
-                    camera.DrawMesh(mesh, transform2, null, new Types.Color("white"), DefaultVS);
-                    camera.DrawMesh(mesh, transform3, null, new Types.Color("white"), DefaultVS);
+                    camera.DrawMesh(transform, mesh, material);
+                    // camera.DrawMesh(transform2, mesh, material);
+                    // camera.DrawMesh(transform3, mesh, material);
                 }
-                texture.Unlock();
+                material.Unlock();
             }
             camera.Render(lights);
             camera.Unlock();

@@ -8,21 +8,18 @@ namespace ParangEngine.Types
 {
     abstract public class Component
     {
-        public Transform Transform { get; private set; }
-
-        public Component(Transform transform)
-        {
-            Transform = transform;
-        }
+        public Transform Transform { get; internal set; }
 
         virtual public void Update()
         {
+            // TODO : Check Transform null
         }
     }
 
     public class GameObject
     {
         public Transform Transform { get; private set; }
+        public List<Component> Components { get; private set; } = new List<Component>();
 
         public GameObject()
         {
@@ -32,6 +29,23 @@ namespace ParangEngine.Types
         virtual public void Update()
         {
             Transform.Update();
+            foreach (var c in Components) c.Update();
+        }
+
+        public void AddComponent(Component c)
+        {
+            c.Transform = Transform;
+            Components.Add(c);
+        }
+
+        public T GetComponent<T>() where T : Component
+        {
+            return Components.FirstOrDefault(x => x is T) as T;
+        }
+
+        public bool RemoveComponent(Component c)
+        {
+            return Components.Remove(c);
         }
     }
 }

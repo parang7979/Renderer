@@ -10,6 +10,7 @@ namespace ParangEngine.Types
     {
         public static readonly Color White = new Color(1f, 1f, 1f);
         public static readonly Color Black = new Color(0f, 0f, 0f);
+        public static readonly Color Magenta = new Color(1f, 0f, 1f);
 
         public bool IsBlack => (R + G + B) == 0;
         public float A { get; set; }

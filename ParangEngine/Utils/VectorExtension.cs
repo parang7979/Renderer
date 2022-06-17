@@ -45,5 +45,12 @@ namespace ParangEngine.Utils
             v.Y *= screen.HalfHeight;
             return v;
         }
+
+        static public Vector4 ToInvScreen(this Vector4 v, Screen screen)
+        {
+            v.X /= screen.HalfWidth;
+            v.Y /= screen.HalfHeight;
+            return v;
+        }
     }
 }

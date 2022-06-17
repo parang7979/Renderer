@@ -9,8 +9,8 @@ namespace ParangEngine.Utils
 {
     static public class Clipper
     {
-        static public List<(Func<Vertex, bool>, Func<Vertex, Vertex, Vertex>)> Clippers =
-            new List<(Func<Vertex, bool>, Func<Vertex, Vertex, Vertex>)>
+        static public List<(Func<OutputVS, bool>, Func<OutputVS, OutputVS, OutputVS>)> Clippers =
+            new List<(Func<OutputVS, bool>, Func<OutputVS, OutputVS, OutputVS>)>
             {
                 { (TestW0, ClipW0) },
                 { (TestNY, ClipNY) },
@@ -21,70 +21,70 @@ namespace ParangEngine.Utils
                 { (TestNZ, ClipNZ) },
             };
 
-        static bool TestW0(Vertex v) => v.W < 0f;
-        static Vertex ClipW0(Vertex v1, Vertex v2)
+        static bool TestW0(OutputVS v) => v.W < 0f;
+        static OutputVS ClipW0(OutputVS v1, OutputVS v2)
         {
             var p1 = v1.W;
             var p2 = v2.W;
             var t = p1 / (p1 - p2);
-            return v1 * (1f - t) + v2 * t;
+            return OutputVS.Blend(v1, v2, t);
         }
 
-        static bool TestNY(Vertex v) => v.Y < -v.W;
-        static Vertex ClipNY(Vertex v1, Vertex v2)
+        static bool TestNY(OutputVS v) => v.Y < -v.W;
+        static OutputVS ClipNY(OutputVS v1, OutputVS v2)
         {
             var p1 = v1.W + v1.Y;
             var p2 = v2.W + v2.Y;
             var t = p1 / (p1 - p2);
-            return v1 * (1f - t) + v2 * t;
+            return OutputVS.Blend(v1, v2, t);
         }
-        static bool TestPY(Vertex v) => v.Y > v.W;
-        static Vertex ClipPY(Vertex v1, Vertex v2)
+        static bool TestPY(OutputVS v) => v.Y > v.W;
+        static OutputVS ClipPY(OutputVS v1, OutputVS v2)
         {
             var p1 = v1.W - v1.Y;
             var p2 = v2.W - v2.Y;
             var t = p1 / (p1 - p2);
-            return v1 * (1f - t) + v2 * t;
+            return OutputVS.Blend(v1, v2, t);
         }
 
-        static bool TestNX(Vertex v) => v.X < -v.W;
-        static Vertex ClipNX(Vertex v1, Vertex v2)
+        static bool TestNX(OutputVS v) => v.X < -v.W;
+        static OutputVS ClipNX(OutputVS v1, OutputVS v2)
         {
             var p1 = v1.W + v1.X;
             var p2 = v2.W + v2.X;
             var t = p1 / (p1 - p2);
-            return v1 * (1f - t) + v2 * t;
+            return OutputVS.Blend(v1, v2, t);
         }
-        static bool TestPX(Vertex v) => v.X > v.W;
-        static Vertex ClipPX(Vertex v1, Vertex v2)
+        static bool TestPX(OutputVS v) => v.X > v.W;
+        static OutputVS ClipPX(OutputVS v1, OutputVS v2)
         {
             var p1 = v1.W - v1.X;
             var p2 = v2.W - v2.X;
             var t = p1 / (p1 - p2);
-            return v1 * (1f - t) + v2 * t;
+            return OutputVS.Blend(v1, v2, t);
         }
 
-        static bool TestPZ(Vertex v) => v.Z > v.W;
-        static Vertex ClipPZ(Vertex v1, Vertex v2)
+        static bool TestPZ(OutputVS v) => v.Z > v.W;
+        static OutputVS ClipPZ(OutputVS v1, OutputVS v2)
         {
             var p1 = v1.W - v1.Z;
             var p2 = v2.W - v2.Z;
             var t = p1 / (p1 - p2);
-            return v1 * (1f - t) + v2 * t;
+            return OutputVS.Blend(v1, v2, t);
         }
-        static bool TestNZ(Vertex v) => v.Z < -v.W;
-        static Vertex ClipNZ(Vertex v1, Vertex v2)
+        static bool TestNZ(OutputVS v) => v.Z < -v.W;
+        static OutputVS ClipNZ(OutputVS v1, OutputVS v2)
         {
             var p1 = v1.W + v1.Z;
             var p2 = v2.W + v2.Z;
             var t = p1 / (p1 - p2);
-            return v1 * (1f - t) + v2 * t;
+            return OutputVS.Blend(v1, v2, t);
         }
     }
 
     static public class ClipTriangles
     {
-        static public void Clip(ref List<Vertex> vertices)
+        static public void Clip(ref List<OutputVS> vertices)
         {
             foreach (var c in Clipper.Clippers) ClipOnce(ref vertices, c);
         }
@@ -107,7 +107,7 @@ namespace ParangEngine.Utils
             return 0;
         }
 
-        static private void ClipOnce(ref List<Vertex> vertices, (Func<Vertex, bool>, Func<Vertex, Vertex, Vertex>)clipper)
+        static private void ClipOnce(ref List<OutputVS> vertices, (Func<OutputVS, bool>, Func<OutputVS, OutputVS, OutputVS>)clipper)
         {
             List<bool> results = new List<bool>();
             int tris = vertices.Count / 3;
@@ -135,7 +135,7 @@ namespace ParangEngine.Utils
             }
         }
 
-        static private void Clip(ref List<Vertex> vertices, int index, int inSide, Func<Vertex, Vertex, Vertex> clip)
+        static private void Clip(ref List<OutputVS> vertices, int index, int inSide, Func<OutputVS, OutputVS, OutputVS> clip)
         {
             int outside1 = index + ((inSide + 1) % 3);
             int outside2 = index + ((inSide + 2) % 3);
@@ -148,7 +148,7 @@ namespace ParangEngine.Utils
             vertices[outside2] = clipV2;
         }
 
-        static private void DivideTwo(ref List<Vertex> vertices, int index, int outSide, Func<Vertex, Vertex, Vertex> clip)
+        static private void DivideTwo(ref List<OutputVS> vertices, int index, int outSide, Func<OutputVS, OutputVS, OutputVS> clip)
         {
             int inside1 = index + ((outSide + 1) % 3);
             int inside2 = index + ((outSide + 2) % 3);

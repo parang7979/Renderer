@@ -10,9 +10,8 @@ using System.Threading.Tasks;
 
 namespace ParangEngine.Types
 {
-    public partial class Camera
+    public partial class Camera : Component
     {
-        public Transform Transform { get; private set; } = new Transform();
         public Screen Screen { get; private set; }
         public float Fov { get; set; } = 60f;
         public Color ClearColor { get; set; } = Color.Black;
@@ -57,7 +56,6 @@ namespace ParangEngine.Types
         public void Render(List<Light> lights)
         {
             if (!gBuffer.IsLock) return;
-            foreach (var l in lights) l.Setup(pvMat);
             gBuffer.Render(Screen, ClearColor, pvMat, lights);
         }
 
@@ -66,7 +64,7 @@ namespace ParangEngine.Types
             return gBuffer.GetBuffer(type);
         }
 
-        private bool BackfaceCulling(List<Vertex> vertices)
+        private bool BackfaceCulling(List<OutputVS> vertices)
         {
             var edge1 = vertices[1].Vector3 - vertices[0].Vector3;
             var edge2 = vertices[2].Vector3 - vertices[0].Vector3;

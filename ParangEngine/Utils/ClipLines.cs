@@ -9,7 +9,7 @@ namespace ParangEngine.Utils
 {
     static public class ClipLines
     {
-        static public void Clip(ref List<Vertex> vertices)
+        static public void Clip(ref List<OutputVS> vertices)
         {
             foreach (var c in Clipper.Clippers) ClipOnce(ref vertices, c);
         }
@@ -20,7 +20,7 @@ namespace ParangEngine.Utils
             return 0;
         }
 
-        static private void ClipOnce(ref List<Vertex> vertices, (Func<Vertex, bool>, Func<Vertex, Vertex, Vertex>) clipper)
+        static private void ClipOnce(ref List<OutputVS> vertices, (Func<OutputVS, bool>, Func<OutputVS, OutputVS, OutputVS>) clipper)
         {
             List<bool> results = new List<bool>();
             int lines = vertices.Count / 2;
@@ -46,7 +46,7 @@ namespace ParangEngine.Utils
             }
         }
 
-        static private void Clip(ref List<Vertex> vertices, int index, int inSide, Func<Vertex, Vertex, Vertex> clip)
+        static private void Clip(ref List<OutputVS> vertices, int index, int inSide, Func<OutputVS, OutputVS, OutputVS> clip)
         {
             int outside = index + ((inSide + 1) % 2);
             var outV = vertices[outside];

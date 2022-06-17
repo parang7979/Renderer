@@ -128,10 +128,5 @@ namespace ParangEngine.Types
         {
             return ToPoint(v.X, v.Y);
         }
-
-        public Point ToPoint(Vertex v)
-        {
-            return ToPoint(v.X, v.Y);
-        }
     }
 }
