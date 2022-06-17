@@ -18,25 +18,26 @@ namespace ParangEngine.Types
             Position,
             Normal,
             Specular,
-            Gizmo,
         }
 
         public bool IsLock => locks.Count > 0;
         public Bitmap RenderTarget => render;
 
-        private int spliter = 8;
+        private ushort precision = 8;
+        private ushort maxUShort;
+
         private Bitmap render;
         private Dictionary<BufferType, Bitmap> buffers = new Dictionary<BufferType, Bitmap>();
         private Dictionary<BufferType, BitmapData> locks = new Dictionary<BufferType, BitmapData>();
 
         public GBuffer(int width, int height)
         {
+            maxUShort = (ushort)(ushort.MaxValue / precision);
             render = new Bitmap(width, height, PixelFormat.Format24bppRgb);
             buffers.Add(BufferType.Albedo, new Bitmap(width, height, PixelFormat.Format24bppRgb));
             buffers.Add(BufferType.Position, new Bitmap(width, height, PixelFormat.Format64bppArgb));
             buffers.Add(BufferType.Normal, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             buffers.Add(BufferType.Specular, new Bitmap(width, height, PixelFormat.Format48bppRgb));
-            buffers.Add(BufferType.Gizmo, new Bitmap(width, height, PixelFormat.Format24bppRgb));
             locks.Clear();
         }
 
@@ -95,38 +96,38 @@ namespace ParangEngine.Types
                     float o = 1f - s - t;
                     if ((0f <= s && s <= 1f) && (0f <= t && t <= 1f) && (0f <= o && o <= 1f))
                     {
+                        // uv
                         var z = invZ1 * o + invZ2 * s + invZ3 * t;
                         var invZ = 1f / z;
-                        var uv = (v1.UV * o * invZ1 + v2.UV * s * invZ2 + v3.UV * t * invZ3) * invZ;
+                        var uv = (v1.UV * o * invZ + v2.UV * s * invZ2 + v3.UV * t * invZ) * invZ;
 
                         // position
-                        /* var pos = Vertex.ToView(v1, screen).Vector3 * o +
-                            Vertex.ToView(v2, screen).Vector3 * s + 
-                            Vertex.ToView(v3, screen).Vector3 * t; */
                         var pos = v1.View * o + v2.View * s + v3.View * t;
                         if (!SetPositionBuffer(screen, x, y, pos)) continue;
                         
                         // Normal
                         var normal = v1.Normal * o + v2.Normal * s + v3.Normal * t;
-                        var n = texture.GetSample(uv);
-                        var normalT = new Vector3();
-                        normalT.X = n.R * 2 - 1;
-                        normalT.Y = n.G * 2 - 1;
-                        normalT.Z = n.B * 2 - 1;
-                        SetNormalBuffer(x, y, Vector3.Normalize(normal - normalT));
+                        if (texture != null)
+                        {
+                            var normalT = new Vector3();
+                            var n = texture.GetSample(uv);
+                            normalT.X = n.R * 2 - 1;
+                            normalT.Y = n.G * 2 - 1;
+                            normalT.Z = n.B * 2 - 1;
+                            normal += normalT;
+                        }
+                        SetNormalBuffer(x, y, Vector3.Normalize(normal));
 
                         // Albedo
                         Color albedo;
                         if (texture != null)
-                        {
-                            albedo = color;// texture.GetSample(uv) * color;
-                        }
+                            albedo = texture.GetSample(uv) * color;
                         else
-                        {
-                            albedo = (v1.Color * o * invZ1 + v2.Color * s * invZ2 + v3.Color * t * invZ3) * invZ;
-                        }
+                            albedo = color;
                         SetAlbedoBuffer(x, y, albedo);
-                        // SetSpecularBuffer(x, y, normal);
+
+                        // vertexColor
+                        // Color vertex = (v1.Color * o * invZ1 + v2.Color * s * invZ2 + v3.Color * t * invZ3) * invZ;
                     }
                 }
             }
@@ -165,7 +166,7 @@ namespace ParangEngine.Types
                         int x = dy != 0 ? t1.X + (int)(dx * w) : 0;
                         w = Math.Abs(w);
                         var c = (c2 * w) + (c1 * (1 - w));
-                        SetGizmoBuffer(x, y, c);
+                        SetAlbedoBuffer(x, y, c);
                     }
                 }
                 else
@@ -182,16 +183,15 @@ namespace ParangEngine.Types
                         int y = dx != 0 ? t1.Y + (int)(dy * w) : 0;
                         w = Math.Abs(w);
                         var c = (c2 * w) + (c1 * (1 - w));
-                        SetGizmoBuffer(x, y, c);
+                        SetAlbedoBuffer(x, y, c);
                     }
                 }
             }
         }
 
-        public void SetAlbedoBuffer(int x, int y, Color color)
+        private void SetAlbedoBuffer(int x, int y, Color color)
         {
             if (locks.Count == 0) return;
-
             var b = locks[BufferType.Albedo];
             var index = y * b.Width + x;
             if (index < 0 || b.Width * b.Height <= index) return;
@@ -205,7 +205,7 @@ namespace ParangEngine.Types
             }
         }
 
-        public bool SetPositionBuffer(Screen screen, int x, int y, Vector4 pos)
+        private bool SetPositionBuffer(Screen screen, int x, int y, Vector4 pos)
         {
             if (locks.Count == 0) return false;
 
@@ -217,44 +217,22 @@ namespace ParangEngine.Types
             {
                 var ptr = (ushort*)b.Scan0;
                 if (pos.Z < 0) return false;
-                var cz = (ushort)((1 - pos.Z) * ushort.MaxValue / spliter);
+                var cz = (ushort)((1 - pos.Z) * ushort.MaxValue / precision);
                 var pz = ptr[index];
                 // depth testing
                 if (pz < cz)
                 {
                     ptr[index] = cz;
-                    ptr[index + 1] = (ushort)((pos.Y + 1f) / 2f * ushort.MaxValue / spliter);
-                    ptr[index + 2] = (ushort)((pos.X + 1f) / 2f * ushort.MaxValue / spliter);
-                    ptr[index + 3] = (ushort)(pos.W / screen.ViewDistance * ushort.MaxValue / spliter);
+                    ptr[index + 1] = (ushort)((pos.Y + 1f) / 2f * ushort.MaxValue / precision);
+                    ptr[index + 2] = (ushort)((pos.X + 1f) / 2f * ushort.MaxValue / precision);
+                    ptr[index + 3] = (ushort)(pos.W / screen.ViewDistance * ushort.MaxValue / precision);
                     return true;
                 }
                 return false;
             }
         }
 
-        public bool CheckPositionBuffer(Screen screen, int x, int y, Vector4 pos)
-        {
-            if (locks.Count == 0) return false;
-
-            var b = locks[BufferType.Position];
-            var index = y * b.Width + x;
-            if (index < 0 || b.Width * b.Height <= index) return false;
-            index *= 3;
-            unsafe
-            {
-                var ptr = (ushort*)b.Scan0;
-                var cz = (ushort)(pos.Z / pos.W * ushort.MaxValue);
-                var pz = ptr[index];
-                // depth testing
-                if (pz < cz)
-                {
-                    return true;
-                }
-                return false;
-            }
-        }
-
-        public void SetNormalBuffer(int x, int y, Vector3 normal)
+        private void SetNormalBuffer(int x, int y, Vector3 normal)
         {
             if (locks.Count == 0) return;
 
@@ -266,26 +244,9 @@ namespace ParangEngine.Types
             {
                 var ptr = (ushort*)b.Scan0;
                 normal = Vector3.Normalize(normal);
-                ptr[index] = (ushort)((normal.Z + 1) / 2 * ushort.MaxValue / spliter);
-                ptr[index + 1] = (ushort)((normal.Y + 1) / 2 * ushort.MaxValue / spliter);
-                ptr[index + 2] = (ushort)((normal.X + 1) / 2 * ushort.MaxValue / spliter);
-            }
-        }
-
-        public void SetGizmoBuffer(int x, int y, Color color)
-        {
-            if (locks.Count == 0) return;
-
-            var b = locks[BufferType.Gizmo];
-            var index = y * b.Width + x;
-            if (index < 0 || b.Width * b.Height <= index) return;
-            index *= 3;
-            unsafe
-            {
-                var ptr = (byte*)b.Scan0;
-                ptr[index] = color.BB;
-                ptr[index + 1] = color.BG;
-                ptr[index + 2] = color.BR;
+                ptr[index] = (ushort)((normal.Z + 1) / 2 * maxUShort);
+                ptr[index + 1] = (ushort)((normal.Y + 1) / 2 * maxUShort);
+                ptr[index + 2] = (ushort)((normal.X + 1) / 2 * maxUShort);
             }
         }
 
@@ -307,49 +268,50 @@ namespace ParangEngine.Types
             }
         }
 
-        public void Render(Screen screen, Color clearColor, List<Light> lights)
+        public void Render(Screen screen, Color clearColor, Matrix4x4 pvMat, List<Light> lights)
         {
             if (locks.Count == 0) return;
             var b = render.LockBits(new Rectangle(0, 0, render.Width, render.Height),
                         ImageLockMode.ReadWrite, render.PixelFormat);
             b.Clear(clearColor);
+            Matrix4x4.Invert(pvMat, out var invPvMat);
             for (int y = 0; y < b.Height; y++)
             {
                 for (int x = 0; x < b.Width; x++)
                 {
                     // 알베도
                     var a = locks[BufferType.Albedo].GetPixel(x, y);
-                    var albedo = a;
                     // 포지션 버퍼가 없으면 아무것도 없는 공간
                     var p = locks[BufferType.Position].GetPixel(x, y);
                     if (!p.IsBlack)
                     {
-                        var pos = new Vector4(p.R * spliter * 2f - 1f, p.G * spliter * 2f - 1f, 1 - p.B * spliter, p.A * spliter * screen.ViewDistance);
+                        p *= precision;
+                        var pos = new Vector4(
+                            p.R * 2f - 1f, 
+                            p.G * 2f - 1f, 
+                            1 - p.B, 
+                            p.A * screen.ViewDistance);
+
+                        // 위치를 월드 좌표계로 이동함
+                        var invPos = Vector4.Transform(pos.ToInvNDC(), invPvMat);
+                        // 법선
                         var n = locks[BufferType.Normal].GetPixel(x, y);
+                        // 법선이 없어도 컬러는 그린다
                         if (!n.IsBlack)
                         {
-                            var normal =
-                                new Vector3((n.R * spliter * 2f) - 1f, (n.G * spliter * 2f) - 1f, (n.B  * spliter * 2f) - 1f);
-                            var l = Color.Black;
-                            foreach (var light in lights)
-                                l += light.GetColor(pos, normal);
-                            albedo *= l;
-                        }
+                            n *= precision;
+                            var normal = new Vector3(
+                                (n.R * 2f) - 1f, 
+                                (n.G * 2f) - 1f, 
+                                (n.B * 2f) - 1f);
 
-                        /* var s = locks[BufferType.Specular].GetPixel(x, y);
-                        if (!s.IsBlack && !albedo.IsBlack)
-                        {
-                            var specular =
-                                    new Vector3((s.R * 2f) - 1f, (s.G * 2f) - 1f, (s.B * 2f) - 1f);
                             var l = Color.Black;
                             foreach (var light in lights)
-                                l += light.GetSpecular(pos, a, specular);
-                            albedo += l;
-                        } */
+                                l += light.GetLight(invPos.ToVector3(), normal);
+                            a *= l;
+                        }
                     }
-                    // var gizmo = locks[BufferType.Gizmo].GetPixel(x, y);
-                    // albedo = !gizmo.IsBlack ? gizmo : albedo;
-                    b.SetPixel(x, y, albedo);
+                    b.SetPixel(x, y, a);
                 }
             }
             render.UnlockBits(b);

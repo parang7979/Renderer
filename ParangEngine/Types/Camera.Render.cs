@@ -10,13 +10,7 @@ namespace ParangEngine.Types
 {
     public partial class Camera
     {
-        public void DrawGrid()
-        {
-            var tr = new Transform();
-            tr.Update();
-            RenderLine(Gizmos.Grids.ToList(), tr);
-        }
-
+        
         public bool DrawCheck(Transform transform)
         {
             var viewPos = Vector4.Transform(new Vector4(transform.Position, 1), vMat);
@@ -28,6 +22,13 @@ namespace ParangEngine.Types
             if (!DrawCheck(transform)) return;
             RenderTri(mesh.Vertices, transform, texture, color, VS);
             DrawAxes(transform);
+        }
+
+        public void DrawGrid()
+        {
+            var tr = new Transform();
+            tr.Update();
+            RenderLine(Gizmos.Grids.ToList(), tr);
         }
 
         private void DrawAxes(in Transform transform)
@@ -64,7 +65,7 @@ namespace ParangEngine.Types
                 if (!BackfaceCulling(tri)) continue;
                 Vertex.ToScreen(tri, Screen);
                 gBuffer.DrawTriangle(Screen, tri[0], tri[1], tri[2], texture, color);
-                // gBuffer.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
+                gBuffer.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
             }
         }
 

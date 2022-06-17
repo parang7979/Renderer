@@ -58,7 +58,7 @@ namespace ParangEngine.Types
         {
             if (!gBuffer.IsLock) return;
             foreach (var l in lights) l.Setup(pvMat);
-            gBuffer.Render(Screen, ClearColor, lights);
+            gBuffer.Render(Screen, ClearColor, pvMat, lights);
         }
 
         public Image GetBuffer(GBuffer.BufferType type)

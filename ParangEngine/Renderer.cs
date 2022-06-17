@@ -35,8 +35,8 @@ namespace ParangEngine
             buffer = context.Allocate(g, new Rectangle(0, 0, res.Width, res.Height));
 
             camera = new Camera(res.Width / downScale, res.Height / downScale, 60f);
-            camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
-            camera.Transform.Position = new Vector3(0f, 0f, -5f);
+            camera.Transform.Rotation = new Vector3(45f, 0f, 0f);
+            camera.Transform.Position = new Vector3(0f, 5f, -5f);
             // camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
 
             var v = new List<Vertex>()
@@ -66,11 +66,11 @@ namespace ParangEngine
             mesh = new Mesh(0, v.ToList(), i);
             texture = new Texture(0, "wall1_n.png");
             transform = new Transform();
-            transform.Position = new Vector3(0f, 0f, 3f);
+            transform.Position = new Vector3(0f, 0f, 0f);
             transform.Rotation = new Vector3(0f, 180f, 0f);
 
             transform2 = new Transform();
-            transform2.Position = new Vector3(5f, 3f, 10f);
+            transform2.Position = new Vector3(3f, 1f, 2f);
             transform2.Rotation = new Vector3(0f, 180f, 0f);
 
             transform3 = new Transform();
@@ -78,47 +78,41 @@ namespace ParangEngine
             transform3.Rotation = new Vector3(0f, 180f, 0f);
 
             lights = new List<Light>();
-            /*var pointLight = new PointLight(new Transform());
-            pointLight.Color = new Types.Color(System.Drawing.Color.Blue);
-            pointLight.Radius = 4f;
-            pointLight.Transform.Position = new Vector3(-4f, 0f, -1f);
-            lights.Add(pointLight);
-
-            pointLight = new PointLight(new Transform());
-            pointLight.Color = new Types.Color(System.Drawing.Color.Green);
-            pointLight.Radius = 4f;
-            pointLight.Transform.Position = new Vector3(4f, 0f, -1f);
-            lights.Add(pointLight);*/
+            var dirLight = new DirectionalLight(new Transform());
+            dirLight.Color = new Types.Color(System.Drawing.Color.White);
+            var rot = dirLight.Transform.Rotation;
+            rot = new Vector3(45f, 45f, 0f);
+            dirLight.Transform.Rotation = rot;
+            dirLight.Intensity = 0.4f;
+            lights.Add(dirLight);
 
             var pointLight = new PointLight(new Transform());
             pointLight.Color = new Types.Color(System.Drawing.Color.White);
-            pointLight.Intensity = 10f;
-            pointLight.Radius = 10f;
-            pointLight.Transform.Position = new Vector3(0f, 0f, 8f);
-            lights.Add(pointLight);
-
-            /* pointLight = new PointLight(new Transform());
-            pointLight.Color = new Types.Color(System.Drawing.Color.Blue);
-
-            pointLight = new PointLight(new Transform());
-            pointLight.Color = new Types.Color(System.Drawing.Color.Green);
-            pointLight.Radius = 6f;
+            pointLight.Intensity = 5f;
+            pointLight.Radius = 5f;
             pointLight.Transform.Position = new Vector3(0f, 0f, -2f);
             lights.Add(pointLight);
 
             pointLight = new PointLight(new Transform());
             pointLight.Color = new Types.Color(System.Drawing.Color.Green);
+            pointLight.Intensity = 6f;
             pointLight.Radius = 6f;
-            pointLight.Transform.Position = new Vector3(0f, 2f, 3f);
-            lights.Add(pointLight); */
+            pointLight.Transform.Position = new Vector3(0f, 0f, 2f);
+            lights.Add(pointLight);
 
-            /*var dirLight = new DirectionalLight(new Transform());
-            dirLight.Color = new Types.Color(System.Drawing.Color.White);
-            var rot = dirLight.Transform.Rotation;
-            rot = new Vector3(0f, 0f, 0f);
-            dirLight.Transform.Rotation = rot;
-            dirLight.Intensity = 1f;
-            lights.Add(dirLight); */
+            pointLight = new PointLight(new Transform());
+            pointLight.Color = new Types.Color(System.Drawing.Color.Red);
+            pointLight.Intensity = 6f;
+            pointLight.Radius = 6f;
+            pointLight.Transform.Position = new Vector3(0f, 2f, 0f);
+            lights.Add(pointLight);
+
+            pointLight = new PointLight(new Transform());
+            pointLight.Color = new Types.Color(System.Drawing.Color.Blue);
+            pointLight.Intensity = 4f;
+            pointLight.Radius = 4f;
+            pointLight.Transform.Position = new Vector3(-1f, 1f, -1f);
+            lights.Add(pointLight);
 
             Gizmos.CreateGrid(10);
         }
@@ -137,15 +131,13 @@ namespace ParangEngine
             rot.Y -= 1;
             transform3.Rotation = rot;
 
-            /* var rot = lights[0].Transform.Rotation;
+            rot = lights[0].Transform.Rotation;
             rot.Y -= 2;
-            lights[0].Transform.Rotation = rot; */
+            lights[0].Transform.Rotation = rot;
 
-            /* var pos = lights[0].Transform.Position;
+            var pos = lights[1].Transform.Position;
             pos.X = (pos.X + 0.1f) % 10;
-            lights[0].Transform.Position = pos; */
-
-            
+            lights[1].Transform.Position = pos;
 
             camera.Transform.Update();
             transform.Update();
@@ -167,13 +159,13 @@ namespace ParangEngine
             camera.Lock();
             // 게임 오브젝트 그룹 단위
             {
-                // camera.DrawGrid();
+                camera.DrawGrid();
                 // 텍스쳐 읽기 준비
                 texture.Lock();
                 {
-                    // camera.DrawMesh(mesh, transform, texture, new Types.Color("white"), DefaultVS);
-                    camera.DrawMesh(mesh, transform2, texture, new Types.Color("white"), DefaultVS);
-                    // camera.DrawMesh(mesh, transform3, texture, new Types.Color("blue"), DefaultVS);
+                    camera.DrawMesh(mesh, transform, null, new Types.Color("white"), DefaultVS);
+                    camera.DrawMesh(mesh, transform2, null, new Types.Color("white"), DefaultVS);
+                    camera.DrawMesh(mesh, transform3, null, new Types.Color("white"), DefaultVS);
                 }
                 texture.Unlock();
             }

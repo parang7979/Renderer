@@ -14,13 +14,19 @@ namespace ParangEngine.Types
         {
             Transform = transform;
         }
+
+        virtual public void Update()
+        {
+        }
     }
 
-    public class GameObject : Component
+    public class GameObject
     {
-        public GameObject() : base(new Transform())
-        {
+        public Transform Transform { get; private set; }
 
+        public GameObject()
+        {
+            Transform = new Transform();
         }
 
         virtual public void Update()
