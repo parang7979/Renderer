@@ -15,17 +15,17 @@ using System.Windows.Forms;
 
 namespace Renderer
 {
-    public partial class Form1 : Form
+    public partial class Renderer : Form
     {
         private Engine engine;
 
-        public Form1()
+        public Renderer()
         {
             InitializeComponent();
 
             Load += Form1_Load;
             HandleDestroyed += Form1_HandleDestroyed;
-            engine = new Engine(CreateGraphics(), new Size(1024, 768), 4);
+            engine = new Engine(CreateGraphics(), new Size(640, 480), 2);
         }
 
         private void Form1_Load(object sender, EventArgs e)

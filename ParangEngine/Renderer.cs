@@ -24,6 +24,7 @@ namespace ParangEngine
 
         private Mesh mesh;
         private Material material;
+        private Material material2;
 
         private Transform transform;
         private Transform transform2;
@@ -75,6 +76,10 @@ namespace ParangEngine
             material = new Material(0);
             material.AddTexture(Material.Type.Albedo, new Texture("wall1_color.png"));
             material.AddTexture(Material.Type.Normal, new Texture("wall1_n.png"));
+
+            material2 = new Material(1);
+            material2.AddTexture(Material.Type.Albedo, new Texture("rock_diffuse.png"));
+            material2.AddTexture(Material.Type.Normal, new Texture("rock_normal.png"));
 
             transform = new Transform();
             transform.Position = new Vector3(0f, 0f, 0f);
@@ -186,10 +191,15 @@ namespace ParangEngine
                 material.Lock();
                 {
                     camera.DrawMesh(transform, mesh, material);
-                    camera.DrawMesh(transform2, mesh, material);
-                    camera.DrawMesh(transform3, mesh, material);
                 }
                 material.Unlock();
+
+                material2.Lock();
+                {
+                    camera.DrawMesh(transform2, mesh, material2);
+                    camera.DrawMesh(transform3, mesh, material2);
+                }
+                material2.Unlock();
             }
             camera.Unlock();
         }
@@ -197,22 +207,48 @@ namespace ParangEngine
         public void DrawRender()
         {
             camera.Render(lights);
-            buffer.Graphics.DrawImage(camera.RenderTarget, 0, 0, resolution.Width / 2, resolution.Height / 2);
+            buffer.Graphics.DrawImage(camera.RenderTarget, 0, 0, resolution.Width, resolution.Height);
+            /* buffer.Graphics.DrawImage(camera.RenderTarget, 0, 0, resolution.Width / 2, resolution.Height / 2);
             buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Albedo), resolution.Width / 2, 0, resolution.Width / 2, resolution.Height / 2);
             buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Position), 0, resolution.Height / 2, resolution.Width / 2, resolution.Height / 2);
-            buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Normal), resolution.Width / 2, resolution.Height / 2, resolution.Width / 2, resolution.Height / 2);
+            buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Normal), resolution.Width / 2, resolution.Height / 2, resolution.Width / 2, resolution.Height / 2); */
             // buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Specular), 0, 3 * resolution.Height / 5, resolution.Width / 5, resolution.Height / 5); */
             buffer.Render(graphics);
         }
 
-        private int index = 0;
         public void Render()
         {
             camera.SwitchBuffer();
             var task1 = Task.Factory.StartNew(DrawMesh);
             var task2 = Task.Factory.StartNew(DrawRender);
+            var check1 = false;
+            var check2 = false;
+            var now = DateTime.UtcNow;
+            while (!(task1.IsCompleted && task2.IsCompleted))
+            {
+                if (!check1 && task1.IsCompleted)
+                {
+                    check1 = true;
+                    Console.WriteLine($"1 : {DateTime.UtcNow - now}");
+                }
 
-            while (!(task1.IsCompleted && task2.IsCompleted)) ;
+                if (!check2 && task2.IsCompleted)
+                {
+                    check2 = true;
+                    Console.WriteLine($"2 : {DateTime.UtcNow - now}");
+                }
+            }
+            if (!check1 && task1.IsCompleted)
+            {
+                check1 = true;
+                Console.WriteLine($"1 : {DateTime.UtcNow - now}");
+            }
+
+            if (!check2 && task2.IsCompleted)
+            {
+                check2 = true;
+                Console.WriteLine($"2 : {DateTime.UtcNow - now}");
+            }
         }
     }
 }

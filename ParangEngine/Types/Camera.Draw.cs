@@ -39,7 +39,7 @@ namespace ParangEngine.Types
         {
             if (!DrawCheck(transform)) return;
             RenderTri(mesh.Vertices, transform, material);
-            DrawAxes(transform);
+            // DrawAxes(transform);
         }
 
         public void DrawGrid()
@@ -102,7 +102,7 @@ namespace ParangEngine.Types
                 for (int i = 0; i < tri.Count; i++)
                     tri[i] = OutputVS.ToScreen(tri[i], Screen);
                 drawBuffer.DrawTriangle(Screen, tri[0], tri[1], tri[2], material);
-                drawBuffer.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
+                // drawBuffer.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
             }
         }
 

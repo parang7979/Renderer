@@ -20,9 +20,40 @@ namespace ParangEngine.Types
             Specular,
         }
 
+        struct DrawPixelsArg
+        {
+            public Screen Screen { get; set; }
+            public OutputVS V1 { get; set; }
+            public OutputVS V2 { get; set; }
+            public OutputVS V3 { get; set; }
+            public Material Material { get; set; }
+            public Vector2 U { get; set; }
+            public Vector2 V { get; set; }
+            public Vector4 Dots { get; set; }
+            public Vector3 InvZs { get; set; }
+            public int MinX { get; set; }
+            public int MaxX { get; set; }
+            public int MinY { get; set; }
+            public int MaxY { get; set; }
+        }
+
+        struct RenderPixelsArg
+        {
+            public BitmapData Bitmap { get; set; }
+            public Screen Screen { get; set; }
+            public Matrix4x4 InvPvMat { get; set; }
+            public List<Light> Lights { get; set; }
+            public int MinX { get; set; }
+            public int MaxX { get; set; }
+            public int MinY { get; set; }
+            public int MaxY { get; set; }
+        }
+
         public bool IsLock => locks.Count > 0;
         public Bitmap RenderTarget => render;
 
+        private byte multiDraw = 32;
+        private byte multiRender = 8;
         private ushort precision = 8;
         private ushort maxUShort;
 
@@ -54,7 +85,59 @@ namespace ParangEngine.Types
             }
         }
 
-        public void DrawTriangle(Screen screen, OutputVS v1, OutputVS v2, OutputVS v3, in Material material)
+        private void DrawPixel(DrawPixelsArg data, int x, int y)
+        {
+            Point p = new Point(x, y);
+            Vector2 w = p.ToVector2(data.Screen) - data.V1.Vector2;
+            float wDu = Vector2.Dot(w, data.U);
+            float wDv = Vector2.Dot(w, data.V);
+            float s = (wDv * data.Dots.X - wDu * data.Dots.Y) * data.Dots.W;
+            float t = (wDu * data.Dots.X - wDv * data.Dots.Z) * data.Dots.W;
+            float o = 1f - s - t;
+            if ((0f <= s && s <= 1f) && (0f <= t && t <= 1f) && (0f <= o && o <= 1f))
+            {
+                // position
+                var pos = data.V1.View * o + data.V2.View * s + data.V3.View * t;
+                // output buffer and depth testing
+                if (!SetPositionBuffer(data.Screen, x, y, pos)) return;
+
+                var z = data.InvZs.X * o + data.InvZs.Y * s + data.InvZs.Z * t;
+                var invZ = 1f / z;
+
+                // uvs
+                var uvs = new List<Vector2>();
+                for (int i = 0; i < (int)Material.Type.Max; i++)
+                    uvs.Add((data.V1.UVs[i] * o * data.InvZs.X + data.V2.UVs[i] * s * data.InvZs.Y + data.V3.UVs[i] * t * data.InvZs.Z) * invZ);
+
+                // normal
+                var normal = data.V1.Normal * o + data.V2.Normal * s + data.V3.Normal * t;
+                var rotNormal = data.V1.RotNormal * o + data.V2.RotNormal * s + data.V3.RotNormal * t;
+
+                // vertex color
+                Color vertexColor = (data.V1.Color * o * data.InvZs.X + data.V2.Color * s * data.InvZs.Y + data.V3.Color * t * data.InvZs.Z) * invZ;
+
+                // convert ps
+                var output = data.Material.Convert(uvs, normal, rotNormal, vertexColor);
+
+                // output buffer
+                SetNormalBuffer(x, y, Vector3.Normalize(output.Normal));
+                SetAlbedoBuffer(x, y, output.Color);
+            }
+        }
+
+        private void DrawPixels(object arg)
+        {
+            var data = (DrawPixelsArg)arg;
+            for (int x = data.MinX; x < data.MaxX; x++)
+            {
+                for (int y = data.MinY; y < data.MaxY; y++)
+                {
+                    DrawPixel(data, x, y);
+                }
+            }
+        }
+
+        public void DrawTriangle(Screen screen, OutputVS v1, OutputVS v2, OutputVS v3, Material material)
         {
             if (locks.Count == 0) return;
 
@@ -72,59 +155,40 @@ namespace ParangEngine.Types
 
             var u = v2.Vector2 - v1.Vector2;
             var v = v3.Vector2 - v1.Vector2;
-            float uDv = Vector2.Dot(u, v);
-            float vDv = Vector2.Dot(v, v);
-            float uDu = Vector2.Dot(u, u);
-            var d = uDv * uDv - vDv * uDu;
+            Vector4 dots = 
+                new Vector4(Vector2.Dot(u, v), Vector2.Dot(v, v), Vector2.Dot(u, u), 0);
+            var d = dots.X * dots.X - dots.Y * dots.Z;
             if (d == 0f) return;
-            float invD = 1 / d;
-
-            float invZ1 = 1f / v1.W;
-            float invZ2 = 1f / v2.W;
-            float invZ3 = 1f / v3.W;
-
-            for (int x = min.X; x < max.X; x++)
+            dots.W = 1 / d;
+            Vector3 invZs = new Vector3(1f / v1.W, 1f / v2.W, 1f / v3.W);
+            int w = (max.X - min.X) / multiDraw;
+            int h = (max.Y - min.Y) / multiDraw;
+            int wr = (max.X - min.X) % multiDraw;
+            int hr = (max.Y - min.Y) % multiDraw;
+            DrawPixelsArg data = new DrawPixelsArg
             {
-                for (int y = min.Y; y < max.Y; y++)
+                Screen = screen,
+                V1 = v1, V2 = v2, V3 = v3,
+                Material = material,
+                U = u, V = v,
+                Dots = dots, InvZs = invZs,
+            };
+            List<Task> tasks = new List<Task>();
+            for (int i = 0; i < multiDraw; i++)
+            {
+                for (int j = 0; j < multiDraw; j++)
                 {
-                    Point p = new Point(x, y);
-                    Vector2 w = p.ToVector2(screen) - v1.Vector2;
-                    float wDu = Vector2.Dot(w, u);
-                    float wDv = Vector2.Dot(w, v);
-                    float s = (wDv * uDv - wDu * vDv) * invD;
-                    float t = (wDu * uDv - wDv * uDu) * invD;
-                    float o = 1f - s - t;
-                    if ((0f <= s && s <= 1f) && (0f <= t && t <= 1f) && (0f <= o && o <= 1f))
-                    {
-                        // position
-                        var pos = v1.View * o + v2.View * s + v3.View * t;
-                        // output buffer and depth testing
-                        if (!SetPositionBuffer(screen, x, y, pos)) continue;
-
-                        var z = invZ1 * o + invZ2 * s + invZ3 * t;
-                        var invZ = 1f / z;
-
-                        // uvs
-                        var uvs = new List<Vector2>();
-                        for (int i = 0; i < (int)Material.Type.Max; i++)
-                            uvs.Add((v1.UVs[i] * o * invZ1 + v2.UVs[i] * s * invZ2 + v3.UVs[i] * t * invZ3) * invZ);
-
-                        // normal
-                        var normal = v1.Normal * o + v2.Normal * s + v3.Normal * t;
-                        var rotNormal = v1.RotNormal * o + v2.RotNormal * s + v3.RotNormal * t;
-
-                        // vertex color
-                        Color vertexColor = (v1.Color * o * invZ1 + v2.Color * s * invZ2 + v3.Color * t * invZ3) * invZ;
-
-                        // convert ps
-                        var output = material.Convert(uvs, normal, rotNormal, vertexColor);
-
-                        // output buffer
-                        SetNormalBuffer(x, y, Vector3.Normalize(output.Normal));
-                        SetAlbedoBuffer(x, y, output.Color);
-                    }
+                    var arg = data;
+                    arg.MinX = min.X + i * w;
+                    arg.MaxX = min.X + (i + 1) * w;
+                    arg.MinY = min.Y + j * h;
+                    arg.MaxY = min.Y + (j + 1) * h;
+                    if (i == multiDraw - 1) arg.MaxX += wr;
+                    if (j == multiDraw - 1) arg.MaxY += hr;
+                    tasks.Add(Task.Factory.StartNew(DrawPixels, arg));
                 }
             }
+            while (tasks.Any(x => !x.IsCompleted)) ;
         }
 
         public void DrawWireframe(Screen screen, OutputVS v1, OutputVS v2, OutputVS v3)
@@ -262,6 +326,55 @@ namespace ParangEngine.Types
             }
         }
 
+        private void RenderPixel(RenderPixelsArg data, int x, int y)
+        {
+            // 알베도
+            var a = locks[BufferType.Albedo].GetPixel(x, y);
+            // 포지션 버퍼가 없으면 아무것도 없는 공간
+            var p = locks[BufferType.Position].GetPixel(x, y);
+            if (!p.IsBlack)
+            {
+                p *= precision;
+                var pos = new Vector4(
+                    p.R * 2f - 1f,
+                    p.G * 2f - 1f,
+                    1 - p.B,
+                    p.A * data.Screen.ViewDistance);
+
+                // 위치를 월드 좌표계로 이동함
+                var invPos = Vector4.Transform(pos.ToInvNDC(), data.InvPvMat);
+                // 법선
+                var n = locks[BufferType.Normal].GetPixel(x, y);
+                // 법선이 없어도 컬러는 그린다
+                if (!n.IsBlack)
+                {
+                    n *= precision;
+                    var normal = new Vector3(
+                        (n.R * 2f) - 1f,
+                        (n.G * 2f) - 1f,
+                        (n.B * 2f) - 1f);
+
+                    var l = Color.Black;
+                    foreach (var light in data.Lights)
+                        l += light.GetLight(invPos.ToVector3(), normal);
+                    a *= l;
+                }
+            }
+            data.Bitmap.SetPixel(x, y, a);
+        }
+
+        private void RenderPixels(object arg)
+        {
+            var data = (RenderPixelsArg)arg;
+            for (int x = data.MinX; x < data.MaxX; x++)
+            {
+                for (int y = data.MinY; y < data.MaxY; y++)
+                {
+                    RenderPixel(data, x, y);
+                }
+            }
+        }
+
         public void Render(Screen screen, Color clearColor, Matrix4x4 pvMat, List<Light> lights)
         {
             if (locks.Count == 0) return;
@@ -269,45 +382,34 @@ namespace ParangEngine.Types
                         ImageLockMode.ReadWrite, render.PixelFormat);
             b.Clear(clearColor);
             Matrix4x4.Invert(pvMat, out var invPvMat);
-            for (int y = 0; y < b.Height; y++)
+            var data = new RenderPixelsArg
             {
-                for (int x = 0; x < b.Width; x++)
+                Bitmap = b,
+                Screen = screen,
+                InvPvMat = invPvMat,
+                Lights = lights,
+
+            };
+            int w = b.Width / multiRender;
+            int h = b.Height / multiRender;
+            int wr = b.Width % multiRender;
+            int hr = b.Height % multiRender;
+            List<Task> tasks = new List<Task>();
+            for (int i = 0; i < multiRender; i++)
+            {
+                for (int j = 0; j < multiRender; j++)
                 {
-                    // 알베도
-                    var a = locks[BufferType.Albedo].GetPixel(x, y);
-                    // 포지션 버퍼가 없으면 아무것도 없는 공간
-                    var p = locks[BufferType.Position].GetPixel(x, y);
-                    if (!p.IsBlack)
-                    {
-                        p *= precision;
-                        var pos = new Vector4(
-                            p.R * 2f - 1f, 
-                            p.G * 2f - 1f, 
-                            1 - p.B, 
-                            p.A * screen.ViewDistance);
-
-                        // 위치를 월드 좌표계로 이동함
-                        var invPos = Vector4.Transform(pos.ToInvNDC(), invPvMat);
-                        // 법선
-                        var n = locks[BufferType.Normal].GetPixel(x, y);
-                        // 법선이 없어도 컬러는 그린다
-                        if (!n.IsBlack)
-                        {
-                            n *= precision;
-                            var normal = new Vector3(
-                                (n.R * 2f) - 1f, 
-                                (n.G * 2f) - 1f, 
-                                (n.B * 2f) - 1f);
-
-                            var l = Color.Black;
-                            foreach (var light in lights)
-                                l += light.GetLight(invPos.ToVector3(), normal);
-                            a *= l;
-                        }
-                    }
-                    b.SetPixel(x, y, a);
+                    var arg = data;
+                    arg.MinX = i * w;
+                    arg.MaxX = (i + 1) * w;
+                    arg.MinY = j * h;
+                    arg.MaxY = (j + 1) * h;
+                    if (i == multiRender - 1) arg.MaxX += wr;
+                    if (j == multiRender - 1) arg.MaxY += hr;
+                    tasks.Add(Task.Factory.StartNew(RenderPixels, arg));
                 }
             }
+            while (tasks.Any(x => !x.IsCompleted)) ;
             render.UnlockBits(b);
         }
 
