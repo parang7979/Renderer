@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ParangEngine.Types
 {
-    public class GBuffer
+    public partial class GBuffer
     {
         public enum BufferType
         {
@@ -20,40 +20,11 @@ namespace ParangEngine.Types
             Specular,
         }
 
-        struct DrawPixelsArg
-        {
-            public Screen Screen { get; set; }
-            public OutputVS V1 { get; set; }
-            public OutputVS V2 { get; set; }
-            public OutputVS V3 { get; set; }
-            public Material Material { get; set; }
-            public Vector2 U { get; set; }
-            public Vector2 V { get; set; }
-            public Vector4 Dots { get; set; }
-            public Vector3 InvZs { get; set; }
-            public int MinX { get; set; }
-            public int MaxX { get; set; }
-            public int MinY { get; set; }
-            public int MaxY { get; set; }
-        }
-
-        struct RenderPixelsArg
-        {
-            public BitmapData Bitmap { get; set; }
-            public Screen Screen { get; set; }
-            public Matrix4x4 InvPvMat { get; set; }
-            public List<Light> Lights { get; set; }
-            public int MinX { get; set; }
-            public int MaxX { get; set; }
-            public int MinY { get; set; }
-            public int MaxY { get; set; }
-        }
-
         public bool IsLock => locks.Count > 0;
         public Bitmap RenderTarget => render;
 
-        private byte multiDraw = 32;
-        private byte multiRender = 8;
+        private byte multiDraw = 16;
+        private byte multiRender = 4;
         private ushort precision = 8;
         private ushort maxUShort;
 
@@ -70,6 +41,12 @@ namespace ParangEngine.Types
             buffers.Add(BufferType.Normal, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             buffers.Add(BufferType.Specular, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             locks.Clear();
+            drawPixelPool = new List<DrawPixelsArg>();
+            for (int i = 0; i < multiDraw * multiDraw; i++)
+                drawPixelPool.Add(new DrawPixelsArg());
+            renderPixelPool = new List<RenderPixelsArg>();
+            for (int i = 0; i < multiRender * multiRender; i++)
+                renderPixelPool.Add(new RenderPixelsArg());
         }
 
         public void Lock(bool clear)
@@ -165,24 +142,15 @@ namespace ParangEngine.Types
             int h = (max.Y - min.Y) / multiDraw;
             int wr = (max.X - min.X) % multiDraw;
             int hr = (max.Y - min.Y) % multiDraw;
-            DrawPixelsArg data = new DrawPixelsArg
-            {
-                Screen = screen,
-                V1 = v1, V2 = v2, V3 = v3,
-                Material = material,
-                U = u, V = v,
-                Dots = dots, InvZs = invZs,
-            };
             List<Task> tasks = new List<Task>();
             for (int i = 0; i < multiDraw; i++)
             {
                 for (int j = 0; j < multiDraw; j++)
                 {
-                    var arg = data;
-                    arg.MinX = min.X + i * w;
-                    arg.MaxX = min.X + (i + 1) * w;
-                    arg.MinY = min.Y + j * h;
-                    arg.MaxY = min.Y + (j + 1) * h;
+                    var arg = drawPixelPool[i * multiDraw + j];
+                    arg.Setup(screen, v1, v2, v3, material, u, v, dots, invZs,
+                        min.X + i * w, min.X + (i + 1) * w,
+                        min.Y + j * h, min.Y + (j + 1) * h);
                     if (i == multiDraw - 1) arg.MaxX += wr;
                     if (j == multiDraw - 1) arg.MaxY += hr;
                     tasks.Add(Task.Factory.StartNew(DrawPixels, arg));
@@ -382,14 +350,6 @@ namespace ParangEngine.Types
                         ImageLockMode.ReadWrite, render.PixelFormat);
             b.Clear(clearColor);
             Matrix4x4.Invert(pvMat, out var invPvMat);
-            var data = new RenderPixelsArg
-            {
-                Bitmap = b,
-                Screen = screen,
-                InvPvMat = invPvMat,
-                Lights = lights,
-
-            };
             int w = b.Width / multiRender;
             int h = b.Height / multiRender;
             int wr = b.Width % multiRender;
@@ -399,11 +359,9 @@ namespace ParangEngine.Types
             {
                 for (int j = 0; j < multiRender; j++)
                 {
-                    var arg = data;
-                    arg.MinX = i * w;
-                    arg.MaxX = (i + 1) * w;
-                    arg.MinY = j * h;
-                    arg.MaxY = (j + 1) * h;
+                    var arg = renderPixelPool[i * multiRender + j];
+                    arg.Setup(b, screen, invPvMat, lights,
+                        i * w, (i + 1) * w, j * h, (j + 1) * h);
                     if (i == multiRender - 1) arg.MaxX += wr;
                     if (j == multiRender - 1) arg.MaxY += hr;
                     tasks.Add(Task.Factory.StartNew(RenderPixels, arg));
