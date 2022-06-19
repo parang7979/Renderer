@@ -15,7 +15,7 @@ namespace ParangEngine.Utils
             return new OutputVS()
             {
                 Position = Vector4.Transform(input.Position, input.TMat * input.PVMat),
-                Normal = Vector4.Transform(new Vector4(input.Normal, 0), input.TMat).ToVector3(),
+                Normal = Vector3.TransformNormal(input.Normal, input.TMat),
                 UVs = input.UVs.ToArray(),
                 Color = input.Color,
             };

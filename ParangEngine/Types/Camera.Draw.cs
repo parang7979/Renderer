@@ -54,7 +54,7 @@ namespace ParangEngine.Types
             RenderLine(Gizmos.Axes.ToList(), transform);
         }
 
-        private bool DrawCheck(Transform transform)
+        public bool DrawCheck(Transform transform)
         {
             var viewPos = Vector4.Transform(new Vector4(transform.Position, 1), vMat);
             return frustum.Check(viewPos.ToVector3()) != Frustum.Result.Outside;

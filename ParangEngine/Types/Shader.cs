@@ -37,10 +37,10 @@ namespace ParangEngine.Types
             get => normal;
             set
             {
-                normal = value;
+                normal = Vector3.Normalize(value);
                 var c = Vector3.Cross(Vector3.UnitZ, normal);
                 var s = (float)Math.Sqrt((1f + Vector3.Dot(Vector3.UnitZ, normal)) * 2f);
-                RotNormal = Quaternion.Identity;
+                RotNormal = MathExtension.RotYPI;
                 if (s != 0) RotNormal = new Quaternion(c.X / s, c.Y / s, c.Z / s, s / 2f);
             }
         }

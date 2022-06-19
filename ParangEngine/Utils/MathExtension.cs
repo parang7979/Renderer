@@ -13,7 +13,7 @@ namespace ParangEngine.Utils
         public static readonly float TwoPI = PI * 2f;
         public static readonly float HalfPI = PI * 0.5f;
         public static readonly float InvPI = 1f / PI;
-
+        public static readonly Quaternion RotYPI = new Quaternion(0, 1, 0, 0);
         static public int Min3(int a, int b, int c)
         {
             return Math.Min(a, Math.Min(b, c));

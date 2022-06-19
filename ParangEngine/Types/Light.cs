@@ -31,7 +31,7 @@ namespace ParangEngine.Types
         public override void Update()
         {
             base.Update();
-            direction = Vector3.Normalize(Vector4.Transform(new Vector4(Vector3.UnitZ, 0), Transform.Mat).ToVector3());
+            direction = Vector3.Normalize(Vector3.TransformNormal(Vector3.UnitZ, Transform.Mat));
         }
 
         public override Color GetLight(Vector3 pos, Vector3 normal)

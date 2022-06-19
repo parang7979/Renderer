@@ -17,19 +17,12 @@ namespace ParangEngine
         private Graphics graphics;
         private BufferedGraphicsContext context;
         private BufferedGraphics buffer;
+        
+        private Dictionary<long, Mesh> meshs = new Dictionary<long, Mesh>();
+        private Dictionary<long, Material> materials = new Dictionary<long, Material>();
+        private Dictionary<long, Texture> textures = new Dictionary<long, Texture>();
 
-        private List<GameObject> objects;
-
-        private Camera camera;
-
-        private Mesh mesh;
-        private Material material;
-        private Material material2;
-
-        private Transform transform;
-        private Transform transform2;
-        private Transform transform3;
-        private List<Light> lights;
+        private Scene scene;
 
         public Renderer(Graphics g, Size res, int downScale)
         {
@@ -38,12 +31,6 @@ namespace ParangEngine
             context = BufferedGraphicsManager.Current;
             context.MaximumBuffer = new Size(res.Width + 1, res.Height + 1);
             buffer = context.Allocate(g, new Rectangle(0, 0, res.Width, res.Height));
-
-            camera = new Camera(res.Width / downScale, res.Height / downScale, 60f);
-            camera.Transform = new Transform();
-            camera.Transform.Rotation = new Vector3(45f, 0f, 0f);
-            camera.Transform.Position = new Vector3(0f, 2.5f, -2.5f);
-            // camera.Transform.Rotation = new Vector3(0f, 0f, 0f);
 
             var v = new List<Vertex>()
             {
@@ -72,142 +59,66 @@ namespace ParangEngine
             };
 
             // TestCode
-            mesh = new Mesh(0, v.ToList(), i);
-            material = new Material(0);
-            material.AddTexture(Material.Type.Albedo, new Texture("wall1_color.png"));
-            material.AddTexture(Material.Type.Normal, new Texture("wall1_n.png"));
+            
+            // Load Texture
+            textures.Add(0, new Texture("wall1_color.png"));
+            textures.Add(1, new Texture("wall1_n.png"));
+            textures.Add(2, new Texture("rock_diffuse.png"));
+            textures.Add(3, new Texture("rock_normal.png"));
+            // Load Mesh
+            meshs.Add(0, new Mesh(0, v.ToList(), i));
+            // create material
+            var material = new Material(0);
+            material.AddTexture(Material.Type.Albedo, textures[0]);
+            material.AddTexture(Material.Type.Normal, textures[1]);
 
-            material2 = new Material(1);
-            material2.AddTexture(Material.Type.Albedo, new Texture("rock_diffuse.png"));
-            material2.AddTexture(Material.Type.Normal, new Texture("rock_normal.png"));
+            scene = new Scene();
 
-            transform = new Transform();
-            transform.Position = new Vector3(0f, 0f, 0f);
-            transform.Rotation = new Vector3(0f, 180f, 0f);
+            // camera
+            var cameraGo = new GameObject();
+            cameraGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
+            cameraGo.Transform.Position = new Vector3(0f, 2.5f, -2.5f);
 
-            transform2 = new Transform();
-            transform2.Position = new Vector3(2f, 1f, 1f);
-            transform2.Rotation = new Vector3(0f, 180f, 0f);
+            var camera = new Camera(res.Width / downScale, res.Height / downScale, 60f);
+            cameraGo.AddComponent(camera);
+            scene.Add(cameraGo);
 
-            transform3 = new Transform();
-            transform3.Position = new Vector3(-2f, -1f, 0f);
-            transform3.Rotation = new Vector3(0f, 180f, 0f);
+            // mesh
+            var meshGo = new GameObject();
+            meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
 
-            lights = new List<Light>();
+            meshGo.AddComponent(new MeshRenderer(meshs[0], material));
+            scene.Add(meshGo);
+
+            var lightGo = new GameObject();
             var dirLight = new DirectionalLight();
-            dirLight.Transform = new Transform();
-            dirLight.Color = new Types.Color(System.Drawing.Color.Yellow);
-            var rot = dirLight.Transform.Rotation;
-            rot = new Vector3(0f, 0f, 90f);
-            dirLight.Transform.Rotation = rot;
-            dirLight.Intensity = 0.5f;
-            lights.Add(dirLight);
-
-            dirLight = new DirectionalLight();
-            dirLight.Transform = new Transform();
-            dirLight.Color = new Types.Color(System.Drawing.Color.SkyBlue);
-            rot = dirLight.Transform.Rotation;
-            rot = new Vector3(45f, 45f, 0f);
-            dirLight.Transform.Rotation = rot;
-            dirLight.Intensity = 0.5f;
-            lights.Add(dirLight);
-
-            var pointLight = new PointLight();
-            pointLight.Transform = new Transform();
-            pointLight.Color = new Types.Color(System.Drawing.Color.White);
+            dirLight.Color = Types.Color.White;
+            lightGo.AddComponent(dirLight);
+            lightGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
+            /* var pointLight = new PointLight();
+            pointLight.Color = Types.Color.White;
             pointLight.Intensity = 5f;
             pointLight.Radius = 5f;
-            pointLight.Transform.Position = new Vector3(0f, 0f, -2f);
-            lights.Add(pointLight);
-
-            pointLight = new PointLight();
-            pointLight.Transform = new Transform();
-            pointLight.Color = new Types.Color(System.Drawing.Color.Green);
-            pointLight.Intensity = 6f;
-            pointLight.Radius = 6f;
-            pointLight.Transform.Position = new Vector3(0f, 0f, 2f);
-            lights.Add(pointLight);
-
-            pointLight = new PointLight();
-            pointLight.Transform = new Transform();
-            pointLight.Color = new Types.Color(System.Drawing.Color.Red);
-            pointLight.Intensity = 6f;
-            pointLight.Radius = 6f;
-            pointLight.Transform.Position = new Vector3(0f, 2f, 0f);
-            lights.Add(pointLight);
-
-            pointLight = new PointLight();
-            pointLight.Transform = new Transform();
-            pointLight.Color = new Types.Color(System.Drawing.Color.Blue);
-            pointLight.Intensity = 4f;
-            pointLight.Radius = 4f;
-            pointLight.Transform.Position = new Vector3(-1f, 1f, -1f);
-            lights.Add(pointLight);
-
+            lightGo.AddComponent(pointLight);
+            lightGo.Transform.Position = new Vector3(0f, 0f, -2.5f); */
+            scene.Add(lightGo);
             Gizmos.CreateGrid(10);
         }
 
         public void Update()
         {
-            var rot = transform.Rotation;
-            rot.Y -= 1;
-            transform.Rotation = rot;
-            
-            rot = transform2.Rotation;
-            rot.Y += 1;
-            transform2.Rotation = rot;
-
-            rot = transform3.Rotation;
-            rot.Y -= 1;
-            transform3.Rotation = rot;
-
-            rot = lights[0].Transform.Rotation;
-            rot.X += 2;
-            lights[0].Transform.Rotation = rot;
-
-            /* var pos = lights[1].Transform.Position;
-            pos.X = (pos.X + 0.1f) % 10;
-            lights[1].Transform.Position = pos; */
-
-            camera.Transform.Update();
-            transform.Update();
-            transform2.Update();
-            transform3.Update();
-            foreach (var l in lights)
-            {
-                l.Transform.Update();
-                l.Update();
-            }
+            scene.Update();
         }
 
-        public void DrawMesh()
+        private void DrawTask()
         {
-            // 카메라 그리 준비
-            camera.Lock();
-            // 게임 오브젝트 그룹 단위
-            {
-                camera.DrawGrid();
-                // 텍스쳐 읽기 준비
-                material.Lock();
-                {
-                    camera.DrawMesh(transform, mesh, material);
-                }
-                material.Unlock();
-
-                material2.Lock();
-                {
-                    camera.DrawMesh(transform2, mesh, material2);
-                    camera.DrawMesh(transform3, mesh, material2);
-                }
-                material2.Unlock();
-            }
-            camera.Unlock();
+            scene.Draw();
         }
 
-        public void DrawRender()
+        private void RenderTask()
         {
-            camera.Render(lights);
-            buffer.Graphics.DrawImage(camera.RenderTarget, 0, 0, resolution.Width, resolution.Height);
+            scene.Render();
+            buffer.Graphics.DrawImage(scene.MainCamera.RenderTarget, 0, 0, resolution.Width, resolution.Height);
             /* buffer.Graphics.DrawImage(camera.RenderTarget, 0, 0, resolution.Width / 2, resolution.Height / 2);
             buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Albedo), resolution.Width / 2, 0, resolution.Width / 2, resolution.Height / 2);
             buffer.Graphics.DrawImage(camera.GetBuffer(GBuffer.BufferType.Position), 0, resolution.Height / 2, resolution.Width / 2, resolution.Height / 2);
@@ -218,9 +129,9 @@ namespace ParangEngine
 
         public void Render()
         {
-            camera.SwitchBuffer();
-            var task1 = Task.Factory.StartNew(DrawMesh);
-            var task2 = Task.Factory.StartNew(DrawRender);
+            scene.SwitchBuffer();
+            var task1 = Task.Factory.StartNew(DrawTask);
+            var task2 = Task.Factory.StartNew(RenderTask);
             var check1 = false;
             var check2 = false;
             var now = DateTime.UtcNow;
