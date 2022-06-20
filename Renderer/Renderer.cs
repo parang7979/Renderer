@@ -69,7 +69,7 @@ namespace Renderer
             // camera
             var cameraGo = new GameObject();
             cameraGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
-            cameraGo.Transform.Position = new Vector3(0f, 2.5f, -2.5f);
+            cameraGo.Transform.Position = new Vector3(0f, 2f, -2f);
 
             var camera = new Camera(320, 240, 60f);
             cameraGo.AddComponent(camera);
@@ -85,24 +85,38 @@ namespace Renderer
             meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
             meshGo.AddComponent(new MeshRenderer(
                 Resource.GetMesh("cube.mesh"), material));
-            meshGo.AddComponent(new Rotater());
+            // meshGo.AddComponent(new Rotater());
             scene.Add(meshGo);
 
             var lightGo = new GameObject();
             var dirLight = new DirectionalLight();
             dirLight.Color = ParangEngine.Types.Color.White;
+            dirLight.Intensity = 0.8f;
             lightGo.AddComponent(dirLight);
+            lightGo.AddComponent(new Rotater());
             lightGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
             scene.Add(lightGo);
 
-            for (int k = -2; k < 2; k++)
+            var rnd = new Random();
             {
                 var go = new GameObject();
                 var l = new PointLight();
-                l.Color = ParangEngine.Types.Color.Random();
-                l.Intensity = 5f;
+                l.Color = new ParangEngine.Types.Color("red");
+                l.Intensity = 4f;
                 l.Radius = 5f;
-                go.Transform.Position = new Vector3((int)(k / 2f), 0f, k % 2f);
+                go.Transform.Position = new Vector3(0f, 0f, -3f);
+                go.AddComponent(l);
+                scene.Add(go);
+            }
+
+            
+            {
+                var go = new GameObject();
+                var l = new PointLight();
+                l.Color = new ParangEngine.Types.Color("green");
+                l.Intensity = 4f;
+                l.Radius = 5f;
+                go.Transform.Position = new Vector3(0f, 2f, 0f);
                 go.AddComponent(l);
                 scene.Add(go);
             }

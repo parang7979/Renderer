@@ -147,9 +147,8 @@ namespace ParangEngine.Types
                 c1.B - c2.B);
         }
 
-        static public Color Random()
+        static public Color Random(Random rnd)
         {
-            var rnd = new Random();
             return new Color(1f, 
                 (float)rnd.NextDouble(), 
                 (float)rnd.NextDouble(), 
