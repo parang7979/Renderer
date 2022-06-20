@@ -7,9 +7,31 @@ using System.Threading.Tasks;
 
 namespace ParangEngine
 {
-    internal class Resource
+    static public class Resource
     {
-        private Dictionary<long, Mesh> meshs = new Dictionary<long, Mesh>();
-        private Dictionary<long, Texture> textures = new Dictionary<long, Texture>();
+        static private Dictionary<string, Mesh> meshs = new Dictionary<string, Mesh>();
+        static private Dictionary<string, Texture> textures = new Dictionary<string, Texture>();
+
+        static public void AddMesh(string path, Mesh mesh)
+        {
+            if (!meshs.ContainsKey(path)) meshs.Add(path, mesh);
+        }
+
+        static public void AddTexture(string path)
+        {
+            if (!textures.ContainsKey(path)) textures.Add(path, new Texture(path));
+        }
+
+        static public Mesh GetMesh(string path)
+        {
+            if (meshs.ContainsKey(path)) return meshs[path];
+            return null;
+        }
+
+        static public Texture GetTexture(string path)
+        {
+            if (textures.ContainsKey(path)) return textures[path];
+            return null;
+        }
     }
 }

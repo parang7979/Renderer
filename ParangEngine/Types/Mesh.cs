@@ -12,14 +12,12 @@ namespace ParangEngine.Types
 {
     public class Mesh
     {
-        public int Id { get; set; }
         public List<Vertex> Vertices => vertices.ToList();
 
         private List<Vertex> vertices;
 
-        public Mesh(int id, List<Vertex> vertices, List<int> indicies)
+        public Mesh(List<Vertex> vertices, List<int> indicies)
         {
-            Id = id;
             Dictionary<int, Vector3> normals = new Dictionary<int, Vector3>();
             var triCount = indicies.Count / 3;
             for (int i = 0; i < triCount; i++)

@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace ParangEngine.Utils
 {
-    static public class Shaders
-    {        
-        static public OutputVS DefaultVS(InputVS input)
+    public class BaseShader
+    {
+        virtual public OutputVS VertexShader(InputVS input)
         {
             return new OutputVS()
             {
@@ -21,12 +21,12 @@ namespace ParangEngine.Utils
             };
         }
 
-        static private Vector3 UnpackNormal(Color n, Quaternion normalQuat)
+        protected Vector3 UnpackNormal(Color n, Quaternion normalQuat)
         {
             return Vector3.Transform(new Vector3(n.R * 2 - 1, n.G * 2 - 1, n.B * 2 - 1), normalQuat);
         }
 
-        static public OutputPS DefaultPS(InputPS input)
+        virtual public OutputPS PixelShader(InputPS input)
         {
             return new OutputPS
             {

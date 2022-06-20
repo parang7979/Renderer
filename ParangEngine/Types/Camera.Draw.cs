@@ -106,11 +106,22 @@ namespace ParangEngine.Types
             }
         }
 
+        public OutputVS LineShader(InputVS input)
+        {
+            return new OutputVS()
+            {
+                Position = Vector4.Transform(input.Position, input.TMat * input.PVMat),
+                Normal = Vector3.TransformNormal(input.Normal, input.TMat),
+                UVs = input.UVs.ToArray(),
+                Color = input.Color,
+            };
+        }
+
         private void RenderLine(List<Vertex> vertices, in Transform transform)
         {
             List<OutputVS> vs = new List<OutputVS>();
             foreach (var v in vertices)
-                vs.Add(Shaders.DefaultVS(new InputVS {
+                vs.Add(LineShader(new InputVS {
                     Position = v.Vector4,
                     Normal = v.Normal,
                     UVs = new Vector2[] { v.UV, v.UV },

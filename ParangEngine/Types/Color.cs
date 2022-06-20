@@ -146,5 +146,14 @@ namespace ParangEngine.Types
                 c1.G - c2.G,
                 c1.B - c2.B);
         }
+
+        static public Color Random()
+        {
+            var rnd = new Random();
+            return new Color(1f, 
+                (float)rnd.NextDouble(), 
+                (float)rnd.NextDouble(), 
+                (float)rnd.NextDouble());
+        }
     }
 }

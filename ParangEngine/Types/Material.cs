@@ -16,21 +16,14 @@ namespace ParangEngine.Types
             Normal,
             Max,
         }
-        public int Id { get; private set; }
         public Color Color { get; private set;}
 
         private Texture[] textures = new Texture[(int)Type.Max];
-        private Func<InputVS, OutputVS> vs = Shaders.DefaultVS;
-        private Func<InputPS, OutputPS> ps = Shaders.DefaultPS;
-
-        public Material(int id)
-        {
-            Id = id;
-        }
+        private BaseShader shader = new BaseShader();
 
         public OutputVS Convert(Vertex v, Matrix4x4 tMat, Matrix4x4 pvMat)
         {
-            return vs.Invoke(new InputVS
+            return shader.VertexShader(new InputVS
             {
                 Position = v.Vector4,
                 Normal = v.Normal,
@@ -42,7 +35,7 @@ namespace ParangEngine.Types
 
         public OutputPS Convert(List<Vector2> uvs, Vector3 normal, Quaternion normalQuat, Color vertexColor)
         {
-            return ps.Invoke(new InputPS
+            return shader.PixelShader(new InputPS
             {
                 Color = Color,
                 Textures = textures,
@@ -61,6 +54,11 @@ namespace ParangEngine.Types
         public void RemoveTexture(Type type)
         {
             textures[(int)type] = null;
+        }
+
+        public void SetShader(BaseShader shader)
+        {
+            this.shader = shader;
         }
 
         public void Lock()

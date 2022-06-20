@@ -13,7 +13,7 @@ namespace ParangEngine.Types
         private List<GameObject> objects = new List<GameObject>();
         private List<Camera> cameras = new List<Camera>();
         private List<Light> lights = new List<Light>();
-        private Dictionary<long, List<MeshRenderer>> renderers = new Dictionary<long, List<MeshRenderer>>();
+        private Dictionary<Material, List<MeshRenderer>> renderers = new Dictionary<Material, List<MeshRenderer>>();
 
         public void Add(GameObject go)
         {
@@ -25,15 +25,15 @@ namespace ParangEngine.Types
             var renderer = go.GetComponent<MeshRenderer>();
             if (renderer != null)
             {
-                if (renderers.ContainsKey(renderer.Id))
+                if (renderers.ContainsKey(renderer.Material))
                 {
-                    renderers[renderer.Id].Add(renderer);
+                    renderers[renderer.Material].Add(renderer);
                 }
                 else
                 {
                     var r = new List<MeshRenderer>();
                     r.Add(renderer);
-                    renderers.Add(renderer.Id, r);
+                    renderers.Add(renderer.Material, r);
                 }
             }
         }
@@ -48,7 +48,7 @@ namespace ParangEngine.Types
             foreach (var c in cameras) c.Lock();
             foreach(var r in renderers)
             {
-                var mat = r.Value.FirstOrDefault()?.Material;
+                var mat = r.Key;
                 if (mat != null) mat.Lock();
                 foreach(var m in r.Value)
                 {

@@ -8,7 +8,6 @@ namespace ParangEngine.Types
 {
     public class MeshRenderer : Component
     {
-        public long Id => material?.Id ?? -1;
         public Material Material => material;
 
         private Mesh mesh;
@@ -20,13 +19,9 @@ namespace ParangEngine.Types
             this.material = material;
         }
 
-        private void UpdateNormal()
-        {
-
-        }
-
         public void Draw(List<Camera> cameras)
         {
+            if (mesh == null) return;
             foreach(var c in cameras)
             {
                 if (!c.DrawCheck(Transform)) continue;
