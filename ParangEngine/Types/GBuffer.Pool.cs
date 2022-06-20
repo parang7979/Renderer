@@ -46,6 +46,7 @@ namespace ParangEngine.Types
     {
         public BitmapData Bitmap { get; set; }
         public Screen Screen { get; set; }
+        public Vector3 View { get; set; }
         public Matrix4x4 InvPvMat { get; set; }
         public List<Light> Lights { get; set; }
         public int MinX { get; set; }
@@ -56,12 +57,14 @@ namespace ParangEngine.Types
         public void Setup(
             BitmapData bitmap,
             Screen screen,
+            Vector3 view,
             Matrix4x4 invPvMat,
             List<Light> lights,
             int minX, int maxX, int minY, int maxY)
         {
             Bitmap = bitmap;
             Screen = screen;
+            View = view;
             InvPvMat = invPvMat;
             Lights = lights;
             MinX = minX; MaxX = maxX;

@@ -64,10 +64,10 @@ namespace ParangEngine
 
         private void RenderDebug()
         {
-            buffer.Graphics.DrawImage(scene.MainCamera.RenderTarget, 0, 0, resolution.Width / 2, resolution.Height / 2);
-            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Albedo), resolution.Width / 2, 0, resolution.Width / 2, resolution.Height / 2);
-            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Position), 0, resolution.Height / 2, resolution.Width / 2, resolution.Height / 2);
-            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Normal), resolution.Width / 2, resolution.Height / 2, resolution.Width / 2, resolution.Height / 2);
+            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Albedo), 0, 0, resolution.Width / 2, resolution.Height / 2);
+            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Position), resolution.Width / 2, 0, resolution.Width / 2, resolution.Height / 2);
+            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Normal), 0, resolution.Height / 2, resolution.Width / 2, resolution.Height / 2);
+            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Surface), resolution.Width / 2, resolution.Height / 2, resolution.Width / 2, resolution.Height / 2);
         }
 
         private void RenderTask()

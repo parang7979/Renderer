@@ -69,9 +69,9 @@ namespace Renderer
             // camera
             var cameraGo = new GameObject();
             cameraGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
-            cameraGo.Transform.Position = new Vector3(0f, 4f, -4f);
+            cameraGo.Transform.Position = new Vector3(0f, 2f, -2f);
 
-            var camera = new Camera(320, 240, 60f);
+            var camera = new Camera(640, 480, 60f);
             cameraGo.AddComponent(camera);
             scene.Add(cameraGo);
 
@@ -87,6 +87,7 @@ namespace Renderer
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
                     meshGo.AddComponent(new MeshRenderer(
                         Resource.GetMesh("cube.mesh"), material));
+                    meshGo.AddComponent(new MatalicController());
                     // meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
                 }
@@ -182,7 +183,7 @@ namespace Renderer
             dirLight.Color = ParangEngine.Types.Color.White;
             dirLight.Intensity = 0.8f;
             lightGo.AddComponent(dirLight);
-            lightGo.AddComponent(new Rotater());
+            // lightGo.AddComponent(new Rotater());
             lightGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
             scene.Add(lightGo);
 

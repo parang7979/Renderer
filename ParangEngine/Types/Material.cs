@@ -14,9 +14,12 @@ namespace ParangEngine.Types
         {
             Albedo,
             Normal,
+            Surface,
             Max,
         }
-        public Color Color { get; private set;}
+        public Color Color { get; set;}
+        public float Metalic { get; set; }
+        public float Roughness { get; set; }
 
         private Texture[] textures = new Texture[(int)Type.Max];
         private BaseShader shader = new BaseShader();
@@ -27,7 +30,7 @@ namespace ParangEngine.Types
             {
                 Position = v.Vector4,
                 Normal = v.Normal,
-                UVs = new Vector2[] { v.UV, v.UV },
+                UVs = new Vector2[] { v.UV, v.UV, v.UV },
                 TMat = tMat,
                 PVMat = pvMat,
             });
@@ -38,6 +41,8 @@ namespace ParangEngine.Types
             return shader.PixelShader(new InputPS
             {
                 Color = Color,
+                Metalic = Metalic,
+                Roughness = Roughness,
                 Textures = textures,
                 UVs = uvs.ToArray(),
                 Normal = normal,

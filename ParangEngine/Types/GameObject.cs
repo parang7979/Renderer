@@ -8,7 +8,8 @@ namespace ParangEngine.Types
 {
     abstract public class Component
     {
-        public Transform Transform { get; internal set; }
+        public GameObject GameObject { get; internal set; }
+        public Transform Transform => GameObject.Transform;
 
         virtual public void Update()
         {
@@ -34,7 +35,7 @@ namespace ParangEngine.Types
 
         public void AddComponent(Component c)
         {
-            c.Transform = Transform;
+            c.GameObject = this;
             Components.Add(c);
         }
 

@@ -124,7 +124,7 @@ namespace ParangEngine.Types
                 vs.Add(LineShader(new InputVS {
                     Position = v.Vector4,
                     Normal = v.Normal,
-                    UVs = new Vector2[] { v.UV, v.UV },
+                    UVs = new Vector2[] { v.UV, v.UV, v.UV },
                     Color = v.Color,
                     TMat = transform.Mat,
                     PVMat = pvMat,

@@ -13,19 +13,23 @@ namespace ParangEngine.Types
         public Color Color { get; set; }
         public float Intensity { get; set; } = 1f;
 
-        virtual public Color GetLight(Vector3 pos, Vector3 normal)
+        virtual public Color GetLight(Vector3 pos, Vector3 view, Vector3 normal, Color surface)
         {
-            return Color * Intensity;
+            return Color * Intensity + surface.G;
         }
 
-        virtual public Color GetSpecular(Vector3 pos, Color albedo, Vector3 reflect)
+        virtual public float GetSpecular(Vector3 dir, Vector3 view, Vector3 normal, Color surface)
         {
-            return Color * albedo * Intensity;
+            var reflect = Vector3.Reflect(dir, normal);
+            var d = Vector3.Dot(reflect, Vector3.UnitY) + surface.R;
+            return d < 0 ? -d : 0;
         }
     }
 
     public class DirectionalLight : Light
     {
+        public float Ambient { get; set; } = 0.1f;
+
         private Vector3 direction = Vector3.UnitZ;
 
         public override void Update()
@@ -34,15 +38,13 @@ namespace ParangEngine.Types
             direction = Vector3.Normalize(Vector3.TransformNormal(Vector3.UnitZ, Transform.Mat));
         }
 
-        public override Color GetLight(Vector3 pos, Vector3 normal)
+        public override Color GetLight(Vector3 pos, Vector3 view, Vector3 normal, Color surface)
         {
             var d = Vector3.Dot(normal, direction);
-            return base.GetLight(pos, normal) * (d < 0 ? -d : 0);
-        }
-
-        public override Color GetSpecular(Vector3 pos, Color albedo, Vector3 reflect)
-        {
-            return base.GetSpecular(pos, albedo, reflect);
+            var p = base.GetLight(pos, view, normal, surface) * (d < 0 ? -d : 0) + (Ambient * surface.G);
+            var s = base.GetSpecular(direction, view, normal, surface);
+            // 방향
+            return p + s;
         }
     }
 
@@ -61,18 +63,15 @@ namespace ParangEngine.Types
             r2 = Radius * Radius;
         }
 
-        public override Color GetLight(Vector3 pos, Vector3 normal)
+        public override Color GetLight(Vector3 pos, Vector3 view, Vector3 normal, Color surface)
         {
             var dir = pos - center;
             var l = dir.LengthSquared();
             if (r2 < l) return Color.Black;
             var d = Vector3.Dot(normal, Vector3.Normalize(dir));
-            return base.GetLight(pos, normal) * (d < 0 ? -d : 0) * (1 / l);
-        }
-
-        public override Color GetSpecular(Vector3 pos, Color albedo, Vector3 reflect)
-        {
-            return base.GetSpecular(pos, albedo, reflect);
+            var p = base.GetLight(pos, view, normal, surface) * (d < 0 ? -d : 0);
+            var s = base.GetSpecular(dir, view, normal, surface);
+            return (p + s) * (1 / l);
         }
     }
 }

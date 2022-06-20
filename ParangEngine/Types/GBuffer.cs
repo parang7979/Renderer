@@ -16,14 +16,14 @@ namespace ParangEngine.Types
             Albedo,
             Position,
             Normal,
-            Specular,
+            Surface,
         }
 
         public bool IsLock => locks.Count > 0;
         public Bitmap RenderTarget => render;
 
-        private byte multiDraw = 16;
-        private byte multiRender = 4;
+        private byte multiDraw = 24;
+        private byte multiRender = 8;
         private ushort precision = 8;
         private ushort maxUShort;
 
@@ -38,7 +38,7 @@ namespace ParangEngine.Types
             buffers.Add(BufferType.Albedo, new Bitmap(width, height, PixelFormat.Format24bppRgb));
             buffers.Add(BufferType.Position, new Bitmap(width, height, PixelFormat.Format64bppArgb));
             buffers.Add(BufferType.Normal, new Bitmap(width, height, PixelFormat.Format48bppRgb));
-            buffers.Add(BufferType.Specular, new Bitmap(width, height, PixelFormat.Format48bppRgb));
+            buffers.Add(BufferType.Surface, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             locks.Clear();
             drawPixelPool = new List<DrawPixelsArg>();
             for (int i = 0; i < multiDraw * multiDraw; i++)
@@ -98,6 +98,7 @@ namespace ParangEngine.Types
                 // output buffer
                 SetNormalBuffer(x, y, Vector3.Normalize(output.Normal));
                 SetAlbedoBuffer(x, y, output.Color);
+                SetSurfaceBuffer(x, y, output.Surface);
             }
         }
 
@@ -275,21 +276,20 @@ namespace ParangEngine.Types
             }
         }
 
-        public void SetSpecularBuffer(int x, int y, Vector3 normal)
+        public void SetSurfaceBuffer(int x, int y, Color color)
         {
             if (locks.Count == 0) return;
 
-            var b = locks[BufferType.Specular];
+            var b = locks[BufferType.Surface];
             var index = y * b.Width + x;
             if (index < 0 || b.Width * b.Height <= index) return;
             index *= 3;
             unsafe
             {
                 var ptr = (ushort*)b.Scan0;
-                var reflect = Vector3.Normalize(Vector3.Reflect(Vector3.UnitZ, normal));
-                ptr[index] = (ushort)((reflect.Z + 1) / 2 * ushort.MaxValue);
-                ptr[index + 1] = (ushort)((reflect.Y + 1) / 2 * ushort.MaxValue);
-                ptr[index + 2] = (ushort)((reflect.X + 1) / 2 * ushort.MaxValue);
+                ptr[index] = color.BB;
+                ptr[index + 1] = color.BG;
+                ptr[index + 2] = color.BR;
             }
         }
 
@@ -320,10 +320,10 @@ namespace ParangEngine.Types
                         (n.R * 2f) - 1f,
                         (n.G * 2f) - 1f,
                         (n.B * 2f) - 1f);
-
+                    var surface = locks[BufferType.Surface].GetPixel(x, y);
                     var l = Color.Black;
                     foreach (var light in data.Lights)
-                        l += light.GetLight(invPos.ToVector3(), normal);
+                        l += light.GetLight(invPos.ToVector3(), data.View, normal, surface);
                     a *= l;
                 }
             }
@@ -342,7 +342,7 @@ namespace ParangEngine.Types
             }
         }
 
-        public void Render(Screen screen, Color clearColor, Matrix4x4 pvMat, List<Light> lights)
+        public void Render(Screen screen, Color clearColor, Vector3 view, Matrix4x4 pvMat, List<Light> lights)
         {
             if (locks.Count == 0) return;
             var b = render.LockBits(new Rectangle(0, 0, render.Width, render.Height),
@@ -359,7 +359,7 @@ namespace ParangEngine.Types
                 for (int j = 0; j < multiRender; j++)
                 {
                     var arg = renderPixelPool[i * multiRender + j];
-                    arg.Setup(b, screen, invPvMat, lights,
+                    arg.Setup(b, screen, view, invPvMat, lights,
                         i * w, (i + 1) * w, j * h, (j + 1) * h);
                     if (i == multiRender - 1) arg.MaxX += wr;
                     if (j == multiRender - 1) arg.MaxY += hr;
