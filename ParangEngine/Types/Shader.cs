@@ -100,7 +100,7 @@ namespace ParangEngine.Types
         public Color GetSample(Material.Type type)
         {
             int index = (int)type;
-            return Textures[index]?.GetSample(UVs[index % UVs.Length]) ?? Color.Black;
+            return Textures[index]?.GetSample(UVs[index % UVs.Length]) ?? Color.White;
         }
     }
 

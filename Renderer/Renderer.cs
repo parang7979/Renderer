@@ -81,9 +81,8 @@ namespace Renderer
                 var material = new Material();
                 material.AddTexture(Material.Type.Albedo, Resource.GetTexture("rock_diffuse.png"));
                 material.AddTexture(Material.Type.Normal, Resource.GetTexture("rock_normal.png"));
-                material.Roughness = 0.9f;
-                material.Metalic = 0.9f;
-                // material.AddTexture(Material.Type.Surface, Resource.GetTexture("wall1_shga.png"));
+                material.Roughness = 0f;
+                material.Metalic = 1f;
 
                 {
                     // mesh
@@ -97,7 +96,7 @@ namespace Renderer
                     scene.Add(meshGo);
                 }
 
-                /* {
+                {
                     // mesh
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
@@ -139,7 +138,7 @@ namespace Renderer
                         Resource.GetMesh("cube.mesh"), material));
                     // meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
-                } */
+                }
             }
 
             {
@@ -147,8 +146,8 @@ namespace Renderer
                 var material = new Material();
                 material.AddTexture(Material.Type.Albedo, Resource.GetTexture("rock_diffuse.png"));
                 material.AddTexture(Material.Type.Normal, Resource.GetTexture("rock_normal.png"));
-                material.Roughness = 0.2f;
-                material.Metalic = 0.8f;
+                material.Roughness = 0f;
+                material.Metalic = 0f;
                 {
                     // mesh
                     var meshGo = new GameObject();
@@ -161,7 +160,7 @@ namespace Renderer
                     scene.Add(meshGo);
                 }
 
-                /* {
+                {
                     // mesh
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
@@ -181,7 +180,7 @@ namespace Renderer
                         Resource.GetMesh("cube.mesh"), material));
                     // meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
-                } */
+                }
             }
 
 
@@ -194,7 +193,7 @@ namespace Renderer
             lightGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
             scene.Add(lightGo);
 
-            /* {
+            {
                 var go = new GameObject();
                 var l = new PointLight();
                 l.Color = new ParangEngine.Types.Color("red");
@@ -226,7 +225,7 @@ namespace Renderer
                 go.Transform.Position = new Vector3(1f, 1f, -2f);
                 go.AddComponent(l);
                 scene.Add(go);
-            } */
+            }
 
             engine = new Engine(CreateGraphics(), new Size(640, 480));
             engine.SetScene(scene);

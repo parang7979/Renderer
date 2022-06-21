@@ -29,8 +29,8 @@ namespace ParangEngine.Utils
         virtual public OutputPS PixelShader(InputPS input)
         {
             var surface = input.GetSample(Material.Type.Surface);
-            surface.R += input.Metalic;
-            surface.G += input.Roughness;
+            surface.R *= input.Metalic;
+            surface.G *= input.Roughness;
             return new OutputPS
             {
                 Color = input.GetSample(Material.Type.Albedo),

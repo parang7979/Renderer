@@ -44,7 +44,7 @@ namespace ParangEngine.Types
             var p = base.GetLight(pos, view, normal, surface) * (d < 0 ? -d : 0) + (Ambient * surface.G);
             var s = base.GetSpecular(direction, view, normal, surface);
             // 방향
-            return p + s;
+            return p * (1f + s);
         }
     }
 
@@ -71,7 +71,7 @@ namespace ParangEngine.Types
             var d = Vector3.Dot(normal, Vector3.Normalize(dir));
             var p = base.GetLight(pos, view, normal, surface) * (d < 0 ? -d : 0);
             var s = base.GetSpecular(dir, view, normal, surface);
-            return (p * (1 / l)) + s;
+            return (p * (1 / l)) * (1f + s);
         }
     }
 }
