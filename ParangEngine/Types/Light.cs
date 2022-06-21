@@ -15,20 +15,20 @@ namespace ParangEngine.Types
 
         virtual public Color GetLight(Vector3 pos, Vector3 view, Vector3 normal, Color surface)
         {
-            return Color * Intensity + surface.G;
+            return Color * Intensity;
         }
 
         virtual public float GetSpecular(Vector3 dir, Vector3 view, Vector3 normal, Color surface)
         {
             var reflect = Vector3.Reflect(dir, normal);
-            var d = Vector3.Dot(reflect, Vector3.UnitY) + surface.R;
-            return d < 0 ? -d : 0;
+            var d = Vector3.Dot(reflect, view);
+            return ((d < 0 ? -d : 0) * surface.R) * (1f - surface.G);
         }
     }
 
     public class DirectionalLight : Light
     {
-        public float Ambient { get; set; } = 0.1f;
+        public float Ambient { get; set; } = 0.05f;
 
         private Vector3 direction = Vector3.UnitZ;
 
@@ -71,7 +71,7 @@ namespace ParangEngine.Types
             var d = Vector3.Dot(normal, Vector3.Normalize(dir));
             var p = base.GetLight(pos, view, normal, surface) * (d < 0 ? -d : 0);
             var s = base.GetSpecular(dir, view, normal, surface);
-            return (p + s) * (1 / l);
+            return (p * (1 / l)) + s;
         }
     }
 }

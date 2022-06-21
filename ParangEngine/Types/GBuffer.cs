@@ -287,9 +287,9 @@ namespace ParangEngine.Types
             unsafe
             {
                 var ptr = (ushort*)b.Scan0;
-                ptr[index] = color.BB;
-                ptr[index + 1] = color.BG;
-                ptr[index + 2] = color.BR;
+                ptr[index] = color.SB;
+                ptr[index + 1] = color.SG;
+                ptr[index + 2] = color.SR;
             }
         }
 

@@ -61,6 +61,7 @@ namespace Renderer
             Resource.AddMesh("cube.mesh", new Mesh(Cube.V, Cube.I));
             Resource.AddTexture("wall1_color.png");
             Resource.AddTexture("wall1_n.png");
+            Resource.AddTexture("wall1_shga.png");
             Resource.AddTexture("rock_diffuse.png");
             Resource.AddTexture("rock_normal.png");
 
@@ -69,7 +70,7 @@ namespace Renderer
             // camera
             var cameraGo = new GameObject();
             cameraGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
-            cameraGo.Transform.Position = new Vector3(0f, 2f, -2f);
+            cameraGo.Transform.Position = new Vector3(0f, 4f, -4f);
 
             var camera = new Camera(640, 480, 60f);
             cameraGo.AddComponent(camera);
@@ -78,8 +79,11 @@ namespace Renderer
             {
                 // material
                 var material = new Material();
-                material.AddTexture(Material.Type.Albedo, Resource.GetTexture("wall1_color.png"));
-                material.AddTexture(Material.Type.Normal, Resource.GetTexture("wall1_n.png"));
+                material.AddTexture(Material.Type.Albedo, Resource.GetTexture("rock_diffuse.png"));
+                material.AddTexture(Material.Type.Normal, Resource.GetTexture("rock_normal.png"));
+                material.Roughness = 0.9f;
+                material.Metalic = 0.9f;
+                // material.AddTexture(Material.Type.Surface, Resource.GetTexture("wall1_shga.png"));
 
                 {
                     // mesh
@@ -87,12 +91,13 @@ namespace Renderer
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
                     meshGo.AddComponent(new MeshRenderer(
                         Resource.GetMesh("cube.mesh"), material));
-                    meshGo.AddComponent(new MatalicController());
+                    // meshGo.AddComponent(new RoughnessController());
+                    // meshGo.AddComponent(new MatalicController());
                     // meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
                 }
 
-                {
+                /* {
                     // mesh
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
@@ -134,7 +139,7 @@ namespace Renderer
                         Resource.GetMesh("cube.mesh"), material));
                     // meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
-                }
+                } */
             }
 
             {
@@ -142,7 +147,8 @@ namespace Renderer
                 var material = new Material();
                 material.AddTexture(Material.Type.Albedo, Resource.GetTexture("rock_diffuse.png"));
                 material.AddTexture(Material.Type.Normal, Resource.GetTexture("rock_normal.png"));
-
+                material.Roughness = 0.2f;
+                material.Metalic = 0.8f;
                 {
                     // mesh
                     var meshGo = new GameObject();
@@ -150,11 +156,12 @@ namespace Renderer
                     meshGo.Transform.Position = new Vector3(2f, 0f, 0f);
                     meshGo.AddComponent(new MeshRenderer(
                         Resource.GetMesh("cube.mesh"), material));
+                    // meshGo.AddComponent(new RoughnessController());
                     // meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
                 }
 
-                {
+                /* {
                     // mesh
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
@@ -174,7 +181,7 @@ namespace Renderer
                         Resource.GetMesh("cube.mesh"), material));
                     // meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
-                }
+                } */
             }
 
 
@@ -183,11 +190,11 @@ namespace Renderer
             dirLight.Color = ParangEngine.Types.Color.White;
             dirLight.Intensity = 0.8f;
             lightGo.AddComponent(dirLight);
-            // lightGo.AddComponent(new Rotater());
+            lightGo.AddComponent(new Rotater());
             lightGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
             scene.Add(lightGo);
 
-            {
+            /* {
                 var go = new GameObject();
                 var l = new PointLight();
                 l.Color = new ParangEngine.Types.Color("red");
@@ -219,7 +226,7 @@ namespace Renderer
                 go.Transform.Position = new Vector3(1f, 1f, -2f);
                 go.AddComponent(l);
                 scene.Add(go);
-            }
+            } */
 
             engine = new Engine(CreateGraphics(), new Size(640, 480));
             engine.SetScene(scene);
