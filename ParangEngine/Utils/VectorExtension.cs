@@ -52,5 +52,34 @@ namespace ParangEngine.Utils
             v.Y /= screen.HalfHeight;
             return v;
         }
+
+        static public Vector3 ToVector3(this string[] strs, int startIndex)
+        {
+            if (strs.Length < startIndex + 3) return Vector3.Zero;
+            return new Vector3(
+                strs[startIndex].SafeParse(0f),
+                strs[startIndex + 1].SafeParse(0f),
+                strs[startIndex + 2].SafeParse(0f));
+        }
+
+        static public Vector2 ToVector2(this string[] strs, int startIndex)
+        {
+            if (strs.Length < startIndex + 2) return Vector2.Zero;
+            return new Vector2(
+                strs[startIndex].SafeParse(0f),
+                strs[startIndex + 1].SafeParse(0f));
+        }
+
+        static public float SafeParse(this string str, float def)
+        {
+            if (float.TryParse(str, out var ret)) return ret;
+            return def;
+        }
+
+        static public int SafeParse(this string str, int def)
+        {
+            if (int.TryParse(str, out var ret)) return ret;
+            return def;
+        }
     }
 }

@@ -18,23 +18,27 @@ namespace Renderer
 {
     static public class Cube
     {
-        static public readonly List<Vertex> V = new List<Vertex>()
+        static public readonly List<Vector3> V = new List<Vector3>()
             {
-                new Vertex(-1.0f, -1.0f, -1.0f, 1f), new Vertex(-1.0f, -1.0f, 1.0f, 1f), new Vertex(-1.0f, 1.0f, 1.0f, 1f), new Vertex(-1.0f, 1.0f, -1.0f, 1f),
-                new Vertex(-1.0f, -1.0f, 1.0f, 1f, uv: new Vector2(1f, 1f)),
-                new Vertex(-1.0f, 1.0f, 1.0f, 1f, uv: new Vector2(1f, 0f)),
-                new Vertex(1.0f, 1.0f, 1.0f, 1f, uv: new Vector2(0f, 0f)),
-                new Vertex(1.0f, -1.0f, 1.0f, 1f, uv: new Vector2(0f, 1f)),
-                new Vertex(-1.0f, -1.0f, -1.0f, 1f), new Vertex(-1.0f, 1.0f, -1.0f, 1f), new Vertex(1.0f, 1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, -1.0f, 1f),
-                new Vertex(1.0f, -1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, 1.0f, 1f), new Vertex(1.0f, 1.0f, 1.0f, 1f), new Vertex(1.0f, 1.0f, -1.0f, 1f),
-                new Vertex(-1.0f, 1.0f, -1.0f, 1f, uv: new Vector2(0f, 0f)), //16
-                new Vertex(1.0f, 1.0f, -1.0f, 1f, uv: new Vector2(1f, 0f)),  //17
-                new Vertex(1.0f, 1.0f, 1.0f, 1f, uv: new Vector2(1f, 1f)), //19
-                new Vertex(-1.0f, 1.0f, 1.0f, 1f, uv: new Vector2(0f, 1f)),//19
-                new Vertex(-1.0f, -1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, -1.0f, 1f), new Vertex(1.0f, -1.0f, 1.0f, 1f), new Vertex(-1.0f, -1.0f, 1.0f, 1f)
+                new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(-1.0f, -1.0f, 1.0f), new Vector3(-1.0f, 1.0f, 1.0f), new Vector3(-1.0f, 1.0f, -1.0f),
+                new Vector3(-1.0f, -1.0f, 1.0f), new Vector3(-1.0f, 1.0f, 1.0f), new Vector3(1.0f, 1.0f, 1.0f), new Vector3(1.0f, -1.0f, 1.0f),
+                new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(-1.0f, 1.0f, -1.0f), new Vector3(1.0f, 1.0f, -1.0f), new Vector3(1.0f, -1.0f, -1.0f),
+                new Vector3(1.0f, -1.0f, -1.0f), new Vector3(1.0f, -1.0f, 1.0f), new Vector3(1.0f, 1.0f, 1.0f), new Vector3(1.0f, 1.0f, -1.0f),
+                new Vector3(-1.0f, 1.0f, -1.0f), new Vector3(1.0f, 1.0f, -1.0f), new Vector3(1.0f, 1.0f, 1.0f), new Vector3(-1.0f, 1.0f, 1.0f),
+                new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(1.0f, -1.0f, -1.0f), new Vector3(1.0f, -1.0f, 1.0f), new Vector3(-1.0f, -1.0f, 1.0f)
             };
 
-        static public readonly List<int> I = new List<int>()
+        static public readonly List<Vector2> UV = new List<Vector2>()
+            {
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
+                new Vector2(1f, 1f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(0f, 1f),
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
+                new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 1f),
+                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f)
+            };
+
+        static public readonly List<int> VI = new List<int>()
             {
                 // 0, 1, 2, 0, 2, 3, // Right
 	            4, 6, 5, 4, 7, 6, // Front
@@ -58,7 +62,10 @@ namespace Renderer
             HandleDestroyed += Renderer_HandleDestroyed;
 
             // Resource Load
-            Resource.AddMesh("cube.mesh", new Mesh(Cube.V, Cube.I));
+            Resource.AddMesh("cube.mesh", new Mesh(Cube.V, Cube.UV, Cube.VI));
+            Resource.AddMesh("airboat.obj");
+
+
             Resource.AddTexture("wall1_color.png");
             Resource.AddTexture("wall1_n.png");
             Resource.AddTexture("wall1_shga.png");
@@ -70,11 +77,24 @@ namespace Renderer
             // camera
             var cameraGo = new GameObject();
             cameraGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
-            cameraGo.Transform.Position = new Vector3(0f, 4f, -4f);
+            cameraGo.Transform.Position = new Vector3(0f, 10f, -10f);
 
-            var camera = new Camera(640, 480, 60f);
+            var camera = new Camera(320, 240, 60f);
             cameraGo.AddComponent(camera);
             scene.Add(cameraGo);
+
+            {
+                var meshGo = new GameObject();
+                meshGo.Transform.Rotation = new Vector3(0f, 0f, 0f);
+                // meshGo.Transform.Position = new Vector3(0f, 2f, 0f);
+                // meshGo.Transform.Scale = new Vector3(0.5f, 0.5f, 0.5f);
+                meshGo.AddComponent(new MeshRenderer(
+                    Resource.GetMesh("airboat.obj"), new Material()));
+                // meshGo.AddComponent(new RoughnessController());
+                // meshGo.AddComponent(new MatalicController());
+                // meshGo.AddComponent(new Rotater());
+                scene.Add(meshGo);
+            }
 
             {
                 // material
@@ -96,7 +116,7 @@ namespace Renderer
                     scene.Add(meshGo);
                 }
 
-                {
+                /* {
                     // mesh
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
@@ -138,16 +158,17 @@ namespace Renderer
                         Resource.GetMesh("cube.mesh"), material));
                     // meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
-                }
+                } */
             }
 
-            {
+            /* {
                 // material
                 var material = new Material();
                 material.AddTexture(Material.Type.Albedo, Resource.GetTexture("rock_diffuse.png"));
                 material.AddTexture(Material.Type.Normal, Resource.GetTexture("rock_normal.png"));
                 material.Roughness = 0f;
                 material.Metalic = 0f;
+                
                 {
                     // mesh
                     var meshGo = new GameObject();
@@ -181,7 +202,7 @@ namespace Renderer
                     // meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
                 }
-            }
+            } */
 
 
             var lightGo = new GameObject();

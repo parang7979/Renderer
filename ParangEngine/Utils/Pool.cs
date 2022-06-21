@@ -28,6 +28,7 @@ namespace ParangEngine.Utils
         public Pool(int capacity)
         {
             pool = new List<T>(capacity);
+            for (int i = 0; i < capacity; i++) pool.Add(new T());
         }
 
         public T Acquire()
@@ -35,8 +36,9 @@ namespace ParangEngine.Utils
             var ret = pool.FirstOrDefault(x => x.IsRelease);
             if (ret == null)
             {
-                ret = new T();
-                pool.Add(ret);
+                // ret = new T();
+                // pool.Add(ret);
+                return null;
             }
             ret.Acquire();
             return ret;

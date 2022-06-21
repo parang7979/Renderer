@@ -33,6 +33,7 @@ namespace ParangEngine.Types
                 UVs = new Vector2[] { v.UV, v.UV, v.UV },
                 TMat = tMat,
                 PVMat = pvMat,
+                Color = v.Color,
             });
         }
 

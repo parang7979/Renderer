@@ -24,7 +24,7 @@ namespace ParangEngine.Types
             if (mesh == null) return;
             foreach(var c in cameras)
             {
-                if (!c.DrawCheck(Transform)) continue;
+                // if (!c.DrawCheck(Transform)) continue;
                 c.DrawMesh(Transform, mesh, material);
             }
         }

@@ -22,8 +22,8 @@ namespace ParangEngine.Types
         public bool IsLock => locks.Count > 0;
         public Bitmap RenderTarget => render;
 
-        private byte multiDraw = 24;
-        private byte multiRender = 8;
+        private Size drawSegment;
+        private byte renderSlice = 2;
         private ushort precision = 8;
         private ushort maxUShort;
 
@@ -40,12 +40,7 @@ namespace ParangEngine.Types
             buffers.Add(BufferType.Normal, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             buffers.Add(BufferType.Surface, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             locks.Clear();
-            drawPixelPool = new List<DrawPixelsArg>();
-            for (int i = 0; i < multiDraw * multiDraw; i++)
-                drawPixelPool.Add(new DrawPixelsArg());
-            renderPixelPool = new List<RenderPixelsArg>();
-            for (int i = 0; i < multiRender * multiRender; i++)
-                renderPixelPool.Add(new RenderPixelsArg());
+            drawSegment = new Size(width / 10, height / 10);
         }
 
         public void Lock(bool clear)
@@ -112,6 +107,7 @@ namespace ParangEngine.Types
                     DrawPixel(data, x, y);
                 }
             }
+            data.Release();
         }
 
         public void DrawTriangle(Screen screen, OutputVS v1, OutputVS v2, OutputVS v3, Material material)
@@ -138,23 +134,23 @@ namespace ParangEngine.Types
             if (d == 0f) return;
             dots.W = 1 / d;
             Vector3 invZs = new Vector3(1f / v1.W, 1f / v2.W, 1f / v3.W);
-            int w = (max.X - min.X) / multiDraw;
-            int h = (max.Y - min.Y) / multiDraw;
-            int wr = (max.X - min.X) % multiDraw;
-            int hr = (max.Y - min.Y) % multiDraw;
+            int width = max.X - min.X + 1;
+            int height = max.Y - min.Y + 1;
             List<Task> tasks = new List<Task>();
-            for (int i = 0; i < multiDraw; i++)
+            for (int i = 0; i < width;)
             {
-                for (int j = 0; j < multiDraw; j++)
+                var ni = i + drawSegment.Width < width ? i + drawSegment.Width : width;
+                for (int j = 0; j < height;)
                 {
-                    var arg = drawPixelPool[i * multiDraw + j];
+                    var arg = new DrawPixelsArg();
+                    var nj = j + drawSegment.Height < height ? j + drawSegment.Height : height;
                     arg.Setup(screen, v1, v2, v3, material, u, v, dots, invZs,
-                        min.X + i * w, min.X + (i + 1) * w,
-                        min.Y + j * h, min.Y + (j + 1) * h);
-                    if (i == multiDraw - 1) arg.MaxX += wr;
-                    if (j == multiDraw - 1) arg.MaxY += hr;
+                    min.X + i, min.X + ni,
+                    min.Y + j, min.Y + nj);
                     tasks.Add(Task.Factory.StartNew(DrawPixels, arg));
+                    j = nj;
                 }
+                i = ni;
             }
             while (tasks.Any(x => !x.IsCompleted)) ;
         }
@@ -340,6 +336,7 @@ namespace ParangEngine.Types
                     RenderPixel(data, x, y);
                 }
             }
+            data.Release();
         }
 
         public void Render(Screen screen, Color clearColor, Vector3 view, Matrix4x4 pvMat, List<Light> lights)
@@ -349,20 +346,20 @@ namespace ParangEngine.Types
                         ImageLockMode.ReadWrite, render.PixelFormat);
             b.Clear(clearColor);
             Matrix4x4.Invert(pvMat, out var invPvMat);
-            int w = b.Width / multiRender;
-            int h = b.Height / multiRender;
-            int wr = b.Width % multiRender;
-            int hr = b.Height % multiRender;
+            int w = b.Width / renderSlice;
+            int h = b.Height / renderSlice;
+            int wr = b.Width % renderSlice;
+            int hr = b.Height % renderSlice;
             List<Task> tasks = new List<Task>();
-            for (int i = 0; i < multiRender; i++)
+            for (int i = 0; i < renderSlice; i++)
             {
-                for (int j = 0; j < multiRender; j++)
+                for (int j = 0; j < renderSlice; j++)
                 {
-                    var arg = renderPixelPool[i * multiRender + j];
+                    var arg = new RenderPixelsArg();
                     arg.Setup(b, screen, view, invPvMat, lights,
-                        i * w, (i + 1) * w, j * h, (j + 1) * h);
-                    if (i == multiRender - 1) arg.MaxX += wr;
-                    if (j == multiRender - 1) arg.MaxY += hr;
+                    i * w, (i + 1) * w, j * h, (j + 1) * h);
+                    if (i == renderSlice - 1) arg.MaxX += wr;
+                    if (j == renderSlice - 1) arg.MaxY += hr;
                     tasks.Add(Task.Factory.StartNew(RenderPixels, arg));
                 }
             }

@@ -9,7 +9,13 @@ using System.Threading.Tasks;
 
 namespace ParangEngine.Types
 {
-    class DrawPixelsArg
+    class DrawTriArg
+    {
+        public List<OutputVS> Tri { get; set; }
+        public Material Material { get; set; }
+    }
+
+    class DrawPixelsArg : Poolable
     {
         public Screen Screen { get; set; }
         public OutputVS V1 { get; set; }
@@ -42,7 +48,7 @@ namespace ParangEngine.Types
         }
     }
 
-    class RenderPixelsArg
+    class RenderPixelsArg : Poolable
     {
         public BitmapData Bitmap { get; set; }
         public Screen Screen { get; set; }
@@ -70,12 +76,5 @@ namespace ParangEngine.Types
             MinX = minX; MaxX = maxX;
             MinY = minY; MaxY = maxY;
         }
-    }
-
-
-    public partial class GBuffer
-    {
-        private List<DrawPixelsArg> drawPixelPool;
-        private List<RenderPixelsArg> renderPixelPool;
     }
 }

@@ -17,6 +17,11 @@ namespace ParangEngine
             if (!meshs.ContainsKey(path)) meshs.Add(path, mesh);
         }
 
+        static public void AddMesh(string path)
+        {
+            if (!meshs.ContainsKey(path)) meshs.Add(path, new Mesh(path));
+        }
+
         static public void AddTexture(string path)
         {
             if (!textures.ContainsKey(path)) textures.Add(path, new Texture(path));

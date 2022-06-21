@@ -12,6 +12,8 @@ namespace ParangEngine.Types
     {
         private GBuffer drawBuffer => gBuffers[current];
 
+        private int multiDraw = 8;
+
         public void Lock()
         {
             if (!drawBuffer.IsLock)
@@ -80,12 +82,28 @@ namespace ParangEngine.Types
                     vs.Add(material.Convert(v, transform.Mat, pvMat));
 
                 var triCount = vs.Count / 3;
-                for (int i = 0; i < triCount; i++)
+                for (int i = 0; i < triCount;)
                 {
-                    var tri = vs.GetRange(i * 3, 3);
-                    RenderTriOnce(tri, material);
+                    List<Task> tasks = new List<Task>();
+                    for (int j = 0; j < multiDraw; j++)
+                    {
+                        var arg = new DrawTriArg
+                        {
+                            Tri = vs.GetRange((i++) * 3, 3),
+                            Material = material,
+                        };
+                        tasks.Add(Task.Factory.StartNew(RenderTriOnce, arg));
+                        if (i >= triCount) break;
+                    }
+                    while (tasks.Any(x => !x.IsCompleted)) ;
                 }
             }
+        }
+
+        private void RenderTriOnce(object arg)
+        {
+            var data = (DrawTriArg)arg;
+            RenderTriOnce(data.Tri, data.Material);
         }
 
         private void RenderTriOnce(List<OutputVS> vertices, in Material material)
@@ -98,7 +116,8 @@ namespace ParangEngine.Types
             for (int j = 0; j < triCount; j++)
             {
                 var tri = vertices.GetRange(j * 3, 3);
-                if (!BackfaceCulling(tri)) continue;
+                if (!BackfaceCulling(tri)) 
+                    continue;
                 for (int i = 0; i < tri.Count; i++)
                     tri[i] = OutputVS.ToScreen(tri[i], Screen);
                 drawBuffer.DrawTriangle(Screen, tri[0], tri[1], tri[2], material);

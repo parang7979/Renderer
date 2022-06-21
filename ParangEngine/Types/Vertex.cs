@@ -28,112 +28,40 @@ namespace ParangEngine.Types
         private Color color;
         private Vector4 view;
 
-        public Vertex(Vector3 v, float w)
+        public Vertex(Vector3 v)
         {
-            pos = new Vector4(v, w);
+            pos = new Vector4(v, 1);
             normal = Vector3.Zero;
             uv = Vector2.Zero;
             color = Color.White;
             view = Vector4.Zero;
         }
 
-        public Vertex(Vector3 v, float w, string color)
+        public Vertex(Vector3 v, Vector3 n, Vector2 uv)
         {
-            pos = new Vector4(v, w);
+            pos = new Vector4(v, 1);
+            normal = n;
+            this.uv = uv;
+            color = Color.White;
+            view = Vector4.Zero;
+        }
+
+        public Vertex(Vector3 v, string color)
+        {
+            pos = new Vector4(v, 1);
             normal = Vector3.Zero;
             uv = Vector2.Zero;
             this.color = new Color(color);
             view = Vector4.Zero;
         }
 
-        public Vertex(float x, float y, float z, float w, string color)
+        public Vertex(float x, float y, float z, string color)
         {
-            pos = new Vector4(x, y, z, w);
+            pos = new Vector4(x, y, z, 1);
             normal = Vector3.Zero;
             uv = Vector2.Zero;
             this.color = new Color(color);
             view = Vector4.Zero;
         }
-
-        public Vertex(float x, float y, float z, float w, Vector3 n = default, Vector2 uv = default, Color color = default)
-        {
-            pos = new Vector4(x, y, z, w);
-            normal = n;
-            this.uv = uv;
-            this.color = color;
-            view = Vector4.Zero;
-        }
-
-        public Vertex(Vector4 v, Vector3 n = default, Vector2 uv = default, Color color = default)
-        {
-            pos = v;
-            normal = n;
-            this.uv = uv;
-            this.color = color;
-            view = Vector4.Zero;
-        }
-
-        static public Vertex operator* (Vertex v, float t)
-        {
-            return new Vertex(v.pos * t, v.normal, v.UV * t, v.Color * t);
-        }
-
-        static public Vertex operator+ (Vertex v1, Vertex v2)
-        {
-            return new Vertex(v1.pos + v2.pos, Vector3.Normalize(v1.Normal + v2.Normal), v1.UV + v2.UV, v1.Color + v2.Color);
-        }
-
-        static public Vertex operator- (Vertex v1, Vertex v2)
-        {
-            return new Vertex(v1.pos - v2.pos, Vector3.Normalize(v1.Normal - v2.Normal), v1.UV - v2.UV, v1.Color - v2.Color);
-        }
-
-        static public float Dot(in Vertex v1, in Vertex v2)
-        {
-            return Vector4.Dot(v1.pos, v2.pos);
-        }        
-
-        static public Vertex UpdateNormal(Vertex v, Vector3 n)
-        {
-            v.normal = Vector3.Normalize(n);
-            return v;
-        }
-
-        static public Vertex Transform(Vertex v, Matrix4x4 mat)
-        {
-            v.pos = Vector4.Transform(v.pos, mat);
-            return v;
-        }
-
-        static public Vertex TransformNormal(Vertex v, Matrix4x4 mat)
-        {
-            v.normal = Vector3.Normalize(Vector4.Transform(new Vector4(v.normal, 0), mat).ToVector3());
-            return v;
-        }
-
-        static public void ToNDC(List<Vertex> vertices)
-        {
-            for (int i = 0; i < vertices.Count; i++)
-                vertices[i] = ToNDC(vertices[i]);
-        }
-
-        static public Vertex ToNDC(Vertex v)
-        {;
-            v.pos = v.view = v.pos.ToNDC();
-            return v;
-        }
-
-        static public void ToScreen(List<Vertex> vertices, Screen screen)
-        {
-            for (int i = 0; i < vertices.Count; i++)
-                vertices[i] = ToScreen(vertices[i], screen);
-        }
-
-        static public Vertex ToScreen(Vertex v, Screen screen)
-        {
-            v.pos = v.pos.ToScreen(screen);
-            return v;
-        }
-
     }
 }
