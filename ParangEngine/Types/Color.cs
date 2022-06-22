@@ -102,6 +102,15 @@ namespace ParangEngine.Types
                 c.B * t);
         }
 
+        static public Color operator /(Color c, float t)
+        {
+            return new Color(
+                c.A / t,
+                c.R / t,
+                c.G / t,
+                c.B / t);
+        }
+
         static public Color operator *(Color c1, Color c2)
         {
             return new Color(

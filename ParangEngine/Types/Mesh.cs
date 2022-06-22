@@ -83,7 +83,7 @@ namespace ParangEngine.Types
                         case "o":
                             if (v.Count > 0 && fv.Count > 0)
                                 ret.Add(name, new Mesh(v, t, n, fv, ft, fn));
-                            name = strs[1];
+                            name = strs.Length > 1 ? strs[1] : "none";
                             fv.Clear();
                             ft.Clear();
                             fn.Clear();
@@ -92,7 +92,7 @@ namespace ParangEngine.Types
                         case "g":
                             if (v.Count > 0 && fv.Count > 0)
                                 ret.Add(name, new Mesh(v, t, n, fv, ft, fn));
-                            name = strs[1];
+                            name = strs.Length > 1 ? strs[1] : "none";
                             fv.Clear();
                             ft.Clear();
                             fn.Clear();

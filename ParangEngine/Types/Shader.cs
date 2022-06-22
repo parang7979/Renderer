@@ -12,7 +12,7 @@ namespace ParangEngine.Types
     {
         public Vector4 Position { get; set; }
         public Vector3 Normal { get; set; }
-        public Vector2[] UVs { get; set; }
+        public Vector2 UV { get; set; }
         public Color Color { get; set; }
         public Matrix4x4 TMat { get; set; }
         public Matrix4x4 PVMat { get; set; }
@@ -45,7 +45,7 @@ namespace ParangEngine.Types
             }
         }
         public Quaternion RotNormal { get; set; }
-        public Vector2[] UVs { get; set; }
+        public Vector2 UV { get; set; }
         public Color Color { get; set; }
         public Vector4 View { get; set; }
 
@@ -72,15 +72,11 @@ namespace ParangEngine.Types
         static public OutputVS Blend(OutputVS v1, OutputVS v2, float t)
         {
             t = t < 0 || 1 < t ? 1 : t;
-            var uvs = new List<Vector2>();
-            int count = Math.Min(v1.UVs.Length, v2.UVs.Length);
-            for(int i = 0; i < count; i++)
-                uvs.Add(v1.UVs[i] * (1f - t) + v2.UVs[i] * t);
             return new OutputVS
             {
                 Position = v1.Position * (1f - t) + v2.Position * t,
                 Normal = Vector3.Normalize(v1.Normal + v2.Normal),
-                UVs = uvs.ToArray(),
+                UV = v1.UV * (1f - t) + v2.UV * t,
                 Color = v1.Color * (1f - t) + v2.Color * t,
             };
         }

@@ -44,7 +44,7 @@ namespace ParangEngine.Types
 
             AspectRatio = Width / (float)Height;
             NearPlane = 1f;
-            FarPlane = 100f;
+            FarPlane = 30f;
             ViewDistance = FarPlane - NearPlane;
         }
 

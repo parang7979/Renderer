@@ -12,8 +12,6 @@ namespace ParangEngine.Types
     {
         private GBuffer drawBuffer => gBuffers[current];
 
-        private int multiDraw = 8;
-
         public void Lock()
         {
             if (!drawBuffer.IsLock)
@@ -60,7 +58,8 @@ namespace ParangEngine.Types
             using(new StopWatch("Camera.DrawMesh"))
             {
                 if (!DrawCheck(transform)) return;
-                RenderTri(mesh.Vertices, transform, material);
+                var lod = (int)Vector3.Distance(transform.Position, Transform.Position) / 5 + 1;
+                RenderTri(mesh.Vertices, lod, transform, material);
                 // DrawAxes(transform);
             }
         }
@@ -77,23 +76,20 @@ namespace ParangEngine.Types
             return true;
         }
 
-        private void RenderTri(List<Vertex> vertices, Transform transform, Material material)
+        private void RenderTri(List<Vertex> vertices, int lod, Transform transform, Material material)
         {
             if (drawBuffer.IsLock)
             {
                 var triCount = vertices.Count / 3;
-                for (int i = 0; i < triCount; i += multiDraw)
+                Parallel.For(0, triCount, (i) =>
                 {
-                    Parallel.For(i, i + multiDraw, (j) =>
+                    if (i % lod == 0 && i * 3 < vertices.Count)
                     {
-                        if (j * 3 < vertices.Count)
-                        {
-                            var vs = vertices.GetRange(j * 3, 3)
-                            .ConvertAll(x => material.Convert(x, transform.Mat, pvMat));
-                            RenderTriOnce(vs, material);
-                        }
-                    });
-                }
+                        var vs = vertices.GetRange(i * 3, 3)
+                        .ConvertAll(x => material.Convert(x, transform.Mat, pvMat));
+                        RenderTriOnce(vs, material);
+                    }
+                });
             }
         }
 
@@ -120,7 +116,7 @@ namespace ParangEngine.Types
             {
                 Position = Vector4.Transform(input.Position, input.TMat * input.PVMat),
                 Normal = Vector3.TransformNormal(input.Normal, input.TMat),
-                UVs = input.UVs.ToArray(),
+                UV = input.UV,
                 Color = input.Color,
             };
         }
@@ -132,7 +128,7 @@ namespace ParangEngine.Types
                 vs.Add(LineShader(new InputVS {
                     Position = v.Vector4,
                     Normal = v.Normal,
-                    UVs = new Vector2[] { v.UV, v.UV, v.UV },
+                    UV = v.UV,
                     Color = v.Color,
                     TMat = transform.Mat,
                     PVMat = pvMat,

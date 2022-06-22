@@ -16,7 +16,7 @@ namespace ParangEngine.Utils
             {
                 Position = Vector4.Transform(input.Position, input.TMat * input.PVMat),
                 Normal = Vector3.TransformNormal(input.Normal, input.TMat),
-                UVs = input.UVs.ToArray(),
+                UV = input.UV,
                 Color = input.Color,
             };
         }
@@ -28,18 +28,15 @@ namespace ParangEngine.Utils
 
         virtual public OutputPS PixelShader(InputPS input)
         {
-            using (new StopWatch("BaseShader.PixelShader.1"))
+            var surface = input.GetSample(Material.Type.Surface);
+            surface.R *= input.Metalic;
+            surface.G *= input.Roughness;
+            return new OutputPS
             {
-                var surface = input.GetSample(Material.Type.Surface);
-                surface.R *= input.Metalic;
-                surface.G *= input.Roughness;
-                return new OutputPS
-                {
-                    Color = input.GetSample(Material.Type.Albedo),
-                    Surface = surface,
-                    Normal = UnpackNormal(input.GetSample(Material.Type.Normal), input.RotNormal),
-                };
-            }
+                Color = input.GetSample(Material.Type.Albedo),
+                Surface = surface,
+                Normal = UnpackNormal(input.GetSample(Material.Type.Normal), input.RotNormal),
+            };
         }
     }
 }

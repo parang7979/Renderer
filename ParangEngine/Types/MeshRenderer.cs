@@ -10,23 +10,24 @@ namespace ParangEngine.Types
     {
         public Material Material => material;
 
-        private Mesh mesh;
+        private List<Mesh> meshs;
         private Material material;
 
-        public MeshRenderer(Mesh mesh, Material material)
+        public MeshRenderer(List<Mesh> meshs, Material material)
         {
-            this.mesh = mesh;
+            this.meshs = meshs;
             this.material = material;
         }
 
         public void Draw(List<Camera> cameras)
         {
-            if (mesh == null) return;
-            foreach(var c in cameras)
-            {
-                // if (!c.DrawCheck(Transform)) continue;
-                c.DrawMesh(Transform, mesh, material);
-            }
+            if (meshs == null) return;
+            Parallel.ForEach(cameras, (c) =>
+                {
+                    // if (!c.DrawCheck(Transform)) continue;
+                    foreach(var mesh in meshs)
+                        c.DrawMesh(Transform, mesh, material);
+                });
         }
     }
 }

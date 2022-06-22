@@ -22,7 +22,7 @@ namespace ParangEngine.Types
         {
             var reflect = Vector3.Reflect(dir, normal);
             var d = Vector3.Dot(reflect, view);
-            return ((d < 0 ? -d : 0) * surface.R) * (1f - surface.G);
+            return ((d < 0 ? -d : 0) * (0.25f + surface.R * 0.75f)) * (1f - surface.G * 0.5f);
         }
     }
 

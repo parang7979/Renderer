@@ -14,29 +14,18 @@ namespace ParangEngine.Types
         private List<GameObject> objects = new List<GameObject>();
         private List<Camera> cameras = new List<Camera>();
         private List<Light> lights = new List<Light>();
-        private Dictionary<Material, List<MeshRenderer>> renderers = new Dictionary<Material, List<MeshRenderer>>();
+        private List<MeshRenderer> renderers = new List<MeshRenderer>();
+        private List<Texture> textures = new List<Texture>();
 
         public void Add(GameObject go)
         {
             objects.Add(go);
-            var camera = go.GetComponent<Camera>();
-            if (camera != null) cameras.Add(camera);
-            var light = go.GetComponent<Light>();
-            if (light != null) lights.Add(light);
-            var rs = go.GetComponents<MeshRenderer>();
-            foreach (var renderer in rs)
-            {
-                if (renderers.ContainsKey(renderer.Material))
-                {
-                    renderers[renderer.Material].Add(renderer);
-                }
-                else
-                {
-                    var r = new List<MeshRenderer>();
-                    r.Add(renderer);
-                    renderers.Add(renderer.Material, r);
-                }
-            }
+            cameras.AddRange(go.GetComponents<Camera>());
+            lights.AddRange(go.GetComponents<Light>());
+            var r = go.GetComponents<MeshRenderer>();
+            renderers.AddRange(r);
+            textures.AddRange(r.SelectMany(x => x.Material.Textures));
+            textures = textures.Distinct().ToList();
         }
 
         public void Update()
@@ -49,16 +38,9 @@ namespace ParangEngine.Types
             using (new StopWatch("Scene.Draw"))
             {
                 foreach (var c in cameras) c.Lock();
-                foreach (var r in renderers)
-                {
-                    var mat = r.Key;
-                    if (mat != null) mat.Lock();
-                    foreach (var m in r.Value)
-                    {
-                        m.Draw(cameras);
-                    }
-                    if (mat != null) mat.Unlock();
-                }
+                foreach (var t in textures) t.Lock();
+                foreach (var r in renderers) r.Draw(cameras);
+                foreach (var t in textures) t.Unlock();
                 foreach (var c in cameras) c.Unlock();
             }
         }

@@ -46,7 +46,7 @@ namespace Game
 
         public Game(Graphics graphics)
         {
-            engine = new Engine(graphics, new Size(640, 480));
+            engine = new Engine(graphics, new Size(800, 600));
         }
 
         public void LoadResource()
@@ -54,12 +54,16 @@ namespace Game
             // Resource Load
             Resource.AddMesh("cube.mesh", new Mesh(Cube.V, Cube.UV, null, Cube.VI, null, null));
             Resource.AddMesh("oldlady-v2.obj");
+            Resource.AddMesh("chickenV2.obj");
 
             Resource.AddTexture("wall1_color.png");
             Resource.AddTexture("wall1_n.png");
             Resource.AddTexture("wall1_shga.png");
             Resource.AddTexture("rock_diffuse.png");
             Resource.AddTexture("rock_normal.png");
+
+            Resource.AddTexture("UV-Texture.png");
+            Resource.AddTexture("ChickenNorm.png");
         }
 
         public void CreateScene()
@@ -68,127 +72,80 @@ namespace Game
 
             // camera
             var cameraGo = new GameObject();
-            cameraGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
-            cameraGo.Transform.Position = new Vector3(0f, 3f, -3f);
+            cameraGo.Transform.Rotation = new Vector3(0f, 0f, 0f);
+            cameraGo.Transform.Position = new Vector3(0f, 1f, 0f);
 
-            var camera = new Camera(640, 480, 60f);
+            var camera = new Camera(320, 240, 60f);
             cameraGo.AddComponent(camera);
             scene.Add(cameraGo);
             {
-                var meshs = Resource.GetMesh("oldlady-v2.obj");
-                {
-                    var material = new Material();
-                    material.Roughness = 1f;
-                    material.Metalic = 0f;
+                var meshs = Resource.GetMesh("chickenV2.obj");
+                var material = new Material();
+                material.AddTexture(Material.Type.Albedo, Resource.GetTexture("UV-Texture.png"));
+                material.AddTexture(Material.Type.Normal, Resource.GetTexture("ChickenNorm.png"));
+                material.Roughness = 0.8f;
+                material.Metalic = 0f;
 
+                {
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(0f, 0f, 0f);
-                    // meshGo.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
-                    meshGo.AddComponent(new MeshRenderer(meshs[1], material));
-                    meshGo.AddComponent(new MeshRenderer(meshs[0], material));
-                    // meshGo.AddComponent(new RoughnessController());
-                    // meshGo.AddComponent(new MatalicController());
+                    meshGo.Transform.Position = new Vector3(0f, 0f, 20f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
                     meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
                 }
 
                 {
-                    /* var material = new Material();
-                    material.Roughness = 0f;
-                    material.Metalic = 1f;
-
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    // meshGo.Transform.Position = new Vector3(-3f, 0f, 5f);
-                    // meshGo.Transform.Scale = new Vector3(0.1f, 0.1f, 0.1f);
-                    meshGo.AddComponent(new MeshRenderer(meshs[0], material));
-                    meshGo.AddComponent(new MeshRenderer(meshs[1], material));
-                    // meshGo.AddComponent(new RoughnessController());
-                    // meshGo.AddComponent(new MatalicController());
-                    // meshGo.AddComponent(new Rotater());
-                    scene.Add(meshGo); */
+                    meshGo.Transform.Position = new Vector3(-4f, 0f, 20f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
+                    meshGo.AddComponent(new Rotater());
+                    scene.Add(meshGo);
                 }
 
-                /* {
-                    var material = new Material();
-                    material.Roughness = 1f;
-                    material.Metalic = 1f;
-
+                {
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(3f, 0f, 10f);
-                    meshGo.AddComponent(new MeshRenderer(
-                        Resource.GetMesh("al.obj"), material));
-                    // meshGo.AddComponent(new RoughnessController());
-                    // meshGo.AddComponent(new MatalicController());
-                    // meshGo.AddComponent(new Rotater());
+                    meshGo.Transform.Position = new Vector3(2f, 0f, 15f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
+                    meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
-                } */
-            }
-
-            {
-                // material
-                var material = new Material();
-                material.AddTexture(Material.Type.Albedo, Resource.GetTexture("rock_diffuse.png"));
-                material.AddTexture(Material.Type.Normal, Resource.GetTexture("rock_normal.png"));
-                material.Roughness = 0f;
-                material.Metalic = 1f;
+                }
 
                 {
-                    var meshs = Resource.GetMesh("cube.mesh");
-                    // mesh
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(0f, -1f, 0f);
-                    meshGo.AddComponent(new MeshRenderer(meshs[0], material));
-                    // meshGo.AddComponent(new RoughnessController());
-                    // meshGo.AddComponent(new MatalicController());
-                    // meshGo.AddComponent(new Rotater());
+                    meshGo.Transform.Position = new Vector3(-1f, 0f, 10f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
+                    meshGo.AddComponent(new Rotater());
+                    scene.Add(meshGo);
+                }
+
+                {
+                    var meshGo = new GameObject();
+                    meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
+                    meshGo.Transform.Position = new Vector3(-1f, 1f, 5f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
+                    meshGo.AddComponent(new Rotater());
+                    scene.Add(meshGo);
+                }
+
+                {
+                    var meshGo = new GameObject();
+                    meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
+                    meshGo.Transform.Position = new Vector3(1f, 0f, 2f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
+                    meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
                 }
 
                 /* {
-                    // mesh
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(-2f, 0f, 0f);
-                    meshGo.AddComponent(new MeshRenderer(
-                        Resource.GetMesh("cube.mesh"), material));
-                    // meshGo.AddComponent(new Rotater());
-                    scene.Add(meshGo);
-                }
-
-                {
-                    // mesh
-                    var meshGo = new GameObject();
-                    meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(-2f, -2f, 2f);
-                    meshGo.AddComponent(new MeshRenderer(
-                        Resource.GetMesh("cube.mesh"), material));
-                    // meshGo.AddComponent(new Rotater());
-                    scene.Add(meshGo);
-                }
-
-                {
-                    // mesh
-                    var meshGo = new GameObject();
-                    meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(0f, -2f, 2f);
-                    meshGo.AddComponent(new MeshRenderer(
-                        Resource.GetMesh("cube.mesh"), material));
-                    // meshGo.AddComponent(new Rotater());
-                    scene.Add(meshGo);
-                }
-
-                {
-                    // mesh
-                    var meshGo = new GameObject();
-                    meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(-2f, -2f, -2f);
-                    meshGo.AddComponent(new MeshRenderer(
-                        Resource.GetMesh("cube.mesh"), material));
-                    // meshGo.AddComponent(new Rotater());
+                    meshGo.Transform.Position = new Vector3(0.4f, 0f, 4f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
+                    meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
                 } */
             }
@@ -196,53 +153,53 @@ namespace Game
             /* {
                 // material
                 var material = new Material();
-                material.AddTexture(Material.Type.Albedo, Resource.GetTexture("rock_diffuse.png"));
-                material.AddTexture(Material.Type.Normal, Resource.GetTexture("rock_normal.png"));
+                // material.AddTexture(Material.Type.Albedo, Resource.GetTexture("rock_diffuse.png"));
+                // material.AddTexture(Material.Type.Normal, Resource.GetTexture("rock_normal.png"));
                 material.Roughness = 0f;
-                material.Metalic = 0f;
-                
+                material.Metalic = 1f;
+
                 {
-                    // mesh
+                    var meshs = Resource.GetMesh("oldlady-v2.obj");
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(2f, 0f, 0f);
-                    meshGo.AddComponent(new MeshRenderer(
-                        Resource.GetMesh("cube.mesh"), material));
-                    // meshGo.AddComponent(new RoughnessController());
-                    // meshGo.AddComponent(new Rotater());
+                    meshGo.Transform.Position = new Vector3(1.5f, 0f, -1f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
                     scene.Add(meshGo);
                 }
 
                 {
-                    // mesh
+                    var meshs = Resource.GetMesh("oldlady-v2.obj");
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(2f, -2f, -2f);
-                    meshGo.AddComponent(new MeshRenderer(
-                        Resource.GetMesh("cube.mesh"), material));
-                    // meshGo.AddComponent(new Rotater());
+                    meshGo.Transform.Position = new Vector3(0.5f, 0f, -1f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
                     scene.Add(meshGo);
                 }
 
                 {
-                    // mesh
+                    var meshs = Resource.GetMesh("oldlady-v2.obj");
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(0f, -2f, -2f);
-                    meshGo.AddComponent(new MeshRenderer(
-                        Resource.GetMesh("cube.mesh"), material));
-                    // meshGo.AddComponent(new Rotater());
+                    meshGo.Transform.Position = new Vector3(-0.5f, 0f, -1f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
+                    scene.Add(meshGo);
+                }
+
+                {
+                    var meshs = Resource.GetMesh("oldlady-v2.obj");
+                    var meshGo = new GameObject();
+                    meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
+                    meshGo.Transform.Position = new Vector3(-1.5f, 0f, -1f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
                     scene.Add(meshGo);
                 }
             } */
-
-
             var lightGo = new GameObject();
             var dirLight = new DirectionalLight();
             dirLight.Color = ParangEngine.Types.Color.White;
             dirLight.Intensity = 0.8f;
             lightGo.AddComponent(dirLight);
-            // lightGo.AddComponent(new Rotater());
+            lightGo.AddComponent(new Rotater());
             lightGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
             scene.Add(lightGo);
 
@@ -252,7 +209,7 @@ namespace Game
                 l.Color = new ParangEngine.Types.Color("red");
                 l.Intensity = 4f;
                 l.Radius = 5f;
-                go.Transform.Position = new Vector3(0f, 0f, -3f);
+                go.Transform.Position = new Vector3(0f, 1f, 5f);
                 go.AddComponent(l);
                 scene.Add(go);
             }
@@ -264,7 +221,7 @@ namespace Game
                 l.Color = new ParangEngine.Types.Color("green");
                 l.Intensity = 4f;
                 l.Radius = 5f;
-                go.Transform.Position = new Vector3(0f, 2f, 0f);
+                go.Transform.Position = new Vector3(0f, 2f, 20f);
                 go.AddComponent(l);
                 scene.Add(go);
             }
@@ -275,7 +232,18 @@ namespace Game
                 l.Color = new ParangEngine.Types.Color("blue");
                 l.Intensity = 4f;
                 l.Radius = 3f;
-                go.Transform.Position = new Vector3(1f, 1f, -2f);
+                go.Transform.Position = new Vector3(1f, 0f, 10f);
+                go.AddComponent(l);
+                scene.Add(go);
+            }
+
+            {
+                var go = new GameObject();
+                var l = new PointLight();
+                l.Color = new ParangEngine.Types.Color("yellow");
+                l.Intensity = 4f;
+                l.Radius = 3f;
+                go.Transform.Position = new Vector3(0f, 0f, 0f);
                 go.AddComponent(l);
                 scene.Add(go);
             }

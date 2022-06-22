@@ -45,8 +45,8 @@ namespace ParangEngine
         {
             running = false;
             Console.WriteLine("----AVR----");
-            /* foreach (var a in StopWatch.Avrs)
-                Console.WriteLine($"[AVR] {a.Key} : {a.Value}ms"); */
+            foreach (var a in StopWatch.Avrs)
+                Console.WriteLine($"[AVR] {a.Key} : {a.Value}ms");
         }
 
         private async void Update()
@@ -90,8 +90,6 @@ namespace ParangEngine
 
         private async void Render()
         {
-            Task task1;
-            Task task2;
             while (running)
             {
                 var now = DateTime.UtcNow.Ticks;

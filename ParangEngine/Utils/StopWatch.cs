@@ -15,20 +15,24 @@ namespace ParangEngine.Utils
 
         public StopWatch(string title)
         {
-            /* this.title = title;
+#if DEBUG
+            this.title = title;
             sw = new System.Diagnostics.Stopwatch();
-            sw.Start(); */
+            sw.Start();
+#endif
         }
 
         public void Dispose()
         {
-            /* sw.Stop();
+#if DEBUG
+            sw.Stop();
             if (sw.ElapsedMilliseconds > 1)
             {
                 if (Avrs.ContainsKey(title)) Avrs[title] = (Avrs[title] + sw.ElapsedMilliseconds) / 2;
                 else Avrs.Add(title, sw.ElapsedMilliseconds);
                 Console.WriteLine($"{title} : {sw.ElapsedMilliseconds}ms");
-            } */
+            }
+#endif
         }
     }
 }

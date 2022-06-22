@@ -21,6 +21,8 @@ namespace ParangEngine.Types
         public float Metalic { get; set; }
         public float Roughness { get; set; }
 
+        public List<Texture> Textures => textures.Where(x => x != null).ToList();
+
         private Texture[] textures = new Texture[(int)Type.Max];
         private BaseShader shader = new BaseShader();
 
@@ -30,7 +32,7 @@ namespace ParangEngine.Types
             {
                 Position = v.Vector4,
                 Normal = v.Normal,
-                UVs = new Vector2[] { v.UV, v.UV, v.UV },
+                UV = v.UV,
                 TMat = tMat,
                 PVMat = pvMat,
                 Color = v.Color,
@@ -65,16 +67,6 @@ namespace ParangEngine.Types
         public void SetShader(BaseShader shader)
         {
             this.shader = shader;
-        }
-
-        public void Lock()
-        {
-            foreach (var t in textures) t?.Lock();
-        }
-
-        public void Unlock()
-        {
-            foreach (var t in textures) t?.Unlock();
         }
     }
 }

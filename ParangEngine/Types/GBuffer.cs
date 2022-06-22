@@ -22,7 +22,6 @@ namespace ParangEngine.Types
         public bool IsLock => locks.Count > 0;
         public Bitmap RenderTarget => render;
 
-        private int drawSegment;
         private int renderSegment;
         private ushort precision = 8;
         private ushort maxUShort;
@@ -40,8 +39,7 @@ namespace ParangEngine.Types
             buffers.Add(BufferType.Normal, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             buffers.Add(BufferType.Surface, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             locks.Clear();
-            drawSegment = height / 10;
-            renderSegment = height / 4;
+            renderSegment = height / 10;
         }
 
         public void Lock(bool clear)
@@ -71,52 +69,31 @@ namespace ParangEngine.Types
             float o = 1f - s - t;
             if ((0f <= s && s <= 1f) && (0f <= t && t <= 1f) && (0f <= o && o <= 1f))
             {
-                // position
-                var pos = verticies[0].View * o + verticies[1].View * s + verticies[2].View * t;
-                // output buffer and depth testing
-                if (!SetPositionBuffer(screen, x, y, pos)) return;
-
-                var z = invZs.X * o + invZs.Y * s + invZs.Z * t;
-                var invZ = 1f / z;
-
-                // uvs
-                /* var uvs = new List<Vector2>();
-                for (int i = 0; i < (int)Material.Type.Max; i++)
-                    uvs.Add((Verticies[0].UVs[i] * o * InvZs.X + Verticies[1].UVs[i] * s * InvZs.Y + Verticies[2].UVs[i] * t * InvZs.Z) * invZ); */
-
-                var uv = (verticies[0].UVs[0] * o * invZs.X + verticies[1].UVs[0] * s * invZs.Y + verticies[2].UVs[0] * t * invZs.Z) * invZ;
-
-                // normal
-                // var normal = Verticies[0].Normal * o + Verticies[1].Normal * s + Verticies[2].Normal * t;
-                var rotNormal = verticies[0].RotNormal * o + verticies[1].RotNormal * s + verticies[2].RotNormal * t;
-
-                // vertex color
-                // Color vertexColor = (Verticies[0].Color * o * InvZs.X + Verticies[1].Color * s * InvZs.Y + Verticies[2].Color * t * InvZs.Z) * invZ;
-
-                var output = material.Convert(uv, Vector3.Zero, rotNormal, Color.White);
-
-                using (new StopWatch("GBuffer.DrawPixel.2"))
+                using(new StopWatch("Gbuffer.DrawPixel"))
                 {
+                    // position
+                    var pos = verticies[0].View * o + verticies[1].View * s + verticies[2].View * t;
+                    // output buffer and depth testing
+                    if (!SetPositionBuffer(screen, x, y, pos)) return;
+
+                    var z = invZs.X * o + invZs.Y * s + invZs.Z * t;
+                    var invZ = 1f / z;
+
+                    // uvs
+                    var uv = (verticies[0].UV * o * invZs.X + verticies[1].UV * s * invZs.Y + verticies[2].UV * t * invZs.Z) * invZ;
+
+                    // normal
+                    // var normal = Verticies[0].Normal * o + Verticies[1].Normal * s + Verticies[2].Normal * t;
+                    var rotNormal = verticies[0].RotNormal * o + verticies[1].RotNormal * s + verticies[2].RotNormal * t;
+
+                    // vertex color
+                    // Color vertexColor = (Verticies[0].Color * o * InvZs.X + Verticies[1].Color * s * InvZs.Y + Verticies[2].Color * t * InvZs.Z) * invZ;
+                    var output = material.Convert(uv, Vector3.Zero, rotNormal, Color.White);
+
                     // output buffer
                     SetNormalBuffer(x, y, Vector3.Normalize(output.Normal));
                     SetAlbedoBuffer(x, y, output.Color);
                     SetSurfaceBuffer(x, y, output.Surface);
-                }
-            }
-        }
-
-        private void DrawPixels(Screen screen, List<OutputVS> verticies, Material material,
-            Vector2 u, Vector2 v, Vector4 dots, Vector3 invZs, 
-            int MinX, int MaxX, int MinY, int MaxY)
-        {
-            using (new StopWatch("GBuffer.DrawPixels"))
-            {
-                for (int y = MinY; y <= MaxY; y++)
-                {
-                    for (int x = MinX; x <= MaxX; x++)
-                    {
-                        DrawPixel(screen, verticies, material, u, v, dots, invZs, x, y);
-                    }
                 }
             }
         }
@@ -146,13 +123,16 @@ namespace ParangEngine.Types
                 if (d == 0f) return;
                 dots.W = 1 / d;
                 Vector3 invZs = new Vector3(1f / vertices[0].W, 1f / vertices[1].W, 1f / vertices[2].W);
-                int count = (max.Y - min.Y) / drawSegment + 1;
-                Parallel.For(0, count, (index) =>
+                var w = max.X - min.X + 1;
+                var h = max.Y - min.Y + 1;
+                Parallel.For(0, w * h, (i) =>
                 {
-                    int minY = min.Y + (drawSegment * index);
-                    int maxY = Math.Min(min.Y + (drawSegment * (index + 1)), max.Y);
-                    DrawPixels(screen, vertices, material, u, v, dots, invZs,
-                        min.X, max.X, minY, maxY);
+                    // if (i % 2 == 0)
+                    {
+                        var x = min.X + (i % w);
+                        var y = min.Y + (i / w);
+                        DrawPixel(screen, vertices, material, u, v, dots, invZs, x, y);
+                    }
                 });
             }
         }
@@ -343,6 +323,31 @@ namespace ParangEngine.Types
             }
         }
 
+        private void SmoothPixel(BitmapData bitmap, int x, int y)
+        {
+            var p = locks[BufferType.Position].GetPixel(x, y);
+            if (p.IsBlack)
+            {
+                var c1 = bitmap.GetPixel(x + 1, y);
+                var c2 = bitmap.GetPixel(x, y + 1);
+                var c3 = bitmap.GetPixel(x - 1, y);
+                var c4 = bitmap.GetPixel(x, y - 1);
+                bitmap.SetPixel(x, y, (c1 + c2 + c3 + c4) / 4);
+            }
+        }
+
+        private void SmoothPixels(BitmapData bitmap,
+            int minX, int maxX, int minY, int maxY)
+        {
+            for (int x = minX; x < maxX; x++)
+            {
+                for (int y = minY; y < maxY; y++)
+                {
+                    SmoothPixel(bitmap, x, y);
+                }
+            }
+        }
+
         public void Render(Screen screen, Color clearColor, Vector3 view, Matrix4x4 pvMat, List<Light> lights)
         {
             if (locks.Count == 0) return;
@@ -356,6 +361,12 @@ namespace ParangEngine.Types
                 int minY = renderSegment * index;
                 int maxY = Math.Min(renderSegment * (index + 1), b.Height);
                 RenderPixels(b, screen, view, invPvMat, lights, 0, b.Width, minY, maxY);
+            });
+            Parallel.For(0, count, (index) =>
+            {
+                int minY = renderSegment * index;
+                int maxY = Math.Min(renderSegment * (index + 1), b.Height);
+                SmoothPixels(b, 0, b.Width, minY, maxY);
             });
             render.UnlockBits(b);
         }
