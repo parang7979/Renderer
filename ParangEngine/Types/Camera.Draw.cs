@@ -37,11 +37,10 @@ namespace ParangEngine.Types
             drawBuffer.Unlock();
         }
 
-        public void DrawMesh(in Transform transform, in Mesh mesh, in Material material)
+        public bool DrawCheck(Transform transform)
         {
-            if (!DrawCheck(transform)) return;
-            RenderTri(mesh.Vertices, transform, material);
-            // DrawAxes(transform);
+            var viewPos = Vector4.Transform(new Vector4(transform.Position, 1), vMat);
+            return frustum.Check(viewPos.ToVector3()) != Frustum.Result.Outside;
         }
 
         public void DrawGrid()
@@ -56,10 +55,14 @@ namespace ParangEngine.Types
             RenderLine(Gizmos.Axes.ToList(), transform);
         }
 
-        public bool DrawCheck(Transform transform)
+        public void DrawMesh(in Transform transform, in Mesh mesh, in Material material)
         {
-            var viewPos = Vector4.Transform(new Vector4(transform.Position, 1), vMat);
-            return frustum.Check(viewPos.ToVector3()) != Frustum.Result.Outside;
+            using(new StopWatch("Camera.DrawMesh"))
+            {
+                if (!DrawCheck(transform)) return;
+                RenderTri(mesh.Vertices, transform, material);
+                // DrawAxes(transform);
+            }
         }
 
         private bool BackfaceCulling(List<OutputVS> vertices)
@@ -68,59 +71,45 @@ namespace ParangEngine.Types
             var edge2 = vertices[2].Vector3 - vertices[0].Vector3;
             // cw backface culling
             var faceNormal = -Vector3.Cross(edge1, edge2);
+            // var faceNormal = (vertices[0].Normal + vertices[1].Normal + vertices[2].Normal) / 3f;
             if (Vector3.Dot(faceNormal, Vector3.UnitZ) >= 0f)
                 return false;
             return true;
         }
 
-        private void RenderTri(in List<Vertex> vertices, in Transform transform, in Material material)
+        private void RenderTri(List<Vertex> vertices, Transform transform, Material material)
         {
             if (drawBuffer.IsLock)
             {
-                List<OutputVS> vs = new List<OutputVS>();
-                foreach (var v in vertices) 
-                    vs.Add(material.Convert(v, transform.Mat, pvMat));
-
-                var triCount = vs.Count / 3;
-                for (int i = 0; i < triCount;)
+                var triCount = vertices.Count / 3;
+                for (int i = 0; i < triCount; i += multiDraw)
                 {
-                    List<Task> tasks = new List<Task>();
-                    for (int j = 0; j < multiDraw; j++)
+                    Parallel.For(i, i + multiDraw, (j) =>
                     {
-                        var arg = new DrawTriArg
+                        if (j * 3 < vertices.Count)
                         {
-                            Tri = vs.GetRange((i++) * 3, 3),
-                            Material = material,
-                        };
-                        tasks.Add(Task.Factory.StartNew(RenderTriOnce, arg));
-                        if (i >= triCount) break;
-                    }
-                    while (tasks.Any(x => !x.IsCompleted)) ;
+                            var vs = vertices.GetRange(j * 3, 3)
+                            .ConvertAll(x => material.Convert(x, transform.Mat, pvMat));
+                            RenderTriOnce(vs, material);
+                        }
+                    });
                 }
             }
-        }
-
-        private void RenderTriOnce(object arg)
-        {
-            var data = (DrawTriArg)arg;
-            RenderTriOnce(data.Tri, data.Material);
         }
 
         private void RenderTriOnce(List<OutputVS> vertices, in Material material)
         {
             ClipTriangles.Clip(ref vertices);
             // View to NDC
-            for(int i = 0; i < vertices.Count; i++)
+            for (int i = 0; i < vertices.Count; i++)
                 vertices[i] = OutputVS.ToNDC(vertices[i]);
             var triCount = vertices.Count / 3;
             for (int j = 0; j < triCount; j++)
             {
                 var tri = vertices.GetRange(j * 3, 3);
-                if (!BackfaceCulling(tri)) 
-                    continue;
-                for (int i = 0; i < tri.Count; i++)
-                    tri[i] = OutputVS.ToScreen(tri[i], Screen);
-                drawBuffer.DrawTriangle(Screen, tri[0], tri[1], tri[2], material);
+                if (!BackfaceCulling(tri)) continue;
+                drawBuffer.DrawTriangle(Screen,
+                    tri.ConvertAll(x => OutputVS.ToScreen(x, Screen)), material);
                 // drawBuffer.DrawWireframe(Screen, tri[0], tri[1], tri[2]);
             }
         }

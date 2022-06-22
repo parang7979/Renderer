@@ -44,6 +44,11 @@ namespace ParangEngine.Types
             return Components.FirstOrDefault(x => x is T) as T;
         }
 
+        public List<T> GetComponents<T>() where T : Component
+        {
+            return Components.Where(x => x is T).Select(x => x as T).ToList();
+        }
+
         public bool RemoveComponent(Component c)
         {
             return Components.Remove(c);

@@ -37,7 +37,7 @@ namespace ParangEngine.Types
             });
         }
 
-        public OutputPS Convert(List<Vector2> uvs, Vector3 normal, Quaternion normalQuat, Color vertexColor)
+        public OutputPS Convert(Vector2 uv, Vector3 normal, Quaternion normalQuat, Color vertexColor)
         {
             return shader.PixelShader(new InputPS
             {
@@ -45,7 +45,7 @@ namespace ParangEngine.Types
                 Metalic = Metalic,
                 Roughness = Roughness,
                 Textures = textures,
-                UVs = uvs.ToArray(),
+                UV = uv,
                 Normal = normal,
                 RotNormal = normalQuat,
                 VertexColor = vertexColor,

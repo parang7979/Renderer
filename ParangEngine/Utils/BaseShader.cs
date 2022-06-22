@@ -28,15 +28,18 @@ namespace ParangEngine.Utils
 
         virtual public OutputPS PixelShader(InputPS input)
         {
-            var surface = input.GetSample(Material.Type.Surface);
-            surface.R *= input.Metalic;
-            surface.G *= input.Roughness;
-            return new OutputPS
+            using (new StopWatch("BaseShader.PixelShader.1"))
             {
-                Color = input.GetSample(Material.Type.Albedo),
-                Surface = surface,
-                Normal = UnpackNormal(input.GetSample(Material.Type.Normal), input.RotNormal),
-            };
+                var surface = input.GetSample(Material.Type.Surface);
+                surface.R *= input.Metalic;
+                surface.G *= input.Roughness;
+                return new OutputPS
+                {
+                    Color = input.GetSample(Material.Type.Albedo),
+                    Surface = surface,
+                    Normal = UnpackNormal(input.GetSample(Material.Type.Normal), input.RotNormal),
+                };
+            }
         }
     }
 }

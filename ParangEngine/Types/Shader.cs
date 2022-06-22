@@ -92,7 +92,7 @@ namespace ParangEngine.Types
         public float Metalic { get; set; }
         public float Roughness { get; set; }
         public Texture[] Textures { get; set; }
-        public Vector2[] UVs { get; set; }
+        public Vector2 UV { get; set; }
         public Vector3 Normal { get; set; }
         public Quaternion RotNormal { get; set; }
         public Color VertexColor { get; set; }
@@ -100,7 +100,7 @@ namespace ParangEngine.Types
         public Color GetSample(Material.Type type)
         {
             int index = (int)type;
-            return Textures[index]?.GetSample(UVs[index % UVs.Length]) ?? Color.White;
+            return Textures[index]?.GetSample(UV) ?? Color.White;
         }
     }
 

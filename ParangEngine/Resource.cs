@@ -9,17 +9,18 @@ namespace ParangEngine
 {
     static public class Resource
     {
-        static private Dictionary<string, Mesh> meshs = new Dictionary<string, Mesh>();
+        static private Dictionary<string, List<Mesh>> meshs = new Dictionary<string, List<Mesh>>();
         static private Dictionary<string, Texture> textures = new Dictionary<string, Texture>();
 
         static public void AddMesh(string path, Mesh mesh)
         {
-            if (!meshs.ContainsKey(path)) meshs.Add(path, mesh);
+            if (!meshs.ContainsKey(path)) meshs.Add(path, new List<Mesh> { mesh });
         }
 
         static public void AddMesh(string path)
         {
-            if (!meshs.ContainsKey(path)) meshs.Add(path, new Mesh(path));
+            var mesh = Mesh.LoadMesh(path);
+            if (!meshs.ContainsKey(path)) meshs.Add(path, mesh.Values.ToList());
         }
 
         static public void AddTexture(string path)
@@ -27,7 +28,7 @@ namespace ParangEngine
             if (!textures.ContainsKey(path)) textures.Add(path, new Texture(path));
         }
 
-        static public Mesh GetMesh(string path)
+        static public List<Mesh> GetMesh(string path)
         {
             if (meshs.ContainsKey(path)) return meshs[path];
             return null;

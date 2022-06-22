@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Renderer
+namespace Game
 {
     internal class Rotater : Component
     {

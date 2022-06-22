@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ParangEngine.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,8 +23,8 @@ namespace ParangEngine.Types
             if (camera != null) cameras.Add(camera);
             var light = go.GetComponent<Light>();
             if (light != null) lights.Add(light);
-            var renderer = go.GetComponent<MeshRenderer>();
-            if (renderer != null)
+            var rs = go.GetComponents<MeshRenderer>();
+            foreach (var renderer in rs)
             {
                 if (renderers.ContainsKey(renderer.Material))
                 {
@@ -45,18 +46,21 @@ namespace ParangEngine.Types
 
         public void Draw()
         {
-            foreach (var c in cameras) c.Lock();
-            foreach(var r in renderers)
+            using (new StopWatch("Scene.Draw"))
             {
-                var mat = r.Key;
-                if (mat != null) mat.Lock();
-                foreach(var m in r.Value)
+                foreach (var c in cameras) c.Lock();
+                foreach (var r in renderers)
                 {
-                    m.Draw(cameras);
+                    var mat = r.Key;
+                    if (mat != null) mat.Lock();
+                    foreach (var m in r.Value)
+                    {
+                        m.Draw(cameras);
+                    }
+                    if (mat != null) mat.Unlock();
                 }
-                if (mat != null) mat.Unlock();
+                foreach (var c in cameras) c.Unlock();
             }
-            foreach (var c in cameras) c.Unlock();
         }
 
         public void Render()

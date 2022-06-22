@@ -37,7 +37,7 @@ namespace ParangEngine.Types
             view = Vector4.Zero;
         }
 
-        public Vertex(Vector3 v, Vector3 n, Vector2 uv)
+        public Vertex(Vector3 v, Vector2 uv, Vector3 n)
         {
             pos = new Vector4(v, 1);
             normal = n;

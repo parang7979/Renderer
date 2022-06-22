@@ -5,7 +5,9 @@ VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Renderer", "Renderer\Renderer.csproj", "{B7A4304F-7BC0-4C3C-BA7F-8C954E1D1419}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParangEngine", "ParangEngine\ParangEngine.csproj", "{F570F22F-2A78-4972-801D-7AB9A236B6F9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParangEngine", "ParangEngine\ParangEngine.csproj", "{F570F22F-2A78-4972-801D-7AB9A236B6F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Game", "Game\Game.csproj", "{7AB3C898-C3CD-47BA-B615-13FDBD2F98A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{F570F22F-2A78-4972-801D-7AB9A236B6F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F570F22F-2A78-4972-801D-7AB9A236B6F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F570F22F-2A78-4972-801D-7AB9A236B6F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AB3C898-C3CD-47BA-B615-13FDBD2F98A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AB3C898-C3CD-47BA-B615-13FDBD2F98A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AB3C898-C3CD-47BA-B615-13FDBD2F98A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AB3C898-C3CD-47BA-B615-13FDBD2F98A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

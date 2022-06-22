@@ -44,6 +44,9 @@ namespace ParangEngine
         public void Stop()
         {
             running = false;
+            Console.WriteLine("----AVR----");
+            /* foreach (var a in StopWatch.Avrs)
+                Console.WriteLine($"[AVR] {a.Key} : {a.Value}ms"); */
         }
 
         private async void Update()
@@ -58,8 +61,11 @@ namespace ParangEngine
 
         private void DrawTask()
         {
-            if (scene.MainCamera == null) return;
-            scene.Draw();
+            using(new StopWatch("Engine.DrawTask"))
+            {
+                if (scene.MainCamera == null) return;
+                scene.Draw();
+            }
         }
 
         private void RenderDebug()
@@ -72,11 +78,14 @@ namespace ParangEngine
 
         private void RenderTask()
         {
-            if (scene.MainCamera == null) return;
-            scene.Render();
-            buffer.Graphics.DrawImage(scene.MainCamera.RenderTarget, 0, 0, resolution.Width, resolution.Height);
-            // RenderDebug();
-            buffer.Render(graphics);
+            using (new StopWatch("Engine.RenderTask"))
+            {
+                if (scene.MainCamera == null) return;
+                scene.Render();
+                buffer.Graphics.DrawImage(scene.MainCamera.RenderTarget, 0, 0, resolution.Width, resolution.Height);
+                // RenderDebug();
+                buffer.Render(graphics);
+            }
         }
 
         private async void Render()
@@ -89,9 +98,11 @@ namespace ParangEngine
                 if (scene != null)
                 {
                     scene.SwitchBuffer();
-                    task1 = Task.Factory.StartNew(DrawTask);
-                    task2 = Task.Factory.StartNew(RenderTask);
-                    while (!(task1.IsCompleted && task2.IsCompleted)) ;
+                    Parallel.For(0, 2, (i) =>
+                    {
+                        if (i == 0) DrawTask();
+                        else RenderTask();
+                    });
                 }
                 var span = DateTime.UtcNow.Ticks - now;
                 var diff = (int)(span / TimeSpan.TicksPerMillisecond);
