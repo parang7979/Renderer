@@ -25,7 +25,7 @@ namespace ParangEngine.Types
                 // 절두체
                 frustum = new Frustum(pMat);
                 // 버퍼 락
-                drawBuffer.Lock(true);
+                drawBuffer.Lock(true, ClearColor);
             }
         }
 

@@ -15,9 +15,9 @@ namespace ParangEngine.Types
 
         public void Render(List<Light> lights)
         {
-            renderBuffer.Lock(false);
+            renderBuffer.Lock(false, ClearColor);
             if (!renderBuffer.IsLock) return;
-            renderBuffer.Render(Screen, ClearColor, Transform.Forward, pvMat, lights);
+            renderBuffer.Render(Screen, Transform.Forward, pvMat, lights);
             renderBuffer.Unlock();
         }
 

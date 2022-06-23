@@ -42,7 +42,7 @@ namespace ParangEngine.Types
             renderSegment = height / 10;
         }
 
-        public void Lock(bool clear)
+        public void Lock(bool clear, Color clearColor)
         {
             if (locks.Count > 0) return;
             foreach(var b in buffers)
@@ -50,7 +50,8 @@ namespace ParangEngine.Types
                 var l = b.Value.LockBits(
                         new Rectangle(0, 0, b.Value.Width, b.Value.Height),
                         ImageLockMode.ReadWrite, b.Value.PixelFormat);
-                if (clear) l.Clear(Color.Black);
+                if (clear)
+                    l.Clear(b.Key == BufferType.Albedo ? clearColor : Color.Black);
                 locks.Add(b.Key, l);
             }
         }
@@ -117,7 +118,7 @@ namespace ParangEngine.Types
 
                 var w = max.X - min.X + 1;
                 var h = max.Y - min.Y + 1;
-                if (w * h < 25) return;
+                if (w * h < 9) return;
 
                 var u = vertices[1].Vector2 - vertices[0].Vector2;
                 var v = vertices[2].Vector2 - vertices[0].Vector2;
@@ -350,17 +351,17 @@ namespace ParangEngine.Types
             {
                 for (int y = minY; y < maxY; y++)
                 {
-                    SmoothPixel(bitmap, x, y, 5);
+                    SmoothPixel(bitmap, x, y, 3);
                 }
             }
         }
 
-        public void Render(Screen screen, Color clearColor, Vector3 view, Matrix4x4 pvMat, List<Light> lights)
+        public void Render(Screen screen, Vector3 view, Matrix4x4 pvMat, List<Light> lights)
         {
             if (locks.Count == 0) return;
             var b = render.LockBits(new Rectangle(0, 0, render.Width, render.Height),
                         ImageLockMode.ReadWrite, render.PixelFormat);
-            b.Clear(clearColor);
+            b.Clear(Color.Black);
             Matrix4x4.Invert(pvMat, out var invPvMat);
             int count = b.Height / renderSegment;
             Parallel.For(0, count, (index) =>
