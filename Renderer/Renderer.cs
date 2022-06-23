@@ -13,7 +13,7 @@ namespace Renderer
             Load += Renderer_Load;
             HandleDestroyed += Renderer_HandleDestroyed;
 
-            game = new Game.Game(CreateGraphics());
+            game = new Game.Game(CreateGraphics(), ClientSize);
             
         }
 

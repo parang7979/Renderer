@@ -58,8 +58,7 @@ namespace ParangEngine.Types
             using(new StopWatch("Camera.DrawMesh"))
             {
                 if (!DrawCheck(transform)) return;
-                var lod = (int)Vector3.Distance(transform.Position, Transform.Position) / 5 + 1;
-                RenderTri(mesh.Vertices, lod, transform, material);
+                RenderTri(mesh.Vertices, transform, material);
                 // DrawAxes(transform);
             }
         }
@@ -76,14 +75,14 @@ namespace ParangEngine.Types
             return true;
         }
 
-        private void RenderTri(List<Vertex> vertices, int lod, Transform transform, Material material)
+        private void RenderTri(List<Vertex> vertices, Transform transform, Material material)
         {
             if (drawBuffer.IsLock)
             {
                 var triCount = vertices.Count / 3;
                 Parallel.For(0, triCount, (i) =>
                 {
-                    if (i % lod == 0 && i * 3 < vertices.Count)
+                    if (i * 3 < vertices.Count)
                     {
                         var vs = vertices.GetRange(i * 3, 3)
                         .ConvertAll(x => material.Convert(x, transform.Mat, pvMat));

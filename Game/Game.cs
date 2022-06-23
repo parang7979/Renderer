@@ -44,9 +44,9 @@ namespace Game
         private Engine engine;
         private Scene scene;
 
-        public Game(Graphics graphics)
+        public Game(Graphics graphics, Size resolution)
         {
-            engine = new Engine(graphics, new Size(800, 600));
+            engine = new Engine(graphics, resolution);
         }
 
         public void LoadResource()
@@ -75,7 +75,8 @@ namespace Game
             cameraGo.Transform.Rotation = new Vector3(0f, 0f, 0f);
             cameraGo.Transform.Position = new Vector3(0f, 1f, 0f);
 
-            var camera = new Camera(320, 240, 60f);
+            var camera = new Camera(400, 300, 60f);
+            camera.ClearColor = new ParangEngine.Types.Color("SkyBlue");
             cameraGo.AddComponent(camera);
             scene.Add(cameraGo);
             {
@@ -85,69 +86,16 @@ namespace Game
                 material.AddTexture(Material.Type.Normal, Resource.GetTexture("ChickenNorm.png"));
                 material.Roughness = 0.8f;
                 material.Metalic = 0f;
-
+                var rnd = new System.Random();
+                for(int i = 1; i < 20; i++)
                 {
                     var meshGo = new GameObject();
                     meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(0f, 0f, 20f);
+                    meshGo.Transform.Position = new Vector3(rnd.Next(-30, 30) / 10f, rnd.Next(-20, 20) / 10f, rnd.Next(20, 200) / 10f);
                     meshGo.AddComponent(new MeshRenderer(meshs, material));
                     meshGo.AddComponent(new Rotater());
                     scene.Add(meshGo);
                 }
-
-                {
-                    var meshGo = new GameObject();
-                    meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(-4f, 0f, 20f);
-                    meshGo.AddComponent(new MeshRenderer(meshs, material));
-                    meshGo.AddComponent(new Rotater());
-                    scene.Add(meshGo);
-                }
-
-                {
-                    var meshGo = new GameObject();
-                    meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(2f, 0f, 15f);
-                    meshGo.AddComponent(new MeshRenderer(meshs, material));
-                    meshGo.AddComponent(new Rotater());
-                    scene.Add(meshGo);
-                }
-
-                {
-                    var meshGo = new GameObject();
-                    meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(-1f, 0f, 10f);
-                    meshGo.AddComponent(new MeshRenderer(meshs, material));
-                    meshGo.AddComponent(new Rotater());
-                    scene.Add(meshGo);
-                }
-
-                {
-                    var meshGo = new GameObject();
-                    meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(-1f, 1f, 5f);
-                    meshGo.AddComponent(new MeshRenderer(meshs, material));
-                    meshGo.AddComponent(new Rotater());
-                    scene.Add(meshGo);
-                }
-
-                {
-                    var meshGo = new GameObject();
-                    meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(1f, 0f, 2f);
-                    meshGo.AddComponent(new MeshRenderer(meshs, material));
-                    meshGo.AddComponent(new Rotater());
-                    scene.Add(meshGo);
-                }
-
-                /* {
-                    var meshGo = new GameObject();
-                    meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                    meshGo.Transform.Position = new Vector3(0.4f, 0f, 4f);
-                    meshGo.AddComponent(new MeshRenderer(meshs, material));
-                    meshGo.AddComponent(new Rotater());
-                    scene.Add(meshGo);
-                } */
             }
 
             /* {

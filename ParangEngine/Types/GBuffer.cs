@@ -115,6 +115,10 @@ namespace ParangEngine.Types
                     MathExtension.Max3(p1.X, p2.X, p3.X),
                     MathExtension.Max3(p1.Y, p2.Y, p3.Y))); // 우하
 
+                var w = max.X - min.X + 1;
+                var h = max.Y - min.Y + 1;
+                if (w * h < 25) return;
+
                 var u = vertices[1].Vector2 - vertices[0].Vector2;
                 var v = vertices[2].Vector2 - vertices[0].Vector2;
                 Vector4 dots =
@@ -123,16 +127,11 @@ namespace ParangEngine.Types
                 if (d == 0f) return;
                 dots.W = 1 / d;
                 Vector3 invZs = new Vector3(1f / vertices[0].W, 1f / vertices[1].W, 1f / vertices[2].W);
-                var w = max.X - min.X + 1;
-                var h = max.Y - min.Y + 1;
                 Parallel.For(0, w * h, (i) =>
                 {
-                    // if (i % 2 == 0)
-                    {
-                        var x = min.X + (i % w);
-                        var y = min.Y + (i / w);
-                        DrawPixel(screen, vertices, material, u, v, dots, invZs, x, y);
-                    }
+                    var x = min.X + (i % w);
+                    var y = min.Y + (i / w);
+                    DrawPixel(screen, vertices, material, u, v, dots, invZs, x, y);
                 });
             }
         }
@@ -323,16 +322,24 @@ namespace ParangEngine.Types
             }
         }
 
-        private void SmoothPixel(BitmapData bitmap, int x, int y)
+        private void SmoothPixel(BitmapData bitmap, int x, int y, int size)
         {
             var p = locks[BufferType.Position].GetPixel(x, y);
             if (p.IsBlack)
             {
-                var c1 = bitmap.GetPixel(x + 1, y);
-                var c2 = bitmap.GetPixel(x, y + 1);
-                var c3 = bitmap.GetPixel(x - 1, y);
-                var c4 = bitmap.GetPixel(x, y - 1);
-                bitmap.SetPixel(x, y, (c1 + c2 + c3 + c4) / 4);
+                size = size % 2 == 0 ? size + 1 : size;
+                Color ret = Color.Black;
+                int half = size / 2;
+                int l = size * size;
+                int sx = x - half;
+                int sy = y - half;
+                for(int i = 0; i < l; i++)
+                {
+                    var c = bitmap.GetPixel(sx + (i % size), sy + (i / size));
+                    if (!c.IsBlack) ret += c;
+                }
+                ret /= l;
+                bitmap.SetPixel(x, y, ret);
             }
         }
 
@@ -343,7 +350,7 @@ namespace ParangEngine.Types
             {
                 for (int y = minY; y < maxY; y++)
                 {
-                    SmoothPixel(bitmap, x, y);
+                    SmoothPixel(bitmap, x, y, 5);
                 }
             }
         }
