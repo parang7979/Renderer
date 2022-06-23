@@ -58,10 +58,5 @@ namespace ParangEngine.Utils
         {
             return Vector3.Dot(plane.Normal, v) + plane.D;
         }
-
-        static public bool IsOutside(this Plane plane, Vector3 v)
-        {
-            return plane.Distance(v) > 0f;
-        }
     }
 }

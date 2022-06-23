@@ -1,8 +1,10 @@
 ﻿using ParangEngine.Types;
 using ParangEngine.Utils;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ParangEngine
@@ -17,6 +19,8 @@ namespace ParangEngine
         private BufferedGraphics buffer;
 
         private bool running;
+
+        private List<string> keys = new List<string>();
 
         public Engine(Graphics graphics, Size resolution)
         {
@@ -51,12 +55,23 @@ namespace ParangEngine
 
         private async void Update()
         {
+            var now = DateTime.UtcNow;
             while (running)
             {
+                var n = DateTime.UtcNow;
+                var span = n - now;
                 if (scene != null)
-                    scene.Update();
+                {
+                    scene.Update((int)span.TotalMilliseconds, keys.Distinct().ToList());
+                    keys.Clear();
+                }
                 await Task.Delay(33);
             }
+        }
+
+        public void KeyDown(string key)
+        {
+            keys.Add(key);
         }
 
         private void DrawTask()

@@ -38,8 +38,9 @@ namespace ParangEngine.Types
         {
             foreach(var p in planes)
             {
-                if (p.IsOutside(v)) return Result.Outside;
-                else if (p.Distance(v) == 0f) return Result.Instersect;
+                var dist = p.Distance(v);
+                if (dist > 1.5f) return Result.Outside;
+                else if (dist >= 0f) return Result.Instersect;
             }
             return Result.Inside;
         }

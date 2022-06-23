@@ -9,9 +9,9 @@ namespace Game
 {
     internal class Rotater : Component
     {
-        public override void Update()
+        public override void Update(int delta, List<string> keys)
         {
-            base.Update();
+            base.Update(delta, keys);
             var rot = Transform.Rotation;
             rot.Y += 2;
             Transform.Rotation = rot;
@@ -20,9 +20,9 @@ namespace Game
 
     internal class MatalicController : Component
     {
-        public override void Update()
+        public override void Update(int delta, List<string> keys)
         {
-            base.Update();
+            base.Update(delta, keys);
             var r = GameObject.GetComponent<MeshRenderer>();
             r.Material.Metalic = (r.Material.Metalic + 0.01f) % 1f;
         }
@@ -30,9 +30,9 @@ namespace Game
 
     internal class RoughnessController : Component
     {
-        public override void Update()
+        public override void Update(int delta, List<string> keys)
         {
-            base.Update();
+            base.Update(delta, keys);
             var r = GameObject.GetComponent<MeshRenderer>();
             r.Material.Roughness = (r.Material.Roughness + 0.01f) % 1f;
         }

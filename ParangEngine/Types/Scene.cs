@@ -28,9 +28,9 @@ namespace ParangEngine.Types
             textures = textures.Distinct().ToList();
         }
 
-        public void Update()
+        public void Update(int delta, List<string> keys)
         {
-            foreach (var obj in objects) obj.Update();
+            foreach (var obj in objects) obj.Update(delta, keys);
         }
 
         public void Draw()

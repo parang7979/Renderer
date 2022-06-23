@@ -32,9 +32,9 @@ namespace ParangEngine.Types
 
         private Vector3 direction = Vector3.UnitZ;
 
-        public override void Update()
+        public override void Update(int delta, List<string> keys)
         {
-            base.Update();
+            base.Update(delta, keys);
             direction = Vector3.Normalize(Vector3.TransformNormal(Vector3.UnitZ, Transform.Mat));
         }
 
@@ -55,9 +55,9 @@ namespace ParangEngine.Types
         private Vector3 center;
         private float r2;
 
-        public override void Update()
+        public override void Update(int delta, List<string> keys)
         {
-            base.Update();
+            base.Update(delta, keys);
             // 빛의 위치를 World로
             center = Vector4.Transform(new Vector4(Vector3.Zero, 1), Transform.Mat).ToVector3();
             r2 = Radius * Radius;
@@ -85,9 +85,9 @@ namespace ParangEngine.Types
         private float r2;
         private float cos;
 
-        public override void Update()
+        public override void Update(int delta, List<string> keys)
         {
-            base.Update();
+            base.Update(delta, keys);
             direction = Vector3.Normalize(Vector3.TransformNormal(Vector3.UnitZ, Transform.Mat));
             // 빛의 위치를 World로
             center = Vector4.Transform(new Vector4(Vector3.Zero, 1), Transform.Mat).ToVector3();

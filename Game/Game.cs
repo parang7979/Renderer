@@ -72,11 +72,11 @@ namespace Game
 
             // camera
             var cameraGo = new GameObject();
-            cameraGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
-            cameraGo.Transform.Position = new Vector3(0f, 5f, -5f);
+            cameraGo.Transform.Rotation = new Vector3(0f, 0f, 0f);
+            cameraGo.Transform.Position = new Vector3(0f, 1f, -2f);
 
             var camera = new Camera(400, 300, 60f);
-            camera.ClearColor = new ParangEngine.Types.Color(System.Drawing.Color.Gray);
+            camera.ClearColor = new ParangEngine.Types.Color(System.Drawing.Color.LightSkyBlue);
             cameraGo.AddComponent(camera);
             scene.Add(cameraGo);
             {
@@ -88,11 +88,19 @@ namespace Game
                     material.Roughness = 0.8f;
                     material.Metalic = 0f;
                     var rnd = new System.Random();
-                    for (int i = 1; i < 10; i++)
+                    /* for (int i = 1; i < 10; i++)
                     {
                         var meshGo = new GameObject();
                         meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
                         meshGo.Transform.Position = new Vector3(rnd.Next(-30, 30) / 10f, 0f, rnd.Next(-20, 30) / 10f);
+                        meshGo.AddComponent(new MeshRenderer(meshs, material));
+                        meshGo.AddComponent(new Rotater());
+                        scene.Add(meshGo);
+                    } */
+                    {
+                        var meshGo = new GameObject();
+                        meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
+                        meshGo.Transform.Position = new Vector3(0f, 0f, 0f);
                         meshGo.AddComponent(new MeshRenderer(meshs, material));
                         meshGo.AddComponent(new Rotater());
                         scene.Add(meshGo);
@@ -178,7 +186,20 @@ namespace Game
                 l.Intensity = 8f;
                 l.Length = 4f;
                 l.Degree = 30f;
-                go.Transform.Position = new Vector3(-2f, 3f, 2f);
+                go.Transform.Position = new Vector3(0f, 3f, 0f);
+                go.Transform.Rotation = new Vector3(90f, 0f, 0f);
+                go.AddComponent(l);
+                scene.Add(go);
+            }
+
+            {
+                var go = new GameObject();
+                var l = new SpotLight();
+                l.Color = new ParangEngine.Types.Color("blue");
+                l.Intensity = 8f;
+                l.Length = 4f;
+                l.Degree = 30f;
+                go.Transform.Position = new Vector3(1f, 3f, 0f);
                 go.Transform.Rotation = new Vector3(90f, 0f, 0f);
                 go.AddComponent(l);
                 scene.Add(go);
@@ -228,6 +249,11 @@ namespace Game
         public void Stop()
         {
             engine.Stop();
+        }
+
+        public void KeyDown(string key)
+        {
+            engine.KeyDown(key);
         }
     }
 }
