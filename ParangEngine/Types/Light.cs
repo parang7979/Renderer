@@ -74,4 +74,40 @@ namespace ParangEngine.Types
             return (p * (1 / l)) * (1f + s);
         }
     }
+
+    public class SpotLight : Light
+    {
+        public float Degree { get; set; }
+        public float Length { get; set; }
+
+        private Vector3 direction = Vector3.UnitZ;
+        private Vector3 center;
+        private float r2;
+        private float cos;
+
+        public override void Update()
+        {
+            base.Update();
+            direction = Vector3.Normalize(Vector3.TransformNormal(Vector3.UnitZ, Transform.Mat));
+            // 빛의 위치를 World로
+            center = Vector4.Transform(new Vector4(Vector3.Zero, 1), Transform.Mat).ToVector3();
+            r2 = Length * Length;
+            cos = (float)Math.Cos(Degree.ToRad());
+        }
+
+        public override Color GetLight(Vector3 pos, Vector3 view, Vector3 normal, Color surface)
+        {
+            var dir = pos - center;
+            var nDir = Vector3.Normalize(dir);
+            var d = Vector3.Dot(nDir, direction);
+            if (d < cos) return Color.Black;
+            var l = dir.LengthSquared();
+            if (r2 < l) return Color.Black;
+            d = Vector3.Dot(nDir, normal);
+            var p = base.GetLight(pos, view, normal, surface) * (d < 0 ? -d : 0);
+            var s = base.GetSpecular(direction, view, normal, surface);
+            // 방향
+            return (p * (1 / l)) * (1f + s);
+        }
+    }
 }

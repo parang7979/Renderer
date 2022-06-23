@@ -15,7 +15,7 @@ namespace ParangEngine.Utils
 
         public StopWatch(string title)
         {
-#if DEBUG
+#if DEBUG && STOP_WATCH
             this.title = title;
             sw = new System.Diagnostics.Stopwatch();
             sw.Start();
@@ -24,7 +24,7 @@ namespace ParangEngine.Utils
 
         public void Dispose()
         {
-#if DEBUG
+#if DEBUG && STOP_WATCH
             sw.Stop();
             if (sw.ElapsedMilliseconds > 1)
             {

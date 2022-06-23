@@ -173,17 +173,19 @@ namespace Game
 
             {
                 var go = new GameObject();
-                var l = new PointLight();
+                var l = new SpotLight();
                 l.Color = new ParangEngine.Types.Color("red");
-                l.Intensity = 5f;
-                l.Radius = 5f;
-                go.Transform.Position = new Vector3(-2f, 1f, 2f);
+                l.Intensity = 8f;
+                l.Length = 4f;
+                l.Degree = 30f;
+                go.Transform.Position = new Vector3(-2f, 3f, 2f);
+                go.Transform.Rotation = new Vector3(90f, 0f, 0f);
                 go.AddComponent(l);
                 scene.Add(go);
             }
 
 
-            {
+            /* {
                 var go = new GameObject();
                 var l = new PointLight();
                 l.Color = new ParangEngine.Types.Color("blue");
@@ -214,7 +216,7 @@ namespace Game
                 go.Transform.Position = new Vector3(2f, 1f, 2f);
                 go.AddComponent(l);
                 scene.Add(go);
-            }
+            } */
             engine.SetScene(scene);
         }
 
