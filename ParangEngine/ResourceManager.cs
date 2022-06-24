@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ParangEngine
 {
-    static public class Resource
+    static public class ResourceManager
     {
         static private Dictionary<string, List<Mesh>> meshs = new Dictionary<string, List<Mesh>>();
         static private Dictionary<string, Texture> textures = new Dictionary<string, Texture>();

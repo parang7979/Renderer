@@ -30,32 +30,35 @@ namespace ParangEngine.Types
 
         public void Update(int delta, List<string> keys)
         {
-            foreach (var obj in objects) obj.Update(delta, keys);
+            foreach (var obj in objects.ToList()) obj.Update(delta, keys);
         }
 
         public void Draw()
         {
+            if (MainCamera == null) return;
             using (new StopWatch("Scene.Draw"))
             {
-                foreach (var c in cameras) c.Lock();
-                foreach (var t in textures) t.Lock();
-                foreach (var r in renderers) r.Draw(cameras);
-                foreach (var t in textures) t.Unlock();
-                foreach (var c in cameras) c.Unlock();
+                var cs = cameras.ToList();
+                var ts = textures.ToList();
+                foreach (var c in cs) c.Lock();
+                foreach (var t in ts) t.Lock();
+                foreach (var r in renderers.ToList()) r.Draw(cameras);
+                foreach (var t in cs) t.Unlock();
+                foreach (var c in ts) c.Unlock();
             }
         }
 
         public void Render()
         {
-            foreach (var c in cameras)
+            foreach (var c in cameras.ToList())
             {
-                c.Render(lights);
+                c.Render(lights.ToList());
             }
         }
 
         public void SwitchBuffer()
         {
-            foreach (var c in cameras) c.SwitchBuffer();
+            foreach (var c in cameras.ToList()) c.SwitchBuffer();
         }
     }
 }

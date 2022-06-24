@@ -11,16 +11,16 @@ namespace ParangEngine
 {
     public class Engine
     {
-        private Scene scene;
-
         private Size resolution;
         private Graphics graphics;
         private BufferedGraphicsContext context;
         private BufferedGraphics buffer;
 
+        private Scene scene => SceneManager.CurrentScene;
         private bool running;
 
-        private List<string> keys = new List<string>();
+        private List<string> keyDowns = new List<string>();
+        private List<string> keyUps = new List<string>();
 
         public Engine(Graphics graphics, Size resolution)
         {
@@ -31,11 +31,6 @@ namespace ParangEngine
             buffer = context.Allocate(graphics, new Rectangle(0, 0, resolution.Width, resolution.Height));
             Gizmos.CreateGrid(10);
             running = false;
-        }
-
-        public void SetScene(Scene scene)
-        {
-            this.scene = scene;
         }
 
         public void Start()
@@ -62,23 +57,28 @@ namespace ParangEngine
                 var span = n - now;
                 if (scene != null)
                 {
-                    scene.Update((int)span.TotalMilliseconds, keys.Distinct().ToList());
-                    keys.Clear();
+                    scene.Update((int)span.TotalMilliseconds, keyDowns.Distinct().ToList());
+                    keyDowns.Clear();
                 }
+                now = n;
                 await Task.Delay(33);
             }
         }
 
         public void KeyDown(string key)
         {
-            keys.Add(key);
+            keyDowns.Add(key);
+        }
+
+        public void KeyUp(string key)
+        {
+            keyUps.Add(key);
         }
 
         private void DrawTask()
         {
             using(new StopWatch("Engine.DrawTask"))
             {
-                if (scene.MainCamera == null) return;
                 scene.Draw();
             }
         }

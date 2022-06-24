@@ -20,22 +20,22 @@ namespace Game
 
         static public readonly List<Vector2> UV = new List<Vector2>()
             {
-                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
                 new Vector2(1f, 1f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(0f, 1f),
-                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
-                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f),
+                new Vector2(1f, 1f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(0f, 1f),
+                new Vector2(1f, 1f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(0f, 1f),
                 new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 1f),
-                new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f), new Vector2(0f, 0f)
+                new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 1f),
+                new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 1f),
             };
 
         static public readonly List<int> VI = new List<int>()
             {
-                // 0, 1, 2, 0, 2, 3, // Right
+                0, 1, 2, 0, 2, 3, // Right
 	            4, 6, 5, 4, 7, 6, // Front
-	            /* 8, 9, 10, 8, 10, 11, // Back
+	            8, 9, 10, 8, 10, 11, // Back
 	            12, 14, 13, 12, 15, 14, // Left*/
 	            16, 18, 17, 16, 19, 18, // Top
-	            /* 20, 21, 22, 20, 22, 23  // Bottom */
+	            20, 21, 22, 20, 22, 23  // Bottom */
             };
     }
 
@@ -52,18 +52,18 @@ namespace Game
         public void LoadResource()
         {
             // Resource Load
-            Resource.AddMesh("cube.mesh", new Mesh(Cube.V, Cube.UV, null, Cube.VI, null, null));
-            Resource.AddMesh("oldlady-v2.obj");
-            Resource.AddMesh("chickenV2.obj");
+            ResourceManager.AddMesh("cube.mesh", new Mesh(Cube.V, Cube.UV, null, Cube.VI, null, null));
+            ResourceManager.AddMesh("oldlady-v2.obj");
+            ResourceManager.AddMesh("chickenV2.obj");
 
-            Resource.AddTexture("wall1_color.png");
-            Resource.AddTexture("wall1_n.png");
-            Resource.AddTexture("wall1_shga.png");
-            Resource.AddTexture("rock_diffuse.png");
-            Resource.AddTexture("rock_normal.png");
+            ResourceManager.AddTexture("wall1_color.png");
+            ResourceManager.AddTexture("wall1_n.png");
+            ResourceManager.AddTexture("wall1_shga.png");
+            ResourceManager.AddTexture("rock_diffuse.png");
+            ResourceManager.AddTexture("rock_normal.png");
 
-            Resource.AddTexture("UV-Texture.png");
-            Resource.AddTexture("ChickenNorm.png");
+            ResourceManager.AddTexture("UV-Texture.png");
+            ResourceManager.AddTexture("ChickenNorm.png");
         }
 
         public void CreateScene()
@@ -78,13 +78,17 @@ namespace Game
             var camera = new Camera(400, 300, 60f);
             camera.ClearColor = new ParangEngine.Types.Color(System.Drawing.Color.LightSkyBlue);
             cameraGo.AddComponent(camera);
+
+            var gun = new Gun();
+            cameraGo.AddComponent(gun);
+
             scene.Add(cameraGo);
             {
                 {
-                    var meshs = Resource.GetMesh("chickenV2.obj");
+                    var meshs = ResourceManager.GetMesh("chickenV2.obj");
                     var material = new Material();
-                    material.AddTexture(Material.Type.Albedo, Resource.GetTexture("UV-Texture.png"));
-                    material.AddTexture(Material.Type.Normal, Resource.GetTexture("ChickenNorm.png"));
+                    material.AddTexture(Material.Type.Albedo, ResourceManager.GetTexture("UV-Texture.png"));
+                    material.AddTexture(Material.Type.Normal, ResourceManager.GetTexture("ChickenNorm.png"));
                     material.Roughness = 0.8f;
                     material.Metalic = 0f;
                     var rnd = new System.Random();
@@ -108,10 +112,10 @@ namespace Game
                 }
 
                 {
-                    var meshs = Resource.GetMesh("cube.mesh");
+                    var meshs = ResourceManager.GetMesh("cube.mesh");
                     var material = new Material();
-                    material.AddTexture(Material.Type.Albedo, Resource.GetTexture("rock_diffuse.png"));
-                    material.AddTexture(Material.Type.Normal, Resource.GetTexture("rock_normal.png"));
+                    material.AddTexture(Material.Type.Albedo, ResourceManager.GetTexture("rock_diffuse.png"));
+                    material.AddTexture(Material.Type.Normal, ResourceManager.GetTexture("rock_normal.png"));
                     material.Roughness = 0.5f;
                     material.Metalic = 0.5f;
                     for (int i = 0; i < 25; i++)
@@ -119,6 +123,15 @@ namespace Game
                         var meshGo = new GameObject();
                         meshGo.Transform.Rotation = new Vector3(0f, 0f, 0f);
                         meshGo.Transform.Position = new Vector3(((i % 5) - 2) * 2, -1f, ((i / 5) -2) * 2);
+                        // meshGo.Transform.Position = new Vector3(0, 0, 0);
+                        meshGo.AddComponent(new MeshRenderer(meshs, material));
+                        scene.Add(meshGo);
+                    }
+
+                    {
+                        var meshGo = new GameObject();
+                        meshGo.Transform.Rotation = new Vector3(0f, 0f, 0f);
+                        meshGo.Transform.Position = new Vector3(2f, 1f, 2f);
                         // meshGo.Transform.Position = new Vector3(0, 0, 0);
                         meshGo.AddComponent(new MeshRenderer(meshs, material));
                         scene.Add(meshGo);
@@ -238,7 +251,7 @@ namespace Game
                 go.AddComponent(l);
                 scene.Add(go);
             } */
-            engine.SetScene(scene);
+            SceneManager.LoadScene(scene);
         }
 
         public void Start()

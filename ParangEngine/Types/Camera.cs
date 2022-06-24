@@ -35,17 +35,17 @@ namespace ParangEngine.Types
             base.Update(delta, keys);
             var pos = Transform.Position;
             var d = delta / 1000f;
-            if (keys.Contains("W"))
-                pos += Transform.Forward * d * 0.01f;
+            if (keys.Contains("Up"))
+                pos += Transform.Forward * d * 2;
 
-            if (keys.Contains("S"))
-                pos -= Transform.Forward * d * 0.01f;
+            if (keys.Contains("Down"))
+                pos -= Transform.Forward * d * 2;
 
-            if (keys.Contains("A"))
-                pos -= Transform.Right * d * 0.01f;
+            if (keys.Contains("Left"))
+                pos -= Transform.Right * d * 2;
 
-            if (keys.Contains("D"))
-                pos += Transform.Right * d * 0.01f;
+            if (keys.Contains("Right"))
+                pos += Transform.Right * d * 2;
 
             Transform.Position = pos;
         }
