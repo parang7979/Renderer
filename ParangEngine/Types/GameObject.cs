@@ -29,8 +29,8 @@ namespace ParangEngine.Types
 
         virtual public void Update(int delta, List<string> keys)
         {
-            Transform.Update();
             foreach (var c in Components) c.Update(delta, keys);
+            Transform.Update();
         }
 
         public void AddComponent(Component c)
