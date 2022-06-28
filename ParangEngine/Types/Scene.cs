@@ -14,7 +14,7 @@ namespace ParangEngine.Types
         private List<GameObject> objects = new List<GameObject>();
         private List<Camera> cameras = new List<Camera>();
         private List<Light> lights = new List<Light>();
-        private List<MeshRenderer> renderers = new List<MeshRenderer>();
+        private List<Renderer> renderers = new List<Renderer>();
         private List<Texture> textures = new List<Texture>();
 
         public void Add(GameObject go)
@@ -22,9 +22,12 @@ namespace ParangEngine.Types
             objects.Add(go);
             cameras.AddRange(go.GetComponents<Camera>());
             lights.AddRange(go.GetComponents<Light>());
-            var r = go.GetComponents<MeshRenderer>();
+            var r = go.GetComponents<Renderer>();
             renderers.AddRange(r);
-            textures.AddRange(r.SelectMany(x => x.Material.Textures));
+            textures.AddRange(r
+                .Select(x => x as MeshRenderer)
+                .Where(x => x != null)
+                .SelectMany(x => x.Material.Textures));
             textures = textures.Distinct().ToList();
         }
 

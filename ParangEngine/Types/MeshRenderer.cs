@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ParangEngine.Types
 {
-    public class MeshRenderer : Component
+    public class MeshRenderer : Renderer
     {
         public Material Material => material;
 
@@ -19,7 +19,7 @@ namespace ParangEngine.Types
             this.material = material;
         }
 
-        public void Draw(List<Camera> cameras)
+        public override void Draw(List<Camera> cameras)
         {
             if (meshs == null) return;
             Parallel.ForEach(cameras, (c) =>

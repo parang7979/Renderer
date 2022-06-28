@@ -112,6 +112,14 @@ namespace ParangEngine.Types
             return true;
         }
 
+        public bool ClipParticle(Point p)
+        {
+            int s = Test(p);
+            if (s == 0) return true;
+            else if (s > 0) return false;
+            return true;
+        }
+
         public Point ToPoint(float x, float y)
         {
             int px = (int)(HalfWidth - x);

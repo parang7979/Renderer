@@ -34,7 +34,7 @@ namespace ParangEngine.Types
         {
             maxUShort = (ushort)(ushort.MaxValue / precision);
             render = new Bitmap(width, height, PixelFormat.Format24bppRgb);
-            buffers.Add(BufferType.Albedo, new Bitmap(width, height, PixelFormat.Format24bppRgb));
+            buffers.Add(BufferType.Albedo, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             buffers.Add(BufferType.Position, new Bitmap(width, height, PixelFormat.Format64bppArgb));
             buffers.Add(BufferType.Normal, new Bitmap(width, height, PixelFormat.Format48bppRgb));
             buffers.Add(BufferType.Surface, new Bitmap(width, height, PixelFormat.Format48bppRgb));
@@ -193,6 +193,18 @@ namespace ParangEngine.Types
             }
         }
 
+        public void DrawParticle(Screen screen, OutputVS v)
+        {
+            var p = screen.ToPoint(v.Position);
+            if (screen.ClipParticle(p))
+            {
+                var pos = v.View;
+                // output buffer and depth testing
+                if (!SetPositionBuffer(screen, p.X, p.Y, pos)) return;
+                SetAlbedoBuffer(p.X, p.Y, v.Color);
+            }
+        }
+
         private void SetAlbedoBuffer(int x, int y, Color color)
         {
             if (locks.Count == 0) return;
@@ -202,10 +214,10 @@ namespace ParangEngine.Types
             index *= 3;
             unsafe
             {
-                var ptr = (byte*)b.Scan0;
-                ptr[index] = color.BB;
-                ptr[index + 1] = color.BG;
-                ptr[index + 2] = color.BR;
+                var ptr = (ushort*)b.Scan0;
+                ptr[index] = color.HDRSB;
+                ptr[index + 1] = color.HDRSG;
+                ptr[index + 2] = color.HDRSR;
             }
         }
 
@@ -276,7 +288,7 @@ namespace ParangEngine.Types
             int x, int y)
         {
             // 알베도
-            var a = locks[BufferType.Albedo].GetPixel(x, y);
+            var a = locks[BufferType.Albedo].GetHDRPixel(x, y);
             // 포지션 버퍼가 없으면 아무것도 없는 공간
             var p = locks[BufferType.Position].GetPixel(x, y);
             if (!p.IsBlack)
@@ -307,7 +319,7 @@ namespace ParangEngine.Types
                     a *= l;
                 }
             }
-            bitmap.SetPixel(x, y, a);
+            bitmap.SetPixelHDR(x, y, a);
         }
 
         private void RenderPixels(BitmapData bitmap, Screen screen,
@@ -323,9 +335,31 @@ namespace ParangEngine.Types
             }
         }
 
+        private void RenderHDRPixel(BitmapData bitmap, Screen screen,
+            Vector3 view, Matrix4x4 invPvMat, List<Light> lights,
+            int x, int y)
+        {
+            // 알베도
+            var a = locks[BufferType.Albedo].GetHDRPixel(x, y);
+            bitmap.SetPixelHDR(x, y, a);
+        }
+
+        private void RenderHDRPixels(BitmapData bitmap, Screen screen,
+            Vector3 view, Matrix4x4 invPvMat, List<Light> lights,
+            int minX, int maxX, int minY, int maxY)
+        {
+            for (int x = minX; x < maxX; x++)
+            {
+                for (int y = minY; y < maxY; y++)
+                {
+                    RenderHDRPixel(bitmap, screen, view, invPvMat, lights, x, y);
+                }
+            }
+        }
+
         private void SmoothPixel(BitmapData bitmap, int x, int y, int size)
         {
-            var p = locks[BufferType.Position].GetPixel(x, y);
+            var p = locks[BufferType.Albedo].GetPixel(x, y);
             if (p.IsBlack)
             {
                 size = size % 2 == 0 ? size + 1 : size;
@@ -362,6 +396,7 @@ namespace ParangEngine.Types
             var b = render.LockBits(new Rectangle(0, 0, render.Width, render.Height),
                         ImageLockMode.ReadWrite, render.PixelFormat);
             b.Clear(Color.Black);
+
             Matrix4x4.Invert(pvMat, out var invPvMat);
             int count = b.Height / renderSegment;
             Parallel.For(0, count, (index) =>
@@ -370,12 +405,12 @@ namespace ParangEngine.Types
                 int maxY = Math.Min(renderSegment * (index + 1), b.Height);
                 RenderPixels(b, screen, view, invPvMat, lights, 0, b.Width, minY, maxY);
             });
-            Parallel.For(0, count, (index) =>
+            /* Parallel.For(0, count, (index) =>
             {
                 int minY = renderSegment * index;
                 int maxY = Math.Min(renderSegment * (index + 1), b.Height);
                 SmoothPixels(b, 0, b.Width, minY, maxY);
-            });
+            }); */
             render.UnlockBits(b);
         }
 

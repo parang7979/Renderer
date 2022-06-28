@@ -109,25 +109,22 @@ namespace ParangEngine.Types
             }
         }
 
-        public OutputVS LineShader(InputVS input)
+        public OutputVS SimpleShader(InputVS input)
         {
             return new OutputVS()
             {
                 Position = Vector4.Transform(input.Position, input.TMat * input.PVMat),
-                Normal = Vector3.TransformNormal(input.Normal, input.TMat),
-                UV = input.UV,
                 Color = input.Color,
             };
         }
 
         private void RenderLine(List<Vertex> vertices, in Transform transform)
         {
+            if (!DrawCheck(transform)) return;
             List<OutputVS> vs = new List<OutputVS>();
             foreach (var v in vertices)
-                vs.Add(LineShader(new InputVS {
+                vs.Add(SimpleShader(new InputVS {
                     Position = v.Vector4,
-                    Normal = v.Normal,
-                    UV = v.UV,
                     Color = v.Color,
                     TMat = transform.Mat,
                     PVMat = pvMat,
@@ -155,6 +152,18 @@ namespace ParangEngine.Types
                     line[i] = OutputVS.ToScreen(line[i], Screen);
                 drawBuffer.DrawLine(Screen, line[0], line[1]);
             }
+        }
+
+        public void DrawParticle(Vector3 worldPos, Color color)
+        {
+            var v = new OutputVS()
+            {
+                Position = Vector4.Transform(worldPos, pvMat),
+                Color = color,
+            };
+            v = OutputVS.ToNDC(v);
+            v = OutputVS.ToScreen(v, Screen);
+            drawBuffer.DrawParticle(Screen, v);
         }
     }
 }

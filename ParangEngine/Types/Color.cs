@@ -13,6 +13,7 @@ namespace ParangEngine.Types
         public static readonly Color Magenta = new Color(1f, 0f, 1f);
 
         public bool IsBlack => (R + G + B) == 0;
+        public bool IsHDR => R > 1f || G > 1f || B > 1f;
         public float A { get; set; }
         public float R { get; set; }
         public float G { get; set; }
@@ -27,6 +28,11 @@ namespace ParangEngine.Types
         public ushort SR => (ushort)(Math.Max(0f, Math.Min(R, 1f)) * ushort.MaxValue);
         public ushort SG => (ushort)(Math.Max(0f, Math.Min(G, 1f)) * ushort.MaxValue);
         public ushort SB => (ushort)(Math.Max(0f, Math.Min(B, 1f)) * ushort.MaxValue);
+
+        public ushort HSA => (ushort)(Math.Max(0f, A) * byte.MaxValue);
+        public ushort HDRSR => (ushort)(Math.Max(0f, R) * byte.MaxValue);
+        public ushort HDRSG => (ushort)(Math.Max(0f, G) * byte.MaxValue);
+        public ushort HDRSB => (ushort)(Math.Max(0f, B) * byte.MaxValue);
 
         public Color(System.Drawing.Color color)
         {
@@ -68,6 +74,22 @@ namespace ParangEngine.Types
             B = b / (float)ushort.MaxValue;
         }
 
+        public Color(ushort r, ushort g, ushort b, int slicer)
+        {
+            A = 1f;
+            R = r / (float)slicer;
+            G = g / (float)slicer;
+            B = b / (float)slicer;
+        }
+
+        public Color(ushort a, ushort r, ushort g, ushort b, int slicer)
+        {
+            A = a / (float)slicer;
+            R = r / (float)slicer;
+            G = g / (float)slicer;
+            B = b / (float)slicer;
+        }
+
         public Color(float r, float g, float b)
         {
             A = 1f;
@@ -91,6 +113,15 @@ namespace ParangEngine.Types
             R = color.R / (float)byte.MaxValue;
             G = color.G / (float)byte.MaxValue;
             B = color.B / (float)byte.MaxValue;
+        }
+
+        public Color GetHDR()
+        {
+            return new Color(
+                A,
+                Math.Max(R / 5f, 0f),
+                Math.Max(G / 5f, 0f),
+                Math.Max(B / 5f, 0f));
         }
 
         static public Color operator *(Color c, float t)

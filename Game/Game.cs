@@ -86,12 +86,16 @@ namespace Game
                         var meshGo = new GameObject();
                         meshGo.Transform.Position = new Vector3(0f, 1f, 0f);
                         meshGo.AddComponent(new MeshRenderer(meshs, material));
+                        meshGo.AddComponent(new ParticleRenderer()
+                        {
+                            Color = new ParangEngine.Types.Color(System.Drawing.Color.OrangeRed),
+                        });
                         meshGo.AddComponent(new Input());
 
                         var l = new PointLight();
-                        l.Color = new ParangEngine.Types.Color("red");
-                        l.Intensity = 8f;
-                        l.Radius = 4f;
+                        l.Color = new ParangEngine.Types.Color(System.Drawing.Color.OrangeRed);
+                        l.Intensity = 1f;
+                        l.Radius = 2f;
                         meshGo.AddComponent(l);
                         scene.Add(meshGo);
                     }

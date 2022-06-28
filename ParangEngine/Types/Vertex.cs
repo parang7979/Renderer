@@ -63,5 +63,14 @@ namespace ParangEngine.Types
             this.color = new Color(color);
             view = Vector4.Zero;
         }
+
+        public Vertex(float x, float y, float z, Color color)
+        {
+            pos = new Vector4(x, y, z, 1);
+            normal = Vector3.Zero;
+            uv = Vector2.Zero;
+            this.color = color;
+            view = Vector4.Zero;
+        }
     }
 }
