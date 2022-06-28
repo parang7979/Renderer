@@ -57,8 +57,7 @@ namespace ParangEngine
                 var span = n - now;
                 if (scene != null)
                 {
-                    scene.Update((int)span.TotalMilliseconds, keyDowns.Distinct().ToList());
-                    keyDowns.Clear();
+                    scene.Update((int)span.TotalMilliseconds, keyDowns);
                 }
                 now = n;
                 await Task.Delay(33);
@@ -67,12 +66,14 @@ namespace ParangEngine
 
         public void KeyDown(string key)
         {
-            keyDowns.Add(key);
+            if (!keyDowns.Contains(key))
+                keyDowns.Add(key);
         }
 
         public void KeyUp(string key)
         {
-            keyUps.Add(key);
+            if (keyDowns.Contains(key))
+                keyDowns.Remove(key);
         }
 
         private void DrawTask()

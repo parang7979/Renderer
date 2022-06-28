@@ -53,17 +53,13 @@ namespace Game
         {
             // Resource Load
             ResourceManager.AddMesh("cube.mesh", new Mesh(Cube.V, Cube.UV, null, Cube.VI, null, null));
-            ResourceManager.AddMesh("oldlady-v2.obj");
-            ResourceManager.AddMesh("chickenV2.obj");
+            ResourceManager.AddMesh("Ship01.obj");
 
             ResourceManager.AddTexture("wall1_color.png");
             ResourceManager.AddTexture("wall1_n.png");
             ResourceManager.AddTexture("wall1_shga.png");
             ResourceManager.AddTexture("rock_diffuse.png");
             ResourceManager.AddTexture("rock_normal.png");
-
-            ResourceManager.AddTexture("UV-Texture.png");
-            ResourceManager.AddTexture("ChickenNorm.png");
         }
 
         public void CreateScene()
@@ -72,8 +68,8 @@ namespace Game
 
             // camera
             var cameraGo = new GameObject();
-            cameraGo.Transform.Rotation = new Vector3(0f, 0f, 0f);
-            cameraGo.Transform.Position = new Vector3(0f, 1f, -2f);
+            cameraGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
+            cameraGo.Transform.Position = new Vector3(0f, 15f, -15f);
 
             var camera = new Camera(400, 300, 60f);
             camera.ClearColor = new ParangEngine.Types.Color(System.Drawing.Color.LightSkyBlue);
@@ -85,10 +81,10 @@ namespace Game
             scene.Add(cameraGo);
             {
                 {
-                    var meshs = ResourceManager.GetMesh("chickenV2.obj");
+                    var meshs = ResourceManager.GetMesh("Ship01.obj");
                     var material = new Material();
-                    material.AddTexture(Material.Type.Albedo, ResourceManager.GetTexture("UV-Texture.png"));
-                    material.AddTexture(Material.Type.Normal, ResourceManager.GetTexture("ChickenNorm.png"));
+                    material.AddTexture(Material.Type.Albedo, ResourceManager.GetTexture("wall1_color.png"));
+                    material.AddTexture(Material.Type.Normal, ResourceManager.GetTexture("wall1_n.png"));
                     material.Roughness = 0.8f;
                     material.Metalic = 0f;
                     var rnd = new System.Random();
@@ -103,16 +99,15 @@ namespace Game
                     } */
                     {
                         var meshGo = new GameObject();
-                        meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                        meshGo.Transform.Position = new Vector3(0f, 0f, 0f);
+                        meshGo.Transform.Position = new Vector3(0f, 1f, 0f);
                         meshGo.AddComponent(new MeshRenderer(meshs, material));
-                        meshGo.AddComponent(new Rotater());
+                        meshGo.AddComponent(new Input());
                         scene.Add(meshGo);
                     }
                 }
 
                 {
-                    var meshs = ResourceManager.GetMesh("cube.mesh");
+                    /* var meshs = ResourceManager.GetMesh("cube.mesh");
                     var material = new Material();
                     material.AddTexture(Material.Type.Albedo, ResourceManager.GetTexture("rock_diffuse.png"));
                     material.AddTexture(Material.Type.Normal, ResourceManager.GetTexture("rock_normal.png"));
@@ -135,7 +130,7 @@ namespace Game
                         // meshGo.Transform.Position = new Vector3(0, 0, 0);
                         meshGo.AddComponent(new MeshRenderer(meshs, material));
                         scene.Add(meshGo);
-                    }
+                    } */
                 }
             }
 
@@ -267,6 +262,11 @@ namespace Game
         public void KeyDown(string key)
         {
             engine.KeyDown(key);
+        }
+
+        public void KeyUp(string key)
+        {
+            engine.KeyUp(key);
         }
     }
 }

@@ -29,25 +29,5 @@ namespace ParangEngine.Types
         {
             current = (current + 1) % 2;
         }
-
-        public override void Update(int delta, List<string> keys)
-        {
-            base.Update(delta, keys);
-            var pos = Transform.Position;
-            var d = delta / 1000f;
-            if (keys.Contains("Up"))
-                pos += Transform.Forward * d * 2;
-
-            if (keys.Contains("Down"))
-                pos -= Transform.Forward * d * 2;
-
-            if (keys.Contains("Left"))
-                pos -= Transform.Right * d * 2;
-
-            if (keys.Contains("Right"))
-                pos += Transform.Right * d * 2;
-
-            Transform.Position = pos;
-        }
     }
 }

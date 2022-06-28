@@ -13,6 +13,7 @@ namespace Renderer
             Load += Renderer_Load;
             HandleDestroyed += Renderer_HandleDestroyed;
             KeyDown += Renderer_KeyDown;
+            KeyUp += Renderer_KeyUp;
 
             game = new Game.Game(CreateGraphics(), ClientSize);
             
@@ -33,6 +34,11 @@ namespace Renderer
         private void Renderer_KeyDown(object sender, KeyEventArgs e)
         {
             game.KeyDown(e.KeyCode.ToString());
+        }
+
+        private void Renderer_KeyUp(object sender, KeyEventArgs e)
+        {
+            game.KeyUp(e.KeyCode.ToString());
         }
     }
 }
