@@ -10,32 +10,17 @@ namespace Game
     {
         static public readonly List<Vector3> V = new List<Vector3>()
             {
-                new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(-1.0f, -1.0f, 1.0f), new Vector3(-1.0f, 1.0f, 1.0f), new Vector3(-1.0f, 1.0f, -1.0f),
-                new Vector3(-1.0f, -1.0f, 1.0f), new Vector3(-1.0f, 1.0f, 1.0f), new Vector3(1.0f, 1.0f, 1.0f), new Vector3(1.0f, -1.0f, 1.0f),
-                new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(-1.0f, 1.0f, -1.0f), new Vector3(1.0f, 1.0f, -1.0f), new Vector3(1.0f, -1.0f, -1.0f),
-                new Vector3(1.0f, -1.0f, -1.0f), new Vector3(1.0f, -1.0f, 1.0f), new Vector3(1.0f, 1.0f, 1.0f), new Vector3(1.0f, 1.0f, -1.0f),
-                new Vector3(-1.0f, 1.0f, -1.0f), new Vector3(1.0f, 1.0f, -1.0f), new Vector3(1.0f, 1.0f, 1.0f), new Vector3(-1.0f, 1.0f, 1.0f),
-                new Vector3(-1.0f, -1.0f, -1.0f), new Vector3(1.0f, -1.0f, -1.0f), new Vector3(1.0f, -1.0f, 1.0f), new Vector3(-1.0f, -1.0f, 1.0f)
+                new Vector3(-1.0f, 0.0f, -1.0f), new Vector3(1.0f, 0.0f, -1.0f), new Vector3(1.0f, 0.0f, 1.0f), new Vector3(-1.0f, 0.0f, 1.0f),
             };
 
         static public readonly List<Vector2> UV = new List<Vector2>()
             {
-                new Vector2(1f, 1f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(0f, 1f),
-                new Vector2(1f, 1f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(0f, 1f),
-                new Vector2(1f, 1f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(0f, 1f),
-                new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 1f),
-                new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 1f),
                 new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(0f, 1f),
             };
 
         static public readonly List<int> VI = new List<int>()
             {
-                0, 1, 2, 0, 2, 3, // Right
-	            4, 6, 5, 4, 7, 6, // Front
-	            8, 9, 10, 8, 10, 11, // Back
-	            12, 14, 13, 12, 15, 14, // Left*/
-	            16, 18, 17, 16, 19, 18, // Top
-	            20, 21, 22, 20, 22, 23  // Bottom */
+	            0, 2, 1, 0, 3, 2,
             };
     }
 
@@ -69,10 +54,10 @@ namespace Game
             // camera
             var cameraGo = new GameObject();
             cameraGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
-            cameraGo.Transform.Position = new Vector3(0f, 15f, -15f);
+            cameraGo.Transform.Position = new Vector3(0f, 12.5f, -12.5f);
 
             var camera = new Camera(400, 300, 60f);
-            camera.ClearColor = new ParangEngine.Types.Color(System.Drawing.Color.LightSkyBlue);
+            camera.ClearColor = new ParangEngine.Types.Color(System.Drawing.Color.Black);
             cameraGo.AddComponent(camera);
 
             var gun = new Gun();
@@ -102,12 +87,18 @@ namespace Game
                         meshGo.Transform.Position = new Vector3(0f, 1f, 0f);
                         meshGo.AddComponent(new MeshRenderer(meshs, material));
                         meshGo.AddComponent(new Input());
+
+                        var l = new PointLight();
+                        l.Color = new ParangEngine.Types.Color("red");
+                        l.Intensity = 8f;
+                        l.Radius = 4f;
+                        meshGo.AddComponent(l);
                         scene.Add(meshGo);
                     }
                 }
 
                 {
-                    /* var meshs = ResourceManager.GetMesh("cube.mesh");
+                    var meshs = ResourceManager.GetMesh("cube.mesh");
                     var material = new Material();
                     material.AddTexture(Material.Type.Albedo, ResourceManager.GetTexture("rock_diffuse.png"));
                     material.AddTexture(Material.Type.Normal, ResourceManager.GetTexture("rock_normal.png"));
@@ -117,20 +108,11 @@ namespace Game
                     {
                         var meshGo = new GameObject();
                         meshGo.Transform.Rotation = new Vector3(0f, 0f, 0f);
-                        meshGo.Transform.Position = new Vector3(((i % 5) - 2) * 2, -1f, ((i / 5) -2) * 2);
+                        meshGo.Transform.Position = new Vector3(((i % 5) - 2) * 4, 0f, ((i / 5) - 2) * 4);
                         // meshGo.Transform.Position = new Vector3(0, 0, 0);
                         meshGo.AddComponent(new MeshRenderer(meshs, material));
                         scene.Add(meshGo);
                     }
-
-                    {
-                        var meshGo = new GameObject();
-                        meshGo.Transform.Rotation = new Vector3(0f, 0f, 0f);
-                        meshGo.Transform.Position = new Vector3(2f, 1f, 2f);
-                        // meshGo.Transform.Position = new Vector3(0, 0, 0);
-                        meshGo.AddComponent(new MeshRenderer(meshs, material));
-                        scene.Add(meshGo);
-                    } */
                 }
             }
 
@@ -181,10 +163,10 @@ namespace Game
             var lightGo = new GameObject();
             var dirLight = new DirectionalLight();
             dirLight.Color = ParangEngine.Types.Color.White;
-            dirLight.Intensity = 0.7f;
+            dirLight.Intensity = 0.8f;
             lightGo.AddComponent(dirLight);
             lightGo.AddComponent(new Rotater());
-            lightGo.Transform.Rotation = new Vector3(45f, 0f, 0f);
+            lightGo.Transform.Rotation = new Vector3(45f, 0f, 45f);
             scene.Add(lightGo);
 
             {
