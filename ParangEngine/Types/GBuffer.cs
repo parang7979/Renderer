@@ -319,7 +319,7 @@ namespace ParangEngine.Types
                     a *= l;
                 }
             }
-            bitmap.SetPixelHDR(x, y, a);
+            bitmap.SetPixel(x, y, a);
         }
 
         private void RenderPixels(BitmapData bitmap, Screen screen,
@@ -335,31 +335,40 @@ namespace ParangEngine.Types
             }
         }
 
-        private void RenderHDRPixel(BitmapData bitmap, Screen screen,
-            Vector3 view, Matrix4x4 invPvMat, List<Light> lights,
-            int x, int y)
+        private void RenderHDRPixel(BitmapData bitmap, int x, int y)
         {
             // 알베도
             var a = locks[BufferType.Albedo].GetHDRPixel(x, y);
-            bitmap.SetPixelHDR(x, y, a);
+            int cnt = 0;
+            while(a.IsHDR)
+            {
+                for (int i = -cnt; i <= cnt; i++)
+                {
+                    for (int j = -cnt; j <= cnt; j++)
+                    {
+                        if (Math.Abs(i) + Math.Abs(j) == cnt)
+                            bitmap.SetPixelBlend(x + i, y + j, a);
+                    }
+                }
+                a = a.GetHDR();
+                cnt++;
+            }
         }
 
-        private void RenderHDRPixels(BitmapData bitmap, Screen screen,
-            Vector3 view, Matrix4x4 invPvMat, List<Light> lights,
-            int minX, int maxX, int minY, int maxY)
+        private void RenderHDRPixels(BitmapData bitmap, int minX, int maxX, int minY, int maxY)
         {
             for (int x = minX; x < maxX; x++)
             {
                 for (int y = minY; y < maxY; y++)
                 {
-                    RenderHDRPixel(bitmap, screen, view, invPvMat, lights, x, y);
+                    RenderHDRPixel(bitmap, x, y);
                 }
             }
         }
 
         private void SmoothPixel(BitmapData bitmap, int x, int y, int size)
         {
-            var p = locks[BufferType.Albedo].GetPixel(x, y);
+            var p = bitmap.GetPixel(x, y);
             if (p.IsBlack)
             {
                 size = size % 2 == 0 ? size + 1 : size;
@@ -385,7 +394,7 @@ namespace ParangEngine.Types
             {
                 for (int y = minY; y < maxY; y++)
                 {
-                    SmoothPixel(bitmap, x, y, 3);
+                    SmoothPixel(bitmap, x, y, 2);
                 }
             }
         }
@@ -405,12 +414,18 @@ namespace ParangEngine.Types
                 int maxY = Math.Min(renderSegment * (index + 1), b.Height);
                 RenderPixels(b, screen, view, invPvMat, lights, 0, b.Width, minY, maxY);
             });
-            /* Parallel.For(0, count, (index) =>
+            Parallel.For(0, count, (index) =>
+            {
+                int minY = renderSegment * index;
+                int maxY = Math.Min(renderSegment * (index + 1), b.Height);
+                RenderHDRPixels(b, 0, b.Width, minY, maxY);
+            });
+            Parallel.For(0, count, (index) =>
             {
                 int minY = renderSegment * index;
                 int maxY = Math.Min(renderSegment * (index + 1), b.Height);
                 SmoothPixels(b, 0, b.Width, minY, maxY);
-            }); */
+            });
             render.UnlockBits(b);
         }
 

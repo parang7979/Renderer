@@ -86,7 +86,7 @@ namespace Game
                         var meshGo = new GameObject();
                         meshGo.Transform.Position = new Vector3(0f, 1f, 0f);
                         meshGo.AddComponent(new MeshRenderer(meshs, material));
-                        meshGo.AddComponent(new ParticleRenderer()
+                        meshGo.AddComponent(new JetEngine()
                         {
                             Color = new ParangEngine.Types.Color(System.Drawing.Color.OrangeRed),
                         });

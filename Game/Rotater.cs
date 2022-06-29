@@ -39,6 +39,15 @@ namespace Game
         }
     }
 
+    internal class JetEngine : ParticleRenderer
+    {
+        public override void Update(int delta, List<string> keys)
+        {
+            Pause = keys.Contains("Down");
+            base.Update(delta, keys);
+        }
+    }
+
     internal class Input : Component
     {
         public override void Update(int delta, List<string> keys)

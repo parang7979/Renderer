@@ -119,9 +119,9 @@ namespace ParangEngine.Types
         {
             return new Color(
                 A,
-                Math.Max(R / 5f, 0f),
-                Math.Max(G / 5f, 0f),
-                Math.Max(B / 5f, 0f));
+                Math.Max(R - (R * 0.1f), 0f),
+                Math.Max(G - (G * 0.1f), 0f),
+                Math.Max(B - (B * 0.1f), 0f));
         }
 
         static public Color operator *(Color c, float t)

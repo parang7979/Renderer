@@ -9,33 +9,39 @@ namespace ParangEngine.Types
 {
     public class ParticleRenderer : Renderer
     {
-        public Color Color { get; set; } = Color.White;
+        public bool Pause { get; set; } = false;
+        public Color Color { get; set; } = new Color(System.Drawing.Color.OrangeRed);
+        public Vector3 Direction { get; set; } = -Vector3.UnitZ;
 
         private Random random = new Random();
-        private List<Vector3> particles = new List<Vector3>();
+        private List<Particle> particles = new List<Particle>();
 
         public override void Update(int delta, List<string> keys)
         {
             base.Update(delta, keys);
-            var p = new Vector3(
-                (float)random.NextDouble() * 0.5f,
-                (float)random.NextDouble() * 0.5f,
-                (float)random.NextDouble() * 0.5f);
-            particles.Add(Vector3.Transform(p, Transform.Mat));
-            if (particles.Count > 20)
-                particles.RemoveAt(0);
+            if (!Pause)
+            {
+                var newP = new Particle(Transform.Mat)
+                {
+                    Color = Color,
+                    Direction = Direction,
+                    Velocity = (float)(random.NextDouble() + 1f),
+                    Power = (float)(random.NextDouble() + 1f) * 1.25f,
+                    LifeTime = (float)(random.NextDouble() + 1f) * 0.25f,
+                };
+                particles.Add(newP);
+            }
+            foreach (var p in particles) 
+                p.Update(delta, Transform.Mat);
+            particles.RemoveAll(x => x.IsExpired);
         }
 
         public override void Draw(List<Camera> cameras)
         {
-            Parallel.ForEach(cameras, (c) =>
-                {
-                    var rnd = new Random();
-                    foreach(var p in particles.ToList())
-                    {
-                        c.DrawParticle(p, Color * 30);
-                    }
-                });
+            Parallel.ForEach(particles.ToList(), (p) =>
+            {
+                p.Draw(cameras);
+            });
         }
     }
 }
