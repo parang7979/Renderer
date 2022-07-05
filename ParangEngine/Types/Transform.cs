@@ -10,6 +10,9 @@ namespace ParangEngine.Types
 {
     public class Transform
     {
+        public Transform Parents { get; set; } = null;
+        public List<Transform> Childrens { get; set; } = new List<Transform>();
+
         public Vector3 Position { get; set; } = Vector3.Zero;
         public Vector3 Rotation { get; set; } = Vector3.Zero;
         public Vector3 Scale { get; set; } = Vector3.One;
@@ -18,7 +21,7 @@ namespace ParangEngine.Types
         public Vector3 Up => Vector3.Transform(Vector3.UnitY, quaternion);
         public Vector3 Forward => Vector3.Transform(Vector3.UnitZ, quaternion);
         public Quaternion Quaternion => quaternion;
-        public Matrix4x4 Mat => mat;
+        public Matrix4x4 Mat => Parents != null ? Parents.Mat * mat : mat;
 
         private Quaternion quaternion = Quaternion.Identity;
         private Matrix4x4 mat;

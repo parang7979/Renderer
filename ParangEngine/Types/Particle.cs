@@ -9,33 +9,35 @@ namespace ParangEngine.Types
 {
     internal class Particle
     {
-        public Color Color { get; set; }
-        public Vector3 Direction { get; set; }
-        public float Velocity { get; set; }
-        public float Power { get; set; }
-        public float LifeTime { get; set; }
-
-        public bool IsExpired => Power <= 0.1f;
+        public bool IsExpired => power <= 0.1f;
 
         private Vector3 position;
+        private Vector3 direction;
+        private Color color;
+        private float power;
+        private float delta;
 
-        public Particle (Matrix4x4 mat)
+        public Particle (Matrix4x4 mat, Color color, Vector3 dir, float v, float p, float t)
         {
             position = Vector3.Transform(Vector3.Zero, mat);
+            this.color = color;
+            direction = Vector3.TransformNormal(dir, mat) * v;
+            power = p;
+            delta = p / t;
         }
 
         public void Update(int delta, Matrix4x4 mat)
         {
             var d = (delta / 1000f);
-            position += Vector3.TransformNormal(Direction, mat) * d * Velocity;
-            Power -= (Power / LifeTime) * d;
+            position += direction * d;
+            power -= this.delta * d;
         }
 
         public void Draw(List<Camera> cameras)
         {
             Parallel.ForEach(cameras, (c) =>
             {
-                c.DrawParticle(position, Color * (1 + Power));
+                c.DrawParticle(position, color * (1 + power));
             });
         }
     }

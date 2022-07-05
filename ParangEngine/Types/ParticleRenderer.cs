@@ -21,14 +21,10 @@ namespace ParangEngine.Types
             base.Update(delta, keys);
             if (!Pause)
             {
-                var newP = new Particle(Transform.Mat)
-                {
-                    Color = Color,
-                    Direction = Direction,
-                    Velocity = (float)(random.NextDouble() + 1f),
-                    Power = (float)(random.NextDouble() + 1f) * 1.25f,
-                    LifeTime = (float)(random.NextDouble() + 1f) * 0.25f,
-                };
+                var newP = new Particle(Transform.Mat, Color, Direction,
+                    (float)(random.NextDouble() + 2f),
+                    (float)(random.NextDouble() + 1f) * 1.25f,
+                    (float)(random.NextDouble() + 1f) * 0.25f);
                 particles.Add(newP);
             }
             foreach (var p in particles) 

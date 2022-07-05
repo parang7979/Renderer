@@ -59,10 +59,6 @@ namespace Game
             var camera = new Camera(400, 300, 60f);
             camera.ClearColor = new ParangEngine.Types.Color(System.Drawing.Color.Black);
             cameraGo.AddComponent(camera);
-
-            var gun = new Gun();
-            cameraGo.AddComponent(gun);
-
             scene.Add(cameraGo);
             {
                 {
@@ -72,32 +68,37 @@ namespace Game
                     material.AddTexture(Material.Type.Normal, ResourceManager.GetTexture("wall1_n.png"));
                     material.Roughness = 0.8f;
                     material.Metalic = 0f;
-                    var rnd = new System.Random();
-                    /* for (int i = 1; i < 10; i++)
+                    var meshGo = new GameObject();
+                    meshGo.Transform.Position = new Vector3(0f, 1f, 0f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
+                    meshGo.AddComponent(new Input());
+                    
+                    scene.Add(meshGo);
                     {
-                        var meshGo = new GameObject();
-                        meshGo.Transform.Rotation = new Vector3(0f, 180f, 0f);
-                        meshGo.Transform.Position = new Vector3(rnd.Next(-30, 30) / 10f, 0f, rnd.Next(-20, 30) / 10f);
-                        meshGo.AddComponent(new MeshRenderer(meshs, material));
-                        meshGo.AddComponent(new Rotater());
-                        scene.Add(meshGo);
-                    } */
-                    {
-                        var meshGo = new GameObject();
-                        meshGo.Transform.Position = new Vector3(0f, 1f, 0f);
-                        meshGo.AddComponent(new MeshRenderer(meshs, material));
-                        meshGo.AddComponent(new JetEngine()
+                        var engineGo = new GameObject();
+                        engineGo.Transform.Parents = meshGo.Transform;
+                        engineGo.Transform.Position = new Vector3(0f, 0f, -1f);
+                        engineGo.AddComponent(new JetEngine
                         {
-                            Color = new ParangEngine.Types.Color(System.Drawing.Color.OrangeRed),
+                            Color = new ParangEngine.Types.Color(System.Drawing.Color.OrangeRed)
                         });
-                        meshGo.AddComponent(new Input());
+                        scene.Add(engineGo);
+                    }
+                    
+                    {
+                        var gunGo = new GameObject();
+                        gunGo.Transform.Parents = meshGo.Transform;
+                        gunGo.Transform.Position = new Vector3(0.5f, 0f, 0f);
+                        gunGo.AddComponent(new Gun());
+                        scene.Add(gunGo);
+                    }
 
-                        var l = new PointLight();
-                        l.Color = new ParangEngine.Types.Color(System.Drawing.Color.OrangeRed);
-                        l.Intensity = 1f;
-                        l.Radius = 2f;
-                        meshGo.AddComponent(l);
-                        scene.Add(meshGo);
+                    {
+                        var gunGo = new GameObject();
+                        gunGo.Transform.Parents = meshGo.Transform;
+                        gunGo.Transform.Position = new Vector3(-0.5f, 0f, 0f);
+                        gunGo.AddComponent(new Gun());
+                        scene.Add(gunGo);
                     }
                 }
 

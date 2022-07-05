@@ -15,7 +15,6 @@ namespace ParangEngine.Types
         private List<Camera> cameras = new List<Camera>();
         private List<Light> lights = new List<Light>();
         private List<Renderer> renderers = new List<Renderer>();
-        private List<Texture> textures = new List<Texture>();
 
         public void Add(GameObject go)
         {
@@ -24,11 +23,14 @@ namespace ParangEngine.Types
             lights.AddRange(go.GetComponents<Light>());
             var r = go.GetComponents<Renderer>();
             renderers.AddRange(r);
-            textures.AddRange(r
-                .Select(x => x as MeshRenderer)
-                .Where(x => x != null)
-                .SelectMany(x => x.Material.Textures));
-            textures = textures.Distinct().ToList();
+        }
+
+        public void Remove(GameObject go)
+        {
+            objects.Remove(go);
+            cameras.RemoveAll(x => x.GameObject == go);
+            lights.RemoveAll(x => x.GameObject == go);
+            renderers.RemoveAll(x => x.GameObject == go);
         }
 
         public void Update(int delta, List<string> keys)
@@ -42,7 +44,11 @@ namespace ParangEngine.Types
             using (new StopWatch("Scene.Draw"))
             {
                 var cs = cameras.ToList();
-                var ts = textures.ToList();
+                var ts = renderers
+                    .Select(x => x as MeshRenderer)
+                    .Where(x => x != null)
+                    .SelectMany(x => x.Material.Textures)
+                    .Distinct();
                 foreach (var c in cs) c.Lock();
                 foreach (var t in ts) t.Lock();
                 foreach (var r in renderers.ToList()) r.Draw(cameras);

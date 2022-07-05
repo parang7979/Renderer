@@ -11,6 +11,11 @@ namespace ParangEngine.Types
         public GameObject GameObject { get; internal set; }
         public Transform Transform => GameObject.Transform;
 
+        virtual public void Setup()
+        {
+
+        }
+
         virtual public void Update(int delta, List<string> keys)
         {
             // TODO : Check Transform null
@@ -37,6 +42,7 @@ namespace ParangEngine.Types
         {
             c.GameObject = this;
             Components.Add(c);
+            c.Setup();
         }
 
         public T GetComponent<T>() where T : Component

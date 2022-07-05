@@ -39,11 +39,49 @@ namespace Game
         }
     }
 
-    internal class JetEngine : ParticleRenderer
+    internal class JetEngine : Component
     {
+        public Color Color { get; set; } = Color.White;
+
+        private ParticleRenderer renderer;
+        private PointLight light;
+
+        public override void Setup()
+        {
+            renderer = new ParticleRenderer()
+            {
+                Color = Color,
+            };
+            GameObject.AddComponent(renderer);
+            light = new PointLight()
+            {
+                Color = Color,
+                Intensity = 1f,
+                Radius = 2f,
+            };
+            GameObject.AddComponent(light);
+        }
+
         public override void Update(int delta, List<string> keys)
         {
-            Pause = keys.Contains("Down");
+            var intensity = 0.5f;
+            if (keys.Contains("Down"))
+            {
+                renderer.Pause = true;
+            }
+            else
+            {
+                renderer.Pause = false;
+                intensity += 0.5f;
+            }
+
+            if (keys.Contains("Up"))
+            {
+                intensity += 1f;
+            }
+
+
+            light.Intensity = intensity;
             base.Update(delta, keys);
         }
     }

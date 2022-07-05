@@ -19,11 +19,11 @@ namespace Game
         public override void Update(int delta, List<string> keys)
         {
             var pos = Transform.Position;
-            var d = Transform.Forward * Speed;
-            pos += d;
-            fly += delta;
+            pos += Transform.Forward * Speed;
             Transform.Position = pos;
-            // if (fly > Duration) SceneManager.CurrentScene.Remove(this);
+            fly += delta;
+            if (fly > Duration) 
+                SceneManager.CurrentScene.Remove(GameObject);
         }
     }
 
@@ -37,22 +37,13 @@ namespace Game
             if (elpased > 500 && keys.Contains("Space"))
             {
                 var go = new GameObject();
-                go.Transform.Position = Transform.Position;
-                var pos = go.Transform.Position + go.Transform.Forward;
-                pos.Y -= 0.5f;
-                go.Transform.Position = pos;
+                go.Transform.Position = Vector3.Transform(Transform.Position, Transform.Mat);
                 go.Transform.Rotation = Transform.Rotation;
-                // go.Transform.Scale = new Vector3(0.5f, 0.5f, 0.5f);
-                var proj = new Projectile();
-                go.AddComponent(proj);
-                var material = new Material();
-                material.AddTexture(Material.Type.Albedo, ResourceManager.GetTexture("UV-Texture.png"));
-                material.AddTexture(Material.Type.Normal, ResourceManager.GetTexture("ChickenNorm.png"));
-                material.Roughness = 0.2f;
-                material.Metalic = 1f;
-                var mesh = new MeshRenderer(
-                    ResourceManager.GetMesh("chickenV2.obj"), material);
-                go.AddComponent(mesh);
+                go.AddComponent(new Projectile());
+                go.AddComponent(new ParticleRenderer
+                {
+                    Color = new Color("green")
+                });
                 SceneManager.CurrentScene.Add(go);
                 elpased = 0;
             }
