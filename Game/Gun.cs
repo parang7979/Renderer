@@ -42,7 +42,16 @@ namespace Game
                 go.AddComponent(new Projectile());
                 go.AddComponent(new ParticleRenderer
                 {
-                    Color = new Color("green")
+                    Color = new Color("green"),
+                    Velocity = new Vector2(0f, 0.5f),
+                    Power = new Vector2(4f, 3f),
+                    Duration = new Vector2(0f, 1f)
+                });
+                go.AddComponent(new PointLight
+                {
+                    Color = new Color("green"),
+                    Intensity = 2f,
+                    Radius = 2f,
                 });
                 SceneManager.CurrentScene.Add(go);
                 elpased = 0;

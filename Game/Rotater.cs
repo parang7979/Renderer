@@ -51,6 +51,11 @@ namespace Game
             renderer = new ParticleRenderer()
             {
                 Color = Color,
+                AngleMin = new Vector3(0f, -30f, 0f),
+                AngleMax = new Vector3(0f, 30f, 0f),
+                Velocity = new Vector2(1f, 2f),
+                Power = new Vector2(2f, 3f),
+                Duration = new Vector2(0f, 1f)
             };
             GameObject.AddComponent(renderer);
             light = new PointLight()
