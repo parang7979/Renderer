@@ -1,5 +1,6 @@
 ﻿using ParangEngine;
 using ParangEngine.Types;
+using ParangEngine.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,24 @@ namespace Game
         public float Speed { get; set; } = 1f;
         public int Duration { get; set; } = 2000;
 
-        private int fly = 0;
+        protected int fly = 0;
+
+        public override void Update(int delta, List<string> keys)
+        {
+            var rot = VectorExtension.RotateTo(Transform.Position, Vector3.Zero);
+
+            var pos = Transform.Position;
+            pos += Transform.Forward * Speed;
+            Transform.Position = pos;
+            fly += delta;
+            if (fly > Duration) 
+                SceneManager.CurrentScene.Remove(GameObject);
+        }
+    }
+
+    internal class CurveProjectile : Projectile
+    {
+        public Vector3 StartRotate { get; set; } = Vector3.Zero;
 
         public override void Update(int delta, List<string> keys)
         {
@@ -22,7 +40,7 @@ namespace Game
             pos += Transform.Forward * Speed;
             Transform.Position = pos;
             fly += delta;
-            if (fly > Duration) 
+            if (fly > Duration)
                 SceneManager.CurrentScene.Remove(GameObject);
         }
     }

@@ -31,7 +31,7 @@ namespace Game
 
         public Game(Graphics graphics, Size resolution)
         {
-            engine = new Engine(graphics, resolution);
+            engine = new Engine(graphics, resolution, 60);
         }
 
         public void LoadResource()
@@ -85,6 +85,88 @@ namespace Game
                         scene.Add(engineGo);
                     }
                     
+                    {
+                        var gunGo = new GameObject();
+                        gunGo.Transform.Parents = meshGo.Transform;
+                        gunGo.Transform.Position = new Vector3(0.5f, 0f, 0f);
+                        gunGo.AddComponent(new Gun());
+                        scene.Add(gunGo);
+                    }
+
+                    {
+                        var gunGo = new GameObject();
+                        gunGo.Transform.Parents = meshGo.Transform;
+                        gunGo.Transform.Position = new Vector3(-0.5f, 0f, 0f);
+                        gunGo.AddComponent(new Gun());
+                        scene.Add(gunGo);
+                    }
+                }
+
+                {
+                    var meshs = ResourceManager.GetMesh("Ship01.obj");
+                    var material = new Material();
+                    material.AddTexture(Material.Type.Albedo, ResourceManager.GetTexture("wall1_color.png"));
+                    material.AddTexture(Material.Type.Normal, ResourceManager.GetTexture("wall1_n.png"));
+                    material.Roughness = 0.8f;
+                    material.Metalic = 0f;
+                    var meshGo = new GameObject();
+                    meshGo.Transform.Position = new Vector3(3f, 1f, 0f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
+                    meshGo.AddComponent(new Input());
+
+                    scene.Add(meshGo);
+                    {
+                        var engineGo = new GameObject();
+                        engineGo.Transform.Parents = meshGo.Transform;
+                        engineGo.Transform.Position = new Vector3(0f, 0f, -1f);
+                        engineGo.AddComponent(new JetEngine
+                        {
+                            Color = new ParangEngine.Types.Color(System.Drawing.Color.OrangeRed)
+                        });
+                        scene.Add(engineGo);
+                    }
+
+                    {
+                        var gunGo = new GameObject();
+                        gunGo.Transform.Parents = meshGo.Transform;
+                        gunGo.Transform.Position = new Vector3(0.5f, 0f, 0f);
+                        gunGo.AddComponent(new Gun());
+                        scene.Add(gunGo);
+                    }
+
+                    {
+                        var gunGo = new GameObject();
+                        gunGo.Transform.Parents = meshGo.Transform;
+                        gunGo.Transform.Position = new Vector3(-0.5f, 0f, 0f);
+                        gunGo.AddComponent(new Gun());
+                        scene.Add(gunGo);
+                    }
+                }
+
+                {
+                    var meshs = ResourceManager.GetMesh("Ship01.obj");
+                    var material = new Material();
+                    material.AddTexture(Material.Type.Albedo, ResourceManager.GetTexture("wall1_color.png"));
+                    material.AddTexture(Material.Type.Normal, ResourceManager.GetTexture("wall1_n.png"));
+                    material.Roughness = 0.8f;
+                    material.Metalic = 0f;
+                    var meshGo = new GameObject();
+                    meshGo.Transform.Position = new Vector3(-3f, 1f, 0f);
+                    meshGo.AddComponent(new MeshRenderer(meshs, material));
+                    meshGo.AddComponent(new Input());
+
+                    scene.Add(meshGo);
+                    {
+                        var engineGo = new GameObject();
+                        engineGo.Transform.Parents = meshGo.Transform;
+                        engineGo.Transform.Position = new Vector3(0f, 0f, -1f);
+                        engineGo.AddComponent(new JetEngine
+                        {
+                            Color = new ParangEngine.Types.Color(System.Drawing.Color.OrangeRed)
+                        });
+                        scene.Add(engineGo);
+                    }
+
                     {
                         var gunGo = new GameObject();
                         gunGo.Transform.Parents = meshGo.Transform;
@@ -190,11 +272,24 @@ namespace Game
             {
                 var go = new GameObject();
                 var l = new SpotLight();
+                l.Color = new ParangEngine.Types.Color("green");
+                l.Intensity = 8f;
+                l.Length = 4f;
+                l.Degree = 30f;
+                go.Transform.Position = new Vector3(0f, 3f, 3f);
+                go.Transform.Rotation = new Vector3(90f, 0f, 0f);
+                go.AddComponent(l);
+                scene.Add(go);
+            }
+
+            {
+                var go = new GameObject();
+                var l = new SpotLight();
                 l.Color = new ParangEngine.Types.Color("blue");
                 l.Intensity = 8f;
                 l.Length = 4f;
                 l.Degree = 30f;
-                go.Transform.Position = new Vector3(1f, 3f, 0f);
+                go.Transform.Position = new Vector3(0f, 3f, -3f);
                 go.Transform.Rotation = new Vector3(90f, 0f, 0f);
                 go.AddComponent(l);
                 scene.Add(go);

@@ -38,10 +38,7 @@ namespace ParangEngine.Types
             set
             {
                 normal = Vector3.Normalize(value);
-                var c = Vector3.Cross(Vector3.UnitZ, normal);
-                var s = (float)Math.Sqrt((1f + Vector3.Dot(Vector3.UnitZ, normal)) * 2f);
-                RotNormal = MathExtension.RotYPI;
-                if (s != 0) RotNormal = new Quaternion(c.X / s, c.Y / s, c.Z / s, s / 2f);
+                RotNormal = VectorExtension.GetRotate(normal, -Vector3.UnitZ);
             }
         }
         public Quaternion RotNormal { get; set; }

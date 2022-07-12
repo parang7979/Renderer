@@ -20,7 +20,19 @@ namespace ParangEngine.Types
         public Vector3 Right => Vector3.Transform(Vector3.UnitX, quaternion);
         public Vector3 Up => Vector3.Transform(Vector3.UnitY, quaternion);
         public Vector3 Forward => Vector3.Transform(Vector3.UnitZ, quaternion);
-        public Quaternion Quaternion => quaternion;
+        public Quaternion Quaternion
+        {
+            get
+            {
+                return quaternion;
+            }
+
+            set
+            {
+                quaternion = value;
+                Rotation = value.ToEuler();
+            }
+        }
         public Matrix4x4 Mat => Parents != null ? Parents.Mat * mat : mat;
 
         private Quaternion quaternion = Quaternion.Identity;
@@ -32,6 +44,7 @@ namespace ParangEngine.Types
             mat = Matrix4x4.CreateFromQuaternion(quaternion) * 
                 Matrix4x4.CreateTranslation(Position) * 
                 Matrix4x4.CreateScale(Scale);
+            var m = Matrix4x4.CreateWorld(Position, Forward, Up);
         }
     }
 }

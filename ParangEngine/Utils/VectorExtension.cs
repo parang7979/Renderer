@@ -81,5 +81,43 @@ namespace ParangEngine.Utils
             if (int.TryParse(str, out var ret)) return ret;
             return def;
         }
+
+        static public Quaternion RotateTo(Vector3 from, Vector3 to)
+        {
+            return GetRotate(to - from, Vector3.UnitZ);
+        }
+
+        static public Quaternion GetRotate(Vector3 v1, Vector3 v2)
+        {
+            v1 = Vector3.Normalize(v1);
+            v2 = Vector3.Normalize(v2);
+            return Quaternion.CreateFromAxisAngle(
+                Vector3.Cross(v1, v2),
+                (float)Math.Acos(Vector3.Dot(v1, v2)));
+        }
+
+        static public Vector3 ToEuler(this Quaternion q)
+        {
+            Vector3 angles;
+
+            // roll (x-axis rotation)
+            double sinr_cosp = 2 * (q.W * q.X + q.Y * q.Z);
+            double cosr_cosp = 1 - 2 * (q.X * q.X + q.Y * q.Y);
+            angles.Y = (float)Math.Atan2(sinr_cosp, cosr_cosp);
+
+            // pitch (y-axis rotation)
+            double sinp = 2 * (q.W * q.Y - q.Z * q.X);
+            if (Math.Abs(sinp) >= 1)
+                angles.Z = Math.Sign(sinp) * MathExtension.PI / 2; // use 90 degrees if out of range
+            else
+                angles.Z = (float)Math.Asin(sinp);
+
+            // yaw (z-axis rotation)
+            double siny_cosp = 2 * (q.W * q.Z + q.X * q.Y);
+            double cosy_cosp = 1 - 2 * (q.Y * q.Y + q.Z * q.Z);
+            angles.X = (float)Math.Atan2(siny_cosp, cosy_cosp);
+
+            return angles;
+        }
     }
 }

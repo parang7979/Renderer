@@ -15,22 +15,34 @@ namespace ParangEngine
         private Graphics graphics;
         private BufferedGraphicsContext context;
         private BufferedGraphics buffer;
+        private Font font;
+        private Brush brush;
+        private bool running;
+        private bool showDebug;
+        
+        private int targetFps;
+        private int avrFps;
+        private int targetFramePerMs;
+        private int avrFramePerMs;
+
+        private List<string> keys = new List<string>();
 
         private Scene scene => SceneManager.CurrentScene;
-        private bool running;
 
-        private List<string> keyDowns = new List<string>();
-        private List<string> keyUps = new List<string>();
-
-        public Engine(Graphics graphics, Size resolution)
+        public Engine(Graphics graphics, Size resolution, int targetFps)
         {
             this.resolution = resolution;
             this.graphics = graphics;
             context = BufferedGraphicsManager.Current;
             context.MaximumBuffer = new Size(resolution.Width + 1, resolution.Height + 1);
             buffer = context.Allocate(graphics, new Rectangle(0, 0, resolution.Width, resolution.Height));
+            font = new Font("Arial", 16);
+            brush = new SolidBrush(System.Drawing.Color.White);
             Gizmos.CreateGrid(10);
             running = false;
+            showDebug = false;
+            this.targetFps = targetFps;
+            targetFramePerMs = 1000 / targetFps;
         }
 
         public void Start()
@@ -57,23 +69,25 @@ namespace ParangEngine
                 var span = n - now;
                 if (scene != null)
                 {
-                    scene.Update((int)span.TotalMilliseconds, keyDowns);
+                    scene.Update((int)span.TotalMilliseconds, keys);
                 }
                 now = n;
-                await Task.Delay(33);
+                await Task.Delay(targetFramePerMs);
             }
         }
 
         public void KeyDown(string key)
         {
-            if (!keyDowns.Contains(key))
-                keyDowns.Add(key);
+            if (key == "F1") showDebug = !showDebug;
+
+            if (!keys.Contains(key))
+                keys.Add(key);
         }
 
         public void KeyUp(string key)
         {
-            if (keyDowns.Contains(key))
-                keyDowns.Remove(key);
+            if (keys.Contains(key))
+                keys.Remove(key);
         }
 
         private void DrawTask()
@@ -86,10 +100,10 @@ namespace ParangEngine
 
         private void RenderDebug()
         {
-            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Albedo), 0, 0, resolution.Width / 2, resolution.Height / 2);
-            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Position), resolution.Width / 2, 0, resolution.Width / 2, resolution.Height / 2);
-            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Normal), 0, resolution.Height / 2, resolution.Width / 2, resolution.Height / 2);
-            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Surface), resolution.Width / 2, resolution.Height / 2, resolution.Width / 2, resolution.Height / 2);
+            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Albedo), 0, 0, resolution.Width / 5, resolution.Height / 5);
+            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Position), 0, resolution.Height / 5, resolution.Width / 5, resolution.Height / 5);
+            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Normal), 0, resolution.Height / 5 * 2, resolution.Width / 5, resolution.Height / 5);
+            buffer.Graphics.DrawImage(scene.MainCamera.GetBuffer(GBuffer.BufferType.Surface), 0, resolution.Height / 5 * 3, resolution.Width / 5, resolution.Height / 5);
         }
 
         private void RenderTask()
@@ -99,7 +113,9 @@ namespace ParangEngine
                 if (scene.MainCamera == null) return;
                 scene.Render();
                 buffer.Graphics.DrawImage(scene.MainCamera.RenderTarget, 0, 0, resolution.Width, resolution.Height);
-                // RenderDebug();
+                if (showDebug) RenderDebug();
+                DrawText($"{avrFramePerMs}ms [{targetFramePerMs}]", 5f, 10f);
+                DrawText($"FPS : {avrFps} [{targetFps}]", 5f, 30f);
                 buffer.Render(graphics);
             }
         }
@@ -120,8 +136,23 @@ namespace ParangEngine
                 }
                 var span = DateTime.UtcNow.Ticks - now;
                 var diff = (int)(span / TimeSpan.TicksPerMillisecond);
-                if (diff < 33) await Task.Delay(33 - diff);
+                if (diff < targetFramePerMs)
+                {
+                    avrFramePerMs = targetFramePerMs;// (avrFramePerMs + targetFramePerMs) / 2;
+                    avrFps = targetFps;// (avrFps + 1000 / targetFramePerMs) / 2;
+                    await Task.Delay(targetFramePerMs);
+                }
+                else
+                {
+                    avrFramePerMs = diff;// (avrFramePerMs + diff) / 2;
+                    avrFps = 1000 / diff;// (avrFps + 1000 / diff) / 2;
+                }
             }
+        }
+
+        public void DrawText(string text, float x, float y)
+        {
+            buffer.Graphics.DrawString(text, font, brush, x, y);
         }
     }
 }
